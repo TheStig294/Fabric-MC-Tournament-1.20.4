@@ -3,15 +3,15 @@
 	"id": "mctournament",
 	"version": "${version}",
 	"name": "MC Tournament",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "A Fabric mod for 1.20.4 adding in-depth minigames for a Minecraft tournament with friends!",
 	"authors": [
-		"Me!"
+		"TheStig294"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"sources": "https://github.com/TheStig294/Fabric-MC-Tournament-1.20.4"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/mctournament/icon.png",
 	"environment": "*",
 	"entrypoints": {
@@ -20,6 +20,9 @@
 		],
 		"fabric-datagen": [
 			"net.thestig294.mctournament.MCTournamentDataGenerator"
+		],
+		"client": [
+			"net.thestig294.mctournament.MCTournamentClient"
 		]
 	},
 	"mixins": [
