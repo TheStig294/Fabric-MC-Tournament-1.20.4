@@ -2,6 +2,7 @@ package net.thestig294.mctournament;
 
 import net.fabricmc.api.ModInitializer;
 
+import net.thestig294.mctournament.item.ModItemGroups;
 import net.thestig294.mctournament.item.ModItems;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,9 @@ public class MCTournament implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		LOGGER.info("====Hello Server World!====");
+
 		ModItems.registerItems();
+		ModItemGroups.registerItemGroups();
 	}
 }
