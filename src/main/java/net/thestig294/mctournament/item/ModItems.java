@@ -6,10 +6,11 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 import net.thestig294.mctournament.MCTournament;
+import net.thestig294.mctournament.item.custom.RemoteItem;
 
 public class ModItems {
     public static final Item TROPHY = register("trophy", new Item(new FabricItemSettings()));
-    public static final Item REMOTE = register("remote", new Item(new FabricItemSettings()));
+    public static final Item REMOTE = register("remote", new RemoteItem(new FabricItemSettings()));
 
     private static Item register(String name, Item item){
         return Registry.register(Registries.ITEM, new Identifier(MCTournament.MOD_ID, name), item);
