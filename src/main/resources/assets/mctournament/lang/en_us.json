@@ -1,4 +1,10 @@
 {
+  "screen.mctournament.question" : "Question Screen",
+  "widget.mctournament.question.button1" : "Question 1",
+  "widget.mctournament.question.button2" : "Question 2",
+  "widget.mctournament.question.button3" : "Question 3",
+  "widget.mctournament.question.button4" : "Question 4",
+
   "itemgroup.mctournament" : "MC Tournament",
   "item.mctournament.trophy" : "Trophy",
   "item.mctournament.remote" : "Remote"
