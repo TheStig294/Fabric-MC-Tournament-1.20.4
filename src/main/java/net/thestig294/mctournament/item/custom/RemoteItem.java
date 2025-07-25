@@ -24,7 +24,8 @@ public class RemoteItem extends Item {
         user.playSound(SoundEvents.BLOCK_ANVIL_PLACE, SoundCategory.NEUTRAL, 1.0f, 1.0f);
 
         if (world.isClient()) {
-            MinecraftClient.getInstance().setScreen(new QuestionScreen(Text.translatable("screen.mctournament.question")));
+            MinecraftClient client = MinecraftClient.getInstance();
+            client.setScreen(new QuestionScreen(Text.translatable("screen.mctournament.question"), client.currentScreen));
         }
 
         return TypedActionResult.success(itemStack);
