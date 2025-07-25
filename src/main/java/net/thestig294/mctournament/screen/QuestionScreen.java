@@ -3,12 +3,12 @@ package net.thestig294.mctournament.screen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.text.Text;
+import net.thestig294.mctournament.widget.QuestionButton;
+import net.thestig294.mctournament.widget.QuestionText;
 
 public class QuestionScreen extends Screen {
-    public Screen parent;
+    private final Screen parent;
 
     public QuestionScreen(Text title, Screen parent) {
         super(title);
@@ -19,25 +19,12 @@ public class QuestionScreen extends Screen {
     protected void init() {
         super.init();
 
-//        Literally just derma from Gmod all over again lol (bugs included!)
+        this.addDrawableChild(new QuestionText(this,this.width / 10, this.height / 3, "Approximately how many bridges are there in Venice?", this.textRenderer));
 
-        ButtonWidget button1 = ButtonWidget.builder(Text.translatable("widget.mctournament.question.button1"), but -> this.clickAnswer(1))
-                .position(this.width / 2 - 100, this.height / 2 - 100)
-                .build();
-        ButtonWidget button2 = ButtonWidget.builder(Text.translatable("widget.mctournament.question.button2"), but -> this.clickAnswer(2))
-                .position(this.width / 2 + 100, this.height / 2 - 100)
-                .build();
-        ButtonWidget button3 = ButtonWidget.builder(Text.translatable("widget.mctournament.question.button3"), but -> this.clickAnswer(3))
-                .position(this.width / 2 - 100, this.height / 2 + 100)
-                .build();
-        ButtonWidget button4 = ButtonWidget.builder(Text.translatable("widget.mctournament.question.button4"), but -> this.clickAnswer(4))
-                .position(this.width / 2 + 100, this.height / 2 + 100)
-                .build();
-
-        this.addDrawableChild(button1);
-        this.addDrawableChild(button2);
-        this.addDrawableChild(button3);
-        this.addDrawableChild(button4);
+        this.addDrawableChild(new QuestionButton(this, this.width * 2/3, this.height / 2, 120, 20, 1, "50"));
+        this.addDrawableChild(new QuestionButton(this, this.width * 2/3, this.height / 2 + 30, 120, 20, 2, "100"));
+        this.addDrawableChild(new QuestionButton(this, this.width * 2/3, this.height / 2 + 60, 120, 20, 3, "200"));
+        this.addDrawableChild(new QuestionButton(this, this.width * 2/3, this.height / 2 + 90, 120, 20, 4, "400"));
     }
 
     @Override
@@ -48,17 +35,5 @@ public class QuestionScreen extends Screen {
     @Override
     public void close() {
         MinecraftClient.getInstance().setScreen(this.parent);
-    }
-
-    private void clickAnswer(int answer) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        ClientPlayerEntity player = client.player;
-
-
-        if (player != null) {
-            player.sendMessage(Text.literal("You answered question: " + answer), true);
-        }
-
-        this.close();
     }
 }

@@ -2,6 +2,7 @@ package net.thestig294.mctournament;
 
 import net.fabricmc.api.ModInitializer;
 
+import net.thestig294.mctournament.font.ModFonts;
 import net.thestig294.mctournament.item.ModItemGroups;
 import net.thestig294.mctournament.item.ModItems;
 import org.slf4j.Logger;
@@ -17,5 +18,7 @@ public class MCTournament implements ModInitializer {
 
 		ModItems.registerItems();
 		ModItemGroups.registerItemGroups();
+
+		ModFonts.registerFonts();
 	}
 }
