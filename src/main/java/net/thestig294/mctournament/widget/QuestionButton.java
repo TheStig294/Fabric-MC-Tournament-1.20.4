@@ -2,6 +2,7 @@ package net.thestig294.mctournament.widget;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.PressableWidget;
@@ -11,14 +12,13 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.thestig294.mctournament.font.ModFonts;
-import net.thestig294.mctournament.screen.QuestionScreen;
 
 public class QuestionButton extends PressableWidget {
     private final int questionNumber;
-    private final QuestionScreen screen;
+    private final Screen screen;
     private final boolean isCorrect;
 
-    public QuestionButton(QuestionScreen screen, int x, int y, int width, int height, int questionNumber, String text, boolean isCorrect) {
+    public QuestionButton(Screen screen, int x, int y, int width, int height, int questionNumber, String text, boolean isCorrect) {
         super(x, y, width, height, Text.literal(text).styled(style -> style.withFont(ModFonts.QUESTION_ANSWER)));
 
         this.questionNumber = questionNumber;
@@ -32,10 +32,9 @@ public class QuestionButton extends PressableWidget {
 
         if (player != null) {
             player.sendMessage(Text.literal("You chose answer: " + this.questionNumber), true);
-            MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK, 1.0f));
 
             if (this.isCorrect()) {
-                this.screen.incrementNumberAnswered();
+                MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.ambient(SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK));
             } else {
                 this.screen.close();
             }

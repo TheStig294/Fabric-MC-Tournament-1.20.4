@@ -6,18 +6,16 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.thestig294.mctournament.font.ModFonts;
+import net.thestig294.mctournament.util.ModUtil;
 import net.thestig294.mctournament.widget.QuestionButton;
 import net.thestig294.mctournament.widget.QuestionText;
 
 public class QuestionScreen extends Screen {
     private final Screen parent;
-    private int numberAnswered;
-    private QuestionText numberAnsweredText;
 
     public QuestionScreen(Text title, Screen parent) {
         super(title);
         this.parent = parent;
-        this.numberAnswered = 0;
     }
 
     @Override
@@ -34,18 +32,15 @@ public class QuestionScreen extends Screen {
 
         this.addDrawableChild(new QuestionText(this,10, this.height - 75,
                 "ANSWER\nNOW!", ModFonts.QUESTION_ANSWER, 15, Colors.RED, this.textRenderer));
-
-        this.numberAnsweredText = new QuestionText(this, 25, this.height - 50,
-                "0", ModFonts.QUESTION_NUMBER, 20, Colors.LIGHT_RED, this.textRenderer);
-        this.addDrawableChild(this.numberAnsweredText);
-
+        this.addDrawableChild(new QuestionText(this, 25, this.height - 50,
+                "0", ModFonts.QUESTION_NUMBER, 20, Colors.LIGHT_RED, this.textRenderer));
         this.addDrawableChild(new QuestionText(this, 0, this.height - 15,
                 "ANSWERED", ModFonts.QUESTION_ANSWER, 10, Colors.GRAY, this.textRenderer));
 
         this.addDrawableChild(new QuestionText(this, this.width - 100, this.height - 30,
                 "MINECRAFT.TV", ModFonts.QUESTION_ANSWER, 10, Colors.GRAY, this.textRenderer));
         this.addDrawableChild(new QuestionText(this, this.width - 50, this.height - 15,
-                "HHVA", ModFonts.QUESTION_ANSWER, 10, Colors.RED, this.textRenderer));
+                ModUtil.getRandomString(4, 2), ModFonts.QUESTION_ANSWER, 10, Colors.RED, this.textRenderer));
     }
 
     @Override
@@ -56,11 +51,5 @@ public class QuestionScreen extends Screen {
     @Override
     public void close() {
         MinecraftClient.getInstance().setScreen(this.parent);
-    }
-
-    public void incrementNumberAnswered() {
-        this.numberAnswered++;
-        numberAnsweredText.updateText(Text.literal(Integer.toString(this.numberAnswered))
-                .styled(style -> style.withFont(ModFonts.QUESTION_NUMBER)), Colors.LIGHT_RED);
     }
 }
