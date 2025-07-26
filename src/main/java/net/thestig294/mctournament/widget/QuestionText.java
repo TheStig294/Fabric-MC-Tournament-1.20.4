@@ -28,11 +28,11 @@ public class QuestionText extends MultilineTextWidget {
     private final OptionalInt maxRows;
     private final CachedMapper<QuestionText.CacheKey, MultilineText> cacheKeyToText;
 
-    public QuestionText(Screen screen, int x, int y, String text, Identifier font, int lineHeight, int color, TextRenderer textRenderer){
-        this(screen, x, y, text, font, lineHeight, color, textRenderer, 0);
+    public QuestionText(Screen screen, int x, int y, String text, Identifier font, int lineHeight, int color, int maxWidth, TextRenderer textRenderer){
+        this(screen, x, y, text, font, lineHeight, color, maxWidth, textRenderer, 0);
     }
 
-    public QuestionText(Screen screen, int x, int y, String text, Identifier font, int lineHeight, int color, TextRenderer textRenderer, int intValue) {
+    public QuestionText(Screen screen, int x, int y, String text, Identifier font, int lineHeight, int color, int maxWidth, TextRenderer textRenderer, int intValue) {
         super(x, y, Text.literal(text).styled(style -> style.withFont(font)), textRenderer);
         this.screen = screen;
         this.lineHeight = lineHeight;
@@ -46,11 +46,11 @@ public class QuestionText extends MultilineTextWidget {
                         : MultilineText.create(textRenderer, cacheKey.message, cacheKey.maxWidth)
         );
 
-        this.maxWidth = this.screen.width / 2;
         this.maxRows = OptionalInt.of(10);
+        this.maxWidth = maxWidth;
 
         this.setTextColor(color);
-        this.setMaxWidth(this.maxWidth);
+        this.setMaxWidth(maxWidth);
         this.setMaxRows(this.maxRows.getAsInt());
         this.setCentered(true);
     }

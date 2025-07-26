@@ -5,6 +5,7 @@ import net.fabricmc.api.ModInitializer;
 import net.thestig294.mctournament.font.ModFonts;
 import net.thestig294.mctournament.item.ModItemGroups;
 import net.thestig294.mctournament.item.ModItems;
+import net.thestig294.mctournament.texture.ModTextures;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,5 +21,6 @@ public class MCTournament implements ModInitializer {
 		ModItemGroups.registerItemGroups();
 
 		ModFonts.registerFonts();
+		ModTextures.registerTextures();
 	}
 }

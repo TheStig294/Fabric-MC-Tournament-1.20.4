@@ -4,4 +4,4 @@ A Fabric mod for 1.20.4 adding in-depth minigames for a Minecraft tournament wit
 ## Credits
 Icons from https://game-icons.net\
 Laurels trophy icon by Delapouite under https://creativecommons.org/licenses/by/3.0/ \
-Horror Scribbles font by Chelsea Muchantef: https://www.dafont.com/horrorscribbles.font
+Secret Halloween font by Rikki Ibrahim: https://www.fontspace.com/secret-halloween-font-f86543
