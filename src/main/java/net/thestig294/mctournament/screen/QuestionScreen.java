@@ -6,7 +6,6 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.thestig294.mctournament.font.ModFonts;
-import net.thestig294.mctournament.texture.ModTextures;
 import net.thestig294.mctournament.util.ModUtil;
 import net.thestig294.mctournament.widget.QuestionButton;
 import net.thestig294.mctournament.widget.QuestionText;
@@ -46,7 +45,7 @@ public class QuestionScreen extends Screen {
                 ModUtil.getRandomString(4, 2), ModFonts.QUESTION_ANSWER, 10, Colors.RED, 100, this.textRenderer));
 
         this.addDrawableChild(new QuestionTimer(this.width / 3, this.height - 64, 64, 64,
-                ModTextures.QUESTION_TIMER_FRONT, ModTextures.QUESTION_TIMER_BACK, 30, 1.0f, 3, this.textRenderer));
+                30, 1.0f, 3, this.textRenderer));
     }
 
     @Override
