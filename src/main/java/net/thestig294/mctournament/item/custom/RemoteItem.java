@@ -1,5 +1,7 @@
 package net.thestig294.mctournament.item.custom;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -20,10 +22,15 @@ public class RemoteItem extends Item {
         ItemStack itemStack = user.getStackInHand(hand);
 
         if (world.isClient()) {
-            MinecraftClient client = MinecraftClient.getInstance();
-            client.setScreen(new QuestionScreen(Text.translatable("screen.mctournament.question"), client.currentScreen));
+            this.openQuestionScreen();
         }
 
         return TypedActionResult.success(itemStack);
+    }
+
+    @Environment(EnvType.CLIENT)
+    private void openQuestionScreen() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        client.setScreen(new QuestionScreen(Text.translatable("screen.mctournament.question"), client.currentScreen));
     }
 }

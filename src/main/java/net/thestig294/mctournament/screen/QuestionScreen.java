@@ -3,6 +3,8 @@ package net.thestig294.mctournament.screen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import net.thestig294.mctournament.font.ModFonts;
 import net.thestig294.mctournament.util.ModUtil;
@@ -12,6 +14,7 @@ import net.thestig294.mctournament.widget.QuestionText;
 import net.thestig294.mctournament.widget.QuestionTimer;
 
 import java.awt.*;
+import java.util.List;
 
 public class QuestionScreen extends Screen {
     private final Screen parent;
@@ -24,9 +27,18 @@ public class QuestionScreen extends Screen {
     @Override
     protected void init() {
         super.init();
+        ClientWorld world = MinecraftClient.getInstance().world;
+        if (world == null) {
+            return;
+        }
 
-        this.addDrawableChild(new QuestionPlayer(0, 5, this.width / 8, this.height / 3,
-                MinecraftClient.getInstance().player, this.textRenderer, Color.PINK));
+        List<? extends PlayerEntity> players = world.getPlayers();
+
+        for (int i = 0; i < players.size(); i++) {
+            PlayerEntity player = players.get(i);
+            player.setCustomNameVisible(false);
+            this.addDrawableChild(new QuestionPlayer(i * this.width / 8, 5, this.width / 8, this.height / 3, player));
+        }
 
         this.addDrawableChild(new QuestionText(this.width / 30, this.height / 3,
                 "In what Daniel Day-Lewis film does he say the line “Stay alive! No matter what occurs. I will find you!”?",
