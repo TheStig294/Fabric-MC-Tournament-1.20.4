@@ -44,8 +44,7 @@ public class QuestionScreen extends Screen {
         this.addDrawableChild(new QuestionText(this, this.width - 40, this.height - 15,
                 ModUtil.getRandomString(4, 2), ModFonts.QUESTION_ANSWER, 10, Colors.RED, 100, this.textRenderer));
 
-        this.addDrawableChild(new QuestionTimer(this.width / 3, this.height - 64, 64, 64,
-                30, 1.0f, 3, this.textRenderer));
+        this.addDrawableChild(new QuestionTimer(this.width / 3, this.height - 64, 64, 64, 20, 1.0f, 0));
     }
 
     @Override
