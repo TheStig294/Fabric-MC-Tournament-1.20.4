@@ -3,6 +3,7 @@ package net.thestig294.mctournament.widget;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.sound.SoundManager;
 import net.minecraft.text.Text;
 import net.thestig294.mctournament.texture.ModTextures;
 
@@ -40,6 +41,11 @@ public class QuestionTimer extends ClickableWidget {
 
     @Override
     protected void appendClickableNarrations(NarrationMessageBuilder builder) {
+
+    }
+
+    @Override
+    public void playDownSound(SoundManager soundManager) {
 
     }
 }
