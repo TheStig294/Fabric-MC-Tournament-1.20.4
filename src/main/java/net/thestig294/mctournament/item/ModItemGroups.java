@@ -16,7 +16,7 @@ public class ModItemGroups {
     @SuppressWarnings("unused")
     public static ItemGroup MC_TOURNAMENT = register("mctournament",
             FabricItemGroup.builder()
-                    .displayName(Text.translatable("itemgroup.mctournament"))
+                    .displayName(Text.translatable("itemGroup.mctournament"))
                     .icon(() -> new ItemStack(ModItems.TROPHY))
                     .entries((displayContext, entries) -> {
                         entries.add(ModItems.TROPHY);

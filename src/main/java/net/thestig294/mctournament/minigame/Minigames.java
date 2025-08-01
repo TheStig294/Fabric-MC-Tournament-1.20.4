@@ -16,7 +16,9 @@ public class Minigames {
 
     public static final Minigame TOURNAMENT_END = new TournamentEnd();
     public static final Minigame TRIVIA_MURDER_PARTY = register("trivia_murder_party", new TriviaMurderParty());
+    @SuppressWarnings("unused")
     public static final Minigame TOWERFALL = register("towerfall", new Towerfall());
+    @SuppressWarnings("unused")
     public static final Minigame MARIO_KART = register("mario_kart", new MarioKart());
 
 
@@ -25,6 +27,12 @@ public class Minigames {
     }
 
     public static Minigame register(Identifier id, Minigame minigame) {
+        if (ModUtil.isClient()) {
+            minigame.clientInit();
+        } else {
+            minigame.sharedInit();
+        }
+
         REGISTERED_MINIGAMES.put(id, minigame);
         return minigame;
     }

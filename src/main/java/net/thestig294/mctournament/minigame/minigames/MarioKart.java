@@ -1,5 +1,7 @@
 package net.thestig294.mctournament.minigame.minigames;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.text.Text;
 import net.thestig294.mctournament.minigame.Minigame;
 
@@ -10,27 +12,35 @@ public class MarioKart extends Minigame {
     }
 
     @Override
-    public void preHookInit() {
+    public void sharedInit() {
 
     }
 
     @Override
-    public void setHooks() {
+    public void sharedBegin() {
 
     }
 
     @Override
-    public void postHookInit() {
+    public void sharedCleanup() {
 
     }
 
+    @Environment(EnvType.CLIENT)
     @Override
-    public void begin() {
+    public void clientInit() {
 
     }
 
+    @Environment(EnvType.CLIENT)
     @Override
-    public void cleanup() {
+    public void clientBegin() {
+
+    }
+
+    @Environment(EnvType.CLIENT)
+    @Override
+    public void clientCleanup() {
 
     }
 }

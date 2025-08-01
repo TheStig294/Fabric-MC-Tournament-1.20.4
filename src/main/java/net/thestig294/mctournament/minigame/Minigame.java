@@ -1,5 +1,7 @@
 package net.thestig294.mctournament.minigame;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.text.Text;
 import net.thestig294.mctournament.tournament.Tournament;
 
@@ -12,22 +14,29 @@ public abstract class Minigame {
 
     public abstract Text getName();
 
-    public abstract void preHookInit();
+    public abstract void sharedInit();
 
-    public abstract void setHooks();
+    public abstract void sharedBegin();
 
-    public abstract void postHookInit();
+    public abstract void sharedCleanup();
 
-    public abstract void begin();
+    @Environment(EnvType.CLIENT)
+    public abstract void clientInit();
 
-    public abstract void cleanup();
+    @Environment(EnvType.CLIENT)
+    public abstract void clientBegin();
+
+    @Environment(EnvType.CLIENT)
+    public abstract void clientCleanup();
 
 //    Must be called at the end of a minigame to clean up any events for the next minigame,
 //    and for the Tournament instance to tally the scores from the minigame's scoreboard
+    @SuppressWarnings("unused")
     public void endMinigame() {
         Tournament.getInstance().endRound();
     }
 
+    @SuppressWarnings("unused")
     public MinigameScoreboard getScoreboard() {
         return this.scoreboard;
     }

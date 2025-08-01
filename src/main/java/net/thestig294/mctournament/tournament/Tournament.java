@@ -2,9 +2,9 @@ package net.thestig294.mctournament.tournament;
 
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.text.Text;
-import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.Minigame;
 import net.thestig294.mctournament.minigame.Minigames;
+import net.thestig294.mctournament.util.ModUtil;
 
 import java.util.List;
 
@@ -20,41 +20,46 @@ public class Tournament {
 
         this.minigames = settings.getMinigames();
         this.updateMinigame();
-
-        this.minigame.preHookInit();
-        this.minigame.setHooks();
-        this.minigame.postHookInit();
-        this.minigame.begin();
     }
 
     public Minigame getMinigame() {
         return this.minigame;
     }
 
+    @SuppressWarnings("unused")
     public Scoreboard getScoreboard() {
         return this.scoreboard;
     }
 
+    public void endRound() {
+        this.minigame.sharedCleanup();
+        if (ModUtil.isClient()) {
+            this.minigame.clientCleanup();
+        }
+
+        this.round++;
+        this.updateMinigame();
+    }
+
     private void updateMinigame() {
-        if (this.minigame == null) {
-            this.minigame = this.minigames.get(this.round);
-        } else if (this.minigame.equals(Minigames.TOURNAMENT_END)) {
+        if (this.minigame != null && this.minigame.equals(Minigames.TOURNAMENT_END)) {
             this.endTournament();
+            return;
         } else if (this.round >= this.minigames.size()) {
             this.minigame = Minigames.TOURNAMENT_END;
         } else {
             this.minigame = this.minigames.get(this.round);
         }
-    }
 
-    public void endRound() {
-        this.minigame.cleanup();
-        this.round++;
-        this.updateMinigame();
+        this.minigame.sharedBegin();
+
+        if (ModUtil.isClient()) {
+            this.minigame.clientBegin();
+        }
     }
 
     public void endTournament() {
-        MCTournament.SERVER.getPlayerManager().broadcast(Text.translatable("tournament.mctournament.end_message"), true);
+        ModUtil.SERVER.getPlayerManager().broadcast(Text.translatable("tournament.mctournament.end_message"), true);
     }
 
 
