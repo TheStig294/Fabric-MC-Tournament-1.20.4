@@ -23,6 +23,6 @@ public class ModTextures {
     }
 
     public static void registerTextures() {
-        MCTournament.LOGGER.info("Registering textures for: " + MCTournament.MOD_ID);
+        MCTournament.LOGGER.info("Registering textures for " + MCTournament.MOD_ID);
     }
 }

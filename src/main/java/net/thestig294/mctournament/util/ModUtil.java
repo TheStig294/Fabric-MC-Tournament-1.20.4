@@ -22,4 +22,8 @@ public class ModUtil {
 
         return new String(builder);
     }
+
+    public static int clampInt(int value, int min, int max) {
+        return Math.min(max, Math.max(value, min));
+    }
 }

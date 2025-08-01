@@ -1,7 +1,14 @@
 {
   "screen.mctournament.question" : "Question Screen",
 
-  "itemgroup.mctournament" : "MC Tournament",
+  "item_group.mctournament" : "MC Tournament",
   "item.mctournament.trophy" : "Trophy",
-  "item.mctournament.remote" : "Remote"
+  "item.mctournament.remote" : "Remote",
+
+  "minigame.tournament_end.name": "Tournament End",
+  "minigame.trivia_murder_party.name" : "Trivia Murder Party",
+  "minigame.towerfall.name" : "Towerfall",
+  "minigame.mario_kart.name" : "Mario Kart",
+
+  "tournament.mctournament.end_message": "Tournament over! Thanks for playing!"
 }

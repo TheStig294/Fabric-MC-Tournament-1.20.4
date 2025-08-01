@@ -13,6 +13,6 @@ public class ModFonts {
     }
 
     public static void registerFonts(){
-        MCTournament.LOGGER.info("Registering custom fonts for: " + MCTournament.MOD_ID);
+        MCTournament.LOGGER.info("Registering fonts for " + MCTournament.MOD_ID);
     }
 }
