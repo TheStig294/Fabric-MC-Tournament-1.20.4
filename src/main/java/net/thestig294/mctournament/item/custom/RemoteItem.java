@@ -21,10 +21,10 @@ public class RemoteItem extends Item {
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         ItemStack itemStack = user.getStackInHand(hand);
 
-//        if (!world.isClient()) {
+        if (!world.isClient()) {
             Tournament tournament = Tournament.getInstance();
-            tournament.setup(new TournamentSettings().minigames(List.of(Minigames.TRIVIA_MURDER_PARTY)), world.isClient());
-//        }
+            tournament.serverSetup(new TournamentSettings().minigames(List.of(Minigames.TRIVIA_MURDER_PARTY)));
+        }
 
         return TypedActionResult.success(itemStack);
     }

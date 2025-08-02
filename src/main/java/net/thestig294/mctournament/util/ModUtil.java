@@ -1,6 +1,9 @@
 package net.thestig294.mctournament.util;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.math.random.Random;
+import net.thestig294.mctournament.MCTournament;
 
 public class ModUtil {
 //    Used for the fake room code shown on the bottom right of the QuestionScreen
@@ -25,5 +28,13 @@ public class ModUtil {
 
     public static int clampInt(int value, int min, int max) {
         return Math.min(max, Math.max(value, min));
+    }
+
+    public static boolean isDedicated(EnvType realm) {
+        if (realm == EnvType.CLIENT) {
+            return !MCTournament.CLIENT.isInSingleplayer() && FabricLoader.getInstance().getEnvironmentType() == realm;
+        } else {
+            return FabricLoader.getInstance().getEnvironmentType() == realm && MCTournament.SERVER.isDedicated();
+        }
     }
 }

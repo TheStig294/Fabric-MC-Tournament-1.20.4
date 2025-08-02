@@ -10,23 +10,24 @@ import net.thestig294.mctournament.minigame.minigames.TriviaMurderParty;
 import net.thestig294.mctournament.util.ModUtil;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 public class Minigames {
     private static final Map<Identifier, Minigame> REGISTERED_MINIGAMES = new HashMap<>();
 
-    public static final Minigame TOURNAMENT_END = new TournamentEnd();
-    public static final Minigame TRIVIA_MURDER_PARTY = register("trivia_murder_party", new TriviaMurderParty());
-    public static final Minigame TOWERFALL = register("towerfall", new Towerfall());
-    public static final Minigame MARIO_KART = register("mario_kart", new MarioKart());
+    public static final Identifier TOURNAMENT_END = register("tournament_end", new TournamentEnd());
+    public static final Identifier TRIVIA_MURDER_PARTY = register("trivia_murder_party", new TriviaMurderParty());
+    public static final Identifier TOWERFALL = register("towerfall", new Towerfall());
+    public static final Identifier MARIO_KART = register("mario_kart", new MarioKart());
 
 
-    private static Minigame register(String name, Minigame minigame) {
+    private static Identifier register(String name, Minigame minigame) {
         return register(new Identifier(MCTournament.MOD_ID, name), minigame);
     }
 
-    public static Minigame register(Identifier id, Minigame minigame) {
+    public static Identifier register(Identifier id, Minigame minigame) {
         REGISTERED_MINIGAMES.put(id, minigame);
-        return minigame;
+        return id;
     }
 
     public static void registerMinigames(boolean isClient) {
@@ -44,11 +45,13 @@ public class Minigames {
         }
     }
 
+//    Gets all minigame IDs, except for the special "tournament end" minigame, as it's not a valid minigame to actually play...
     public static ArrayList<Identifier> getMinigameIds() {
-        return new ArrayList<>(REGISTERED_MINIGAMES.keySet().stream().toList());
+        return new ArrayList<>(REGISTERED_MINIGAMES.keySet().stream().filter(identifier -> !identifier.equals(TOURNAMENT_END)).toList());
     }
 
-    public static List<Minigame> getRandomMinigames(int count){
+    public static List<Identifier> getRandomMinigames(int count){
+        count = ModUtil.clampInt(count, 1, REGISTERED_MINIGAMES.size());
         if (count == 1) {
             return List.of(getRandomMinigame());
         }
@@ -56,21 +59,32 @@ public class Minigames {
         List<Identifier> idList = getMinigameIds();
         Collections.shuffle(idList);
 
-        List<Minigame> result = new ArrayList<>();
-        count = ModUtil.clampInt(count, 1, REGISTERED_MINIGAMES.size());
+        List<Identifier> result = new ArrayList<>();
 
         for (int i = 0; i < count; i++) {
-            result.add(REGISTERED_MINIGAMES.get(idList.get(i)));
+            result.add(idList.get(i));
         }
 
         return result;
     }
 
-    public static Minigame getRandomMinigame() {
+    public static Identifier getRandomMinigame() {
         Random random = Random.create();
         List<Identifier> idList = getMinigameIds();
         int randomIndex = random.nextBetween(0, idList.size());
 
-        return REGISTERED_MINIGAMES.get(idList.get(randomIndex));
+        return idList.get(randomIndex);
+    }
+
+    public static Minigame get(Identifier id) {
+        return REGISTERED_MINIGAMES.get(id);
+    }
+
+    public static List<Minigame> get(List<Identifier> ids) {
+        List<Minigame> result = new ArrayList<>();
+        for (final var id : ids) {
+            result.add(get(id));
+        }
+        return result;
     }
 }

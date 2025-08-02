@@ -1,29 +1,29 @@
 package net.thestig294.mctournament.tournament;
 
-import net.thestig294.mctournament.minigame.Minigame;
+import net.minecraft.util.Identifier;
 import net.thestig294.mctournament.minigame.Minigames;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class TournamentSettings {
-    private List<Minigame> minigames;
+    private List<Identifier> minigameIDs;
 
     public TournamentSettings() {
-        this.minigames = new ArrayList<>();
+        this.minigameIDs = new ArrayList<>();
     }
 
-    public TournamentSettings minigames(List<Minigame> minigames) {
-        this.minigames = minigames;
+    public TournamentSettings minigames(List<Identifier> minigames) {
+        this.minigameIDs = minigames;
         return this;
     }
 
     public TournamentSettings minigames(int count) {
-        this.minigames = Minigames.getRandomMinigames(count);
+        this.minigameIDs = Minigames.getRandomMinigames(count);
         return this;
     }
 
-    public List<Minigame> getMinigames() {
-        return this.minigames;
+    public List<Identifier> getMinigames() {
+        return this.minigameIDs;
     }
 }

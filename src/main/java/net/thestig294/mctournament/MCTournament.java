@@ -11,6 +11,7 @@ import net.thestig294.mctournament.item.ModItems;
 import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.network.ModNetworking;
 import net.thestig294.mctournament.texture.ModTextures;
+import net.thestig294.mctournament.tournament.Tournament;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,5 +36,6 @@ public class MCTournament implements ModInitializer {
 		ModTextures.registerTextures();
 
 		Minigames.registerMinigames(false);
+		Tournament.getInstance().serverInit();
 	}
 }
