@@ -21,7 +21,6 @@ public class QuestionText extends MultilineTextWidget {
     private int intValue;
 
     private final int maxWidth;
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private final OptionalInt maxRows;
     private final CachedMapper<QuestionText.CacheKey, MultilineText> cacheKeyToText;
 
@@ -61,18 +60,15 @@ public class QuestionText extends MultilineTextWidget {
         }
     }
 
-    @SuppressWarnings("unused")
     public void updateText(Text text, int color) {
         this.updatedText = text;
         this.updatedColor = color;
     }
 
-    @SuppressWarnings("unused")
     public int getIntValue() {
         return this.intValue;
     }
 
-    @SuppressWarnings("unused")
     public void setIntValue(int intValue){
         this.intValue = intValue;
     }

@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Colors;
 import net.thestig294.mctournament.font.ModFonts;
 import net.thestig294.mctournament.util.ModUtil;
 import net.thestig294.mctournament.widget.QuestionButton;
@@ -31,8 +32,9 @@ public class QuestionScreen extends Screen {
         if (world == null) {
             return;
         }
-
         List<? extends PlayerEntity> players = world.getPlayers();
+
+        this.addDrawableChild(new QuestionText(this.width / 2, this.height / 2, "1", ModFonts.QUESTION_NUMBER, 20, Color.YELLOW,this.width / 2, this.textRenderer));
 
         for (int i = 0; i < players.size(); i++) {
             PlayerEntity player = players.get(i);

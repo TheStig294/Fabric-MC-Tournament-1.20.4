@@ -1,19 +1,8 @@
 package net.thestig294.mctournament.util;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.random.Random;
 
 public class ModUtil {
-    public static MinecraftServer SERVER;
-    public static MinecraftClient CLIENT;
-
-    public static boolean isClient() {
-        return FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
-    }
-
 //    Used for the fake room code shown on the bottom right of the QuestionScreen
 //    (And potentially elsewhere, so I'm shoving this in a Util class :P)
     public static String getRandomString(int length, int numberChars){

@@ -13,7 +13,6 @@ import net.minecraft.util.Identifier;
 import net.thestig294.mctournament.MCTournament;
 
 public class ModItemGroups {
-    @SuppressWarnings("unused")
     public static ItemGroup MC_TOURNAMENT = register("mctournament",
             FabricItemGroup.builder()
                     .displayName(Text.translatable("itemGroup.mctournament"))
@@ -24,7 +23,6 @@ public class ModItemGroups {
                     })
     );
 
-    @SuppressWarnings("SameParameterValue")
     private static ItemGroup register(String name, ItemGroup.Builder itemGroup) {
         return Registry.register(Registries.ITEM_GROUP, new Identifier(MCTournament.MOD_ID, name), itemGroup.build());
     }

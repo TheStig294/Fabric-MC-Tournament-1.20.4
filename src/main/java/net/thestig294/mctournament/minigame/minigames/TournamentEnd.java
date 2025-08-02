@@ -13,17 +13,17 @@ public class TournamentEnd extends Minigame {
     }
 
     @Override
-    public void sharedInit() {
+    public void serverInit() {
 
     }
 
     @Override
-    public void sharedBegin() {
+    public void serverBegin() {
 
     }
 
     @Override
-    public void sharedCleanup() {
+    public void serverEnd() {
 
     }
 
@@ -41,7 +41,7 @@ public class TournamentEnd extends Minigame {
 
     @Environment(EnvType.CLIENT)
     @Override
-    public void clientCleanup() {
+    public void clientEnd() {
 
     }
 }

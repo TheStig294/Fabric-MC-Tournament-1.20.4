@@ -14,11 +14,11 @@ public abstract class Minigame {
 
     public abstract Text getName();
 
-    public abstract void sharedInit();
+    public abstract void serverInit();
 
-    public abstract void sharedBegin();
+    public abstract void serverBegin();
 
-    public abstract void sharedCleanup();
+    public abstract void serverEnd();
 
     @Environment(EnvType.CLIENT)
     public abstract void clientInit();
@@ -27,16 +27,14 @@ public abstract class Minigame {
     public abstract void clientBegin();
 
     @Environment(EnvType.CLIENT)
-    public abstract void clientCleanup();
+    public abstract void clientEnd();
 
 //    Must be called at the end of a minigame to clean up any events for the next minigame,
 //    and for the Tournament instance to tally the scores from the minigame's scoreboard
-    @SuppressWarnings("unused")
-    public void endMinigame() {
-        Tournament.getInstance().endRound();
+    public void endMinigame(boolean isClient) {
+        Tournament.getInstance().endRound(isClient);
     }
 
-    @SuppressWarnings("unused")
     public MinigameScoreboard getScoreboard() {
         return this.scoreboard;
     }

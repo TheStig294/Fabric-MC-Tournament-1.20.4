@@ -23,7 +23,7 @@ public class RemoteItem extends Item {
 
 //        if (!world.isClient()) {
             Tournament tournament = Tournament.getInstance();
-            tournament.setup(new TournamentSettings().minigames(List.of(Minigames.TRIVIA_MURDER_PARTY)));
+            tournament.setup(new TournamentSettings().minigames(List.of(Minigames.TRIVIA_MURDER_PARTY)), world.isClient());
 //        }
 
         return TypedActionResult.success(itemStack);

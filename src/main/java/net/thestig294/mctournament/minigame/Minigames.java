@@ -16,9 +16,7 @@ public class Minigames {
 
     public static final Minigame TOURNAMENT_END = new TournamentEnd();
     public static final Minigame TRIVIA_MURDER_PARTY = register("trivia_murder_party", new TriviaMurderParty());
-    @SuppressWarnings("unused")
     public static final Minigame TOWERFALL = register("towerfall", new Towerfall());
-    @SuppressWarnings("unused")
     public static final Minigame MARIO_KART = register("mario_kart", new MarioKart());
 
 
@@ -27,18 +25,23 @@ public class Minigames {
     }
 
     public static Minigame register(Identifier id, Minigame minigame) {
-        if (ModUtil.isClient()) {
-            minigame.clientInit();
-        } else {
-            minigame.sharedInit();
-        }
-
         REGISTERED_MINIGAMES.put(id, minigame);
         return minigame;
     }
 
-    public static void registerMinigames() {
+    public static void registerMinigames(boolean isClient) {
         MCTournament.LOGGER.info("Registering minigames for " + MCTournament.MOD_ID);
+        MCTournament.LOGGER.info(isClient ? "Client register" : "Server register");
+
+        if (isClient) {
+            for (final var entry : REGISTERED_MINIGAMES.entrySet()) {
+                entry.getValue().clientInit();
+            }
+        } else {
+            for (final var entry : REGISTERED_MINIGAMES.entrySet()) {
+                entry.getValue().serverInit();
+            }
+        }
     }
 
     public static ArrayList<Identifier> getMinigameIds() {
