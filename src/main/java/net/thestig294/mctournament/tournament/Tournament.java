@@ -11,7 +11,6 @@ import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.Minigame;
 import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.network.ModNetworking;
-import net.thestig294.mctournament.util.ModUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +59,7 @@ public class Tournament {
         return this.minigame;
     }
 
+    @SuppressWarnings("unused")
     public Scoreboard getScoreboard() {
         return this.scoreboard;
     }
@@ -67,6 +67,7 @@ public class Tournament {
 //    Must be called at the end of a minigame to clean up any events for the next minigame,
 //    and for the Tournament instance to tally the scores from the minigame's scoreboard.
 //    Can be called from a single client, or from the server
+    @SuppressWarnings("unused")
     public void endCurrentMinigame(boolean isClient) {
         if (isClient) {
             ModNetworking.sendToServer(ModNetworking.TOURNAMENT_CLIENT_END_ROUND);
@@ -117,8 +118,6 @@ public class Tournament {
     public void endTournament(boolean isClient) {
         if (!isClient) {
             MCTournament.SERVER.getPlayerManager().broadcast(Text.translatable("tournament.mctournament.end_message"), true);
-        } else {
-            MCTournament.CLIENT.inGameHud.getChatHud().addMessage(Text.literal("Your name is: " + MCTournament.CLIENT.player.getName().getString()));
         }
     }
 

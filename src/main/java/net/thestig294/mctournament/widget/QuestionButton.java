@@ -12,9 +12,6 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.thestig294.mctournament.font.ModFonts;
-import net.thestig294.mctournament.minigame.Minigame;
-import net.thestig294.mctournament.network.ModNetworking;
-import net.thestig294.mctournament.tournament.Tournament;
 
 public class QuestionButton extends PressableWidget {
     private final int questionNumber;
@@ -38,7 +35,6 @@ public class QuestionButton extends PressableWidget {
 
             if (this.isCorrect()) {
                 MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.ambient(SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK));
-                Tournament.getInstance().endCurrentMinigame(true);
             } else {
                 this.screen.close();
             }

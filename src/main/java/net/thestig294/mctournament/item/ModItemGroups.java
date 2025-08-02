@@ -22,6 +22,15 @@ public class ModItemGroups {
                         entries.add(ModItems.REMOTE);
                     })
     );
+    public static ItemGroup MINIGAME_TRIVIA_MURDER_PARTY = register("minigame_trivia_murder_party",
+            FabricItemGroup.builder()
+                    .displayName(Text.translatable("itemGroup.minigame_trivia_murder_party"))
+                    .icon(() -> new ItemStack(ModItems.TROPHY))
+                    .entries((displayContext, entries) -> {
+                        entries.add(ModItems.TROPHY);
+                        entries.add(ModItems.REMOTE);
+                    })
+    );
 
     private static ItemGroup register(String name, ItemGroup.Builder itemGroup) {
         return Registry.register(Registries.ITEM_GROUP, new Identifier(MCTournament.MOD_ID, name), itemGroup.build());
@@ -33,7 +42,8 @@ public class ModItemGroups {
     }
 
     public static void registerItemGroups(){
-        MCTournament.LOGGER.info("Registering item groups for " + MCTournament.MOD_ID);
+        MCTournament.LOGGER.info("Registering item group {} and {} for {}", MC_TOURNAMENT.getDisplayName().getString(),
+                MINIGAME_TRIVIA_MURDER_PARTY.getDisplayName().getString(), MCTournament.MOD_ID);
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(ModItemGroups::registerToIngredients);
     }
 }
