@@ -1,6 +1,7 @@
 package net.thestig294.mctournament.widget;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
@@ -16,13 +17,15 @@ import net.thestig294.mctournament.font.ModFonts;
 public class QuestionButton extends PressableWidget {
     private final int questionNumber;
     private final Screen screen;
+    private final TextRenderer textRenderer;
     private final boolean isCorrect;
 
-    public QuestionButton(Screen screen, int x, int y, int width, int height, int questionNumber, String text, boolean isCorrect) {
+    public QuestionButton(Screen screen, int x, int y, int width, int height, TextRenderer textRenderer, int questionNumber, String text, boolean isCorrect) {
         super(x, y, width, height, Text.literal(text).styled(style -> style.withFont(ModFonts.QUESTION_ANSWER)));
 
-        this.questionNumber = questionNumber;
         this.screen = screen;
+        this.textRenderer = textRenderer;
+        this.questionNumber = questionNumber;
         this.isCorrect = isCorrect;
     }
 
@@ -43,14 +46,14 @@ public class QuestionButton extends PressableWidget {
 
     @Override
     protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-        MinecraftClient client = MinecraftClient.getInstance();
-
+        context.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
         context.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), 0, this.isHovered() ? Colors.GRAY : Colors.BLACK);
-        this.drawMessage(context, client.textRenderer, Colors.WHITE);
+        this.drawMessage(context, this.textRenderer, Colors.WHITE);
 
-        ClickableWidget.drawScrollableText(context, client.textRenderer, Text.literal(Integer.toString(this.questionNumber)).styled(style -> style
+        ClickableWidget.drawScrollableText(context, this.textRenderer, Text.literal(Integer.toString(this.questionNumber)).styled(style -> style
                         .withFont(ModFonts.QUESTION_NUMBER)),
                 this.getX() - this.getWidth(), this.getY() - this.getHeight(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), Colors.YELLOW);
+        context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
     @Override

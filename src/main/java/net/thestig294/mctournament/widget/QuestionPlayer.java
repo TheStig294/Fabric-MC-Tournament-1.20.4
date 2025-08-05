@@ -19,8 +19,10 @@ public class QuestionPlayer extends ClickableWidget {
 
     @Override
     protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
+        context.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
         InventoryScreen.drawEntity(context, this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(),
                 30, 0.0625f, mouseX, mouseY, this.player);
+        context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
     @Override

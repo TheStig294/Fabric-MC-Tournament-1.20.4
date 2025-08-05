@@ -52,12 +52,14 @@ public class QuestionText extends MultilineTextWidget {
 
     @Override
     public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
+        context.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
         if (updatedText.equals(Text.empty())) {
             MultilineText multilineText = this.cacheKeyToText.map(this.getCacheKey());
             multilineText.drawCenterWithShadow(context, this.getX() + this.getWidth() / 2, this.getY(), this.lineHeight, this.getTextColor());
         } else {
             context.drawCenteredTextWithShadow(this.getTextRenderer(), this.updatedText, this.getX() + this.getWidth() / 2, this.getY(), this.updatedColor);
         }
+        context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
     public void updateText(Text text, int color) {
