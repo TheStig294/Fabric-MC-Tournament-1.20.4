@@ -2,9 +2,11 @@ package net.thestig294.mctournament.minigame.minigames;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.toast.SystemToast;
 import net.minecraft.text.Text;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.Minigame;
+import net.thestig294.mctournament.minigame.MinigameVariants;
 import net.thestig294.mctournament.screen.QuestionScreen;
 
 public class TriviaMurderParty extends Minigame {
@@ -20,7 +22,9 @@ public class TriviaMurderParty extends Minigame {
 
     @Override
     public void serverBegin() {
-
+        if (this.isVariant(MinigameVariants.TriviaMurderParty.SILLY)) {
+            MCTournament.SERVER.getPlayerManager().broadcast(Text.literal("It's silly time!"), true);
+        }
     }
 
     @Override
@@ -38,6 +42,10 @@ public class TriviaMurderParty extends Minigame {
     @Override
     public void clientBegin() {
         MCTournament.CLIENT.setScreen(new QuestionScreen(Text.translatable("screen.mctournament.question"), MCTournament.CLIENT.currentScreen));
+        if (this.isVariant(MinigameVariants.TriviaMurderParty.SILLY)) {
+            SystemToast.add(MCTournament.CLIENT.getToastManager(), SystemToast.Type.PERIODIC_NOTIFICATION,
+                    Text.literal("Silly client time!"), Text.literal("Oh yeah..."));
+        }
     }
 
     @Environment(EnvType.CLIENT)

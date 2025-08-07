@@ -8,6 +8,7 @@ import net.minecraft.server.MinecraftServer;
 import net.thestig294.mctournament.font.ModFonts;
 import net.thestig294.mctournament.item.ModItemGroups;
 import net.thestig294.mctournament.item.ModItems;
+import net.thestig294.mctournament.item.custom.RemoteItem;
 import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.network.ModNetworking;
 import net.thestig294.mctournament.texture.ModTextures;
@@ -37,5 +38,7 @@ public class MCTournament implements ModInitializer {
 
 		Minigames.registerMinigames(false);
 		Tournament.getInstance().serverInit();
+
+        RemoteItem.init();
 	}
 }

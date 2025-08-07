@@ -10,10 +10,9 @@ import net.thestig294.mctournament.minigame.minigames.TriviaMurderParty;
 import net.thestig294.mctournament.util.ModUtil;
 
 import java.util.*;
-import java.util.function.Predicate;
 
 public class Minigames {
-    private static final Map<Identifier, Minigame> REGISTERED_MINIGAMES = new HashMap<>();
+    private static final Map<Identifier, Minigame> REGISTERED = new HashMap<>();
 
     public static final Identifier TOURNAMENT_END = register("tournament_end", new TournamentEnd());
     public static final Identifier TRIVIA_MURDER_PARTY = register("trivia_murder_party", new TriviaMurderParty());
@@ -26,7 +25,7 @@ public class Minigames {
     }
 
     public static Identifier register(Identifier id, Minigame minigame) {
-        REGISTERED_MINIGAMES.put(id, minigame);
+        REGISTERED.put(id, minigame);
         return id;
     }
 
@@ -35,11 +34,11 @@ public class Minigames {
         MCTournament.LOGGER.info(isClient ? "Client register" : "Server register");
 
         if (isClient) {
-            for (final var entry : REGISTERED_MINIGAMES.entrySet()) {
+            for (final var entry : REGISTERED.entrySet()) {
                 entry.getValue().clientInit();
             }
         } else {
-            for (final var entry : REGISTERED_MINIGAMES.entrySet()) {
+            for (final var entry : REGISTERED.entrySet()) {
                 entry.getValue().serverInit();
             }
         }
@@ -47,11 +46,11 @@ public class Minigames {
 
 //    Gets all minigame IDs, except for the special "tournament end" minigame, as it's not a valid minigame to actually play...
     public static ArrayList<Identifier> getMinigameIds() {
-        return new ArrayList<>(REGISTERED_MINIGAMES.keySet().stream().filter(identifier -> !identifier.equals(TOURNAMENT_END)).toList());
+        return new ArrayList<>(REGISTERED.keySet().stream().filter(identifier -> !identifier.equals(TOURNAMENT_END)).toList());
     }
 
     public static List<Identifier> getRandomMinigames(int count){
-        count = ModUtil.clampInt(count, 1, REGISTERED_MINIGAMES.size());
+        count = ModUtil.clampInt(count, 1, REGISTERED.size());
         if (count == 1) {
             return List.of(getRandomMinigame());
         }
@@ -69,15 +68,14 @@ public class Minigames {
     }
 
     public static Identifier getRandomMinigame() {
-        Random random = Random.create();
         List<Identifier> idList = getMinigameIds();
-        int randomIndex = random.nextBetween(0, idList.size());
+        int randomIndex = Random.create().nextBetween(0, idList.size());
 
         return idList.get(randomIndex);
     }
 
     public static Minigame get(Identifier id) {
-        return REGISTERED_MINIGAMES.get(id);
+        return REGISTERED.get(id);
     }
 
     public static List<Minigame> get(List<Identifier> ids) {

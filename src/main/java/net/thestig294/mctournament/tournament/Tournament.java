@@ -4,8 +4,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.Minigame;
@@ -16,59 +14,63 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Tournament {
-    private TournamentScoreboard scoreboard;
     private int round;
     private Minigame minigame;
     private List<Identifier> minigameIDs;
     private List<Minigame> minigames;
+    private List<String> variants;
 
     public void serverSetup(TournamentSettings settings) {
         this.minigameIDs = settings.getMinigames();
+        this.variants = settings.getVariants();
 
         PacketByteBuf buffer = PacketByteBufs.create();
-        buffer.writeInt(minigameIDs.size());
+
+        buffer.writeInt(this.minigameIDs.size());
         for (final var id : this.minigameIDs) {
             buffer.writeIdentifier(id);
+        }
+
+        buffer.writeInt(this.variants.size());
+        for (final var variant : this.variants) {
+            buffer.writeString(variant);
         }
 
         this.sharedSetup(false);
         ModNetworking.broadcast(ModNetworking.TOURNAMENT_SETUP, buffer);
     }
 
-    private void sharedSetup(boolean isClient) {
-        this.scoreboard = new TournamentScoreboard();
-        this.round = 0;
-        this.minigame = null;
-        this.minigames = Minigames.get(this.minigameIDs);
-        this.updateMinigame(isClient);
-    }
-
     @Environment(EnvType.CLIENT)
     private void clientSetup(PacketByteBuf buffer) {
         int minigameCount = buffer.readInt();
         this.minigameIDs = new ArrayList<>(minigameCount);
-
         for (int i = 0; i < minigameCount; i++) {
             this.minigameIDs.add(buffer.readIdentifier());
+        }
+
+        int variantCount = buffer.readInt();
+        this.variants = new ArrayList<>(variantCount);
+        for (int i = 0; i < variantCount; i++) {
+            this.variants.add(buffer.readString());
         }
 
         this.sharedSetup(true);
     }
 
-    public Minigame getMinigame() {
-        return this.minigame;
-    }
+    private void sharedSetup(boolean isClient) {
+        this.round = 0;
+        this.minigame = null;
+        this.minigames = Minigames.get(this.minigameIDs);
 
-    @SuppressWarnings("unused")
-    public Scoreboard getScoreboard() {
-        return this.scoreboard;
+        this.updateMinigame(isClient);
     }
 
 //    Must be called at the end of a minigame to clean up any events for the next minigame,
 //    and for the Tournament instance to tally the scores from the minigame's scoreboard.
 //    Can be called from a single client, or from the server
-    @SuppressWarnings("unused")
     public void endCurrentMinigame(boolean isClient) {
+        if (this.minigame == null) return;
+
         if (isClient) {
             ModNetworking.sendToServer(ModNetworking.TOURNAMENT_CLIENT_END_ROUND);
         } else {
@@ -95,29 +97,17 @@ public class Tournament {
     }
 
     private void updateMinigame(boolean isClient) {
-        if (this.minigame != null && this.minigame.equals(Minigames.get(Minigames.TOURNAMENT_END))) {
-            this.endTournament(isClient);
-            return;
-        } else if (this.round >= this.minigames.size()) {
-//            Another bit of weirdness from singleplayer, we only want to set this once the integrated server has already run
-//            But if the server is dedicated, we need to set this, since setting this on the server won't affect the client
-            if (isClient || MCTournament.SERVER.isDedicated()) {
-                this.minigame = Minigames.get(Minigames.TOURNAMENT_END);
-            }
+        if (this.round >= this.minigames.size()) {
+            this.minigame = Minigames.get(Minigames.TOURNAMENT_END);
         } else {
             this.minigame = this.minigames.get(this.round);
+            this.minigame.setVariant(this.variants.get(this.round));
         }
 
         if (isClient) {
             this.minigame.clientBegin();
         } else {
             this.minigame.serverBegin();
-        }
-    }
-
-    public void endTournament(boolean isClient) {
-        if (!isClient) {
-            MCTournament.SERVER.getPlayerManager().broadcast(Text.translatable("tournament.mctournament.end_message"), true);
         }
     }
 
