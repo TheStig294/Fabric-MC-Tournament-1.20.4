@@ -1,14 +1,16 @@
-package net.thestig294.mctournament.minigame.minigames;
+package net.thestig294.mctournament.minigame.tournamentend;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.text.Text;
+import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.Minigame;
 
-public class Towerfall extends Minigame {
+// A special minigame that gets automatically played at the end of every tournament
+public class TournamentEnd extends Minigame {
     @Override
     public Text getName() {
-        return Text.translatable("minigame.towerfall.name");
+        return Text.translatable("minigame.tournament_end.name");
     }
 
     @Override
@@ -18,7 +20,7 @@ public class Towerfall extends Minigame {
 
     @Override
     public void serverBegin() {
-
+        MCTournament.SERVER.getPlayerManager().broadcast(Text.translatable("tournament.mctournament.end_message"), true);
     }
 
     @Override

@@ -3,16 +3,19 @@ package net.thestig294.mctournament.minigame;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.random.Random;
 import net.thestig294.mctournament.MCTournament;
-import net.thestig294.mctournament.minigame.minigames.MarioKart;
-import net.thestig294.mctournament.minigame.minigames.TournamentEnd;
-import net.thestig294.mctournament.minigame.minigames.Towerfall;
-import net.thestig294.mctournament.minigame.minigames.TriviaMurderParty;
+import net.thestig294.mctournament.minigame.mariokart.MarioKart;
+import net.thestig294.mctournament.minigame.tournamentend.TournamentEnd;
+import net.thestig294.mctournament.minigame.towerfall.Towerfall;
+import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.util.ModUtil;
 
 import java.util.*;
 
 public class Minigames {
     private static final Map<Identifier, Minigame> REGISTERED = new HashMap<>();
+    private static final Map<Identifier, List<String>> REGISTERED_VARIANTS = new HashMap<>();
+    public static final String DEFAULT_VARIANT = "default";
+    public static final String RANDOM_VARIANT = "random";
 
     public static final Identifier TOURNAMENT_END = register("tournament_end", new TournamentEnd());
     public static final Identifier TRIVIA_MURDER_PARTY = register("trivia_murder_party", new TriviaMurderParty());
@@ -84,5 +87,26 @@ public class Minigames {
             result.add(get(id));
         }
         return result;
+    }
+
+    public static String registerVariant(Identifier minigame, String variant) {
+        if (!REGISTERED_VARIANTS.containsKey(minigame)) {
+            REGISTERED_VARIANTS.put(minigame, new ArrayList<>());
+            REGISTERED_VARIANTS.get(minigame).add(DEFAULT_VARIANT);
+        }
+
+        REGISTERED_VARIANTS.get(minigame).add(variant);
+        return variant;
+    }
+
+    public static String getRandomVariant(Identifier minigame) {
+        return getRandomVariant(minigame, true);
+    }
+
+    public static String getRandomVariant(Identifier minigame, boolean includeDefaultVariant) {
+        List<String> variants = REGISTERED_VARIANTS.get(minigame);
+        int randomIndex = Random.create().nextBetween(includeDefaultVariant ? 0 : 1, variants.size() - 1);
+
+        return variants.get(randomIndex);
     }
 }

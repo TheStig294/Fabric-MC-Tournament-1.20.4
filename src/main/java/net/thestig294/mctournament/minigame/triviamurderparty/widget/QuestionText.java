@@ -1,4 +1,4 @@
-package net.thestig294.mctournament.widget;
+package net.thestig294.mctournament.minigame.triviamurderparty.widget;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;

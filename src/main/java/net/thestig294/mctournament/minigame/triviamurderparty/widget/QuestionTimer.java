@@ -1,4 +1,4 @@
-package net.thestig294.mctournament.widget;
+package net.thestig294.mctournament.minigame.triviamurderparty.widget;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.DrawContext;

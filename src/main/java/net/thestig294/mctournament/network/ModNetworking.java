@@ -1,7 +1,5 @@
 package net.thestig294.mctournament.network;
 
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import io.netty.channel.ChannelHandler;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -19,7 +17,6 @@ public class ModNetworking {
     public static final Identifier TOURNAMENT_SETUP = register("tournament_setup");
     public static final Identifier TOURNAMENT_END_ROUND = register("tournament_end_round");
     public static final Identifier TOURNAMENT_CLIENT_END_ROUND = register("torunament_client_end_round");
-    public static final Identifier QUESTION_SCREEN_OPEN = register("question_screen_open");
 
     private static Identifier register(String name) {
         return new Identifier(MCTournament.MOD_ID, name);

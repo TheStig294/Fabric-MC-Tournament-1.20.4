@@ -1,4 +1,4 @@
-package net.thestig294.mctournament.widget;
+package net.thestig294.mctournament.minigame.triviamurderparty.widget;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -13,20 +13,21 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.thestig294.mctournament.font.ModFonts;
+import net.thestig294.mctournament.minigame.triviamurderparty.question.Question;
 
 public class QuestionButton extends PressableWidget {
-    private final int questionNumber;
+    private final int answerNumber;
     private final Screen screen;
     private final TextRenderer textRenderer;
     private final boolean isCorrect;
 
-    public QuestionButton(Screen screen, int x, int y, int width, int height, TextRenderer textRenderer, int questionNumber, String text, boolean isCorrect) {
-        super(x, y, width, height, Text.literal(text).styled(style -> style.withFont(ModFonts.QUESTION_ANSWER)));
+    public QuestionButton(Screen screen, int x, int y, int width, int height, TextRenderer textRenderer, int answerNumber, Question question) {
+        super(x, y, width, height, Text.literal(question.getAnswer(answerNumber)).styled(style -> style.withFont(ModFonts.QUESTION_ANSWER)));
 
         this.screen = screen;
         this.textRenderer = textRenderer;
-        this.questionNumber = questionNumber;
-        this.isCorrect = isCorrect;
+        this.answerNumber = answerNumber;
+        this.isCorrect = question.isCorrect(answerNumber);
     }
 
     @Override
@@ -34,7 +35,7 @@ public class QuestionButton extends PressableWidget {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
 
         if (player != null) {
-            player.sendMessage(Text.literal("You chose answer: " + this.questionNumber), true);
+            player.sendMessage(Text.literal("You chose answer: " + this.answerNumber), true);
 
             if (this.isCorrect()) {
                 MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.ambient(SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK));
@@ -50,7 +51,7 @@ public class QuestionButton extends PressableWidget {
         context.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), 0, this.isHovered() ? Colors.GRAY : Colors.BLACK);
         this.drawMessage(context, this.textRenderer, Colors.WHITE);
 
-        ClickableWidget.drawScrollableText(context, this.textRenderer, Text.literal(Integer.toString(this.questionNumber)).styled(style -> style
+        ClickableWidget.drawScrollableText(context, this.textRenderer, Text.literal(Integer.toString(this.answerNumber)).styled(style -> style
                         .withFont(ModFonts.QUESTION_NUMBER)),
                 this.getX() - this.getWidth(), this.getY() - this.getHeight(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), Colors.YELLOW);
         context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);

@@ -10,7 +10,6 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import net.thestig294.mctournament.MCTournament;
-import net.thestig294.mctournament.minigame.MinigameVariants;
 import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.tournament.Tournament;
 import net.thestig294.mctournament.tournament.TournamentSettings;
@@ -26,8 +25,8 @@ public class RemoteItem extends Item {
 
         if (!world.isClient()) {
             Tournament.getInstance().serverSetup(new TournamentSettings()
-                    .minigames(Minigames.TRIVIA_MURDER_PARTY, Minigames.TRIVIA_MURDER_PARTY)
-                    .variants(MinigameVariants.DEFAULT, MinigameVariants.TriviaMurderParty.SILLY)
+                    .minigames(Minigames.TRIVIA_MURDER_PARTY)
+                    .variants(Minigames.DEFAULT_VARIANT)
             );
         }
 
