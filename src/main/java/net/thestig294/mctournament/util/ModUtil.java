@@ -26,4 +26,17 @@ public class ModUtil {
     public static int clampInt(int value, int min, int max) {
         return Math.min(max, Math.max(value, min));
     }
+
+    /**
+     * Returns how close a float is from the start, to the end value, as a percentage
+     * @param start
+     * @param end
+     * @param value
+     * @return Percentage progress of the value, as a float
+     */
+    public static float lerp(float start, float end, float value) {
+        float total = end - start;
+        float progress = value - start;
+        return progress / total;
+    }
 }

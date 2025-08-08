@@ -1,10 +1,10 @@
 package net.thestig294.mctournament.minigame.triviamurderparty.screen;
 
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.random.Random;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.font.ModFonts;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Question;
@@ -16,21 +16,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class QuestionScreen extends Screen {
-    private static final float QUESTION_NUMBER_FADE_TIME = 0.0f;
-    private static final float QUESTION_NUMBER_HOLD_TIME = 0.0f;
-    private static final float QUESTION_ZOOM_TIME = 0.0f;
-    private static final float ALL_CORRECT_LOOP_BACK_TIME = 0.0f;
-    private static final float KILLING_ROOM_TRANSITION_MOVE_TIME = 0.0f;
-    private static final float KILLING_ROOM_TRANSITION_LIGHTS_TIME = 0.0f;
+    private static final float QUESTION_NUMBER_FADE_TIME = 1.0f;
+    private static final float QUESTION_NUMBER_HOLD_TIME = 3.0f;
+    private static final float QUESTION_ZOOM_TIME = 1.0f;
+    private static final float TIMER_MOVE_TIME = 1.0f;
+    private static final float QUESTION_ANSWER_TIME = 20.0f;
+    private static final float ANSWER_ZOOM_TIME = 0.5f;
+    private static final float ANSWER_HOLD_TIME = 3.0f;
+    private static final float CORRECT_REVEAL_TIME = 3.0f;
+    private static final float INCORRECT_REVEAL_TIME = 3.0f;
+    private static final float KILLING_ROOM_TRANSITION_MOVE_TIME = 2.0f;
+    private static final float KILLING_ROOM_TRANSITION_LIGHTS_TIME = 5.0f;
+    private static final float ALL_CORRECT_LOOP_BACK_TIME = 1.0f;
 
     private final Screen parent;
     private final Question question;
     private final int questionNumber;
 
-    private float totalTicks;
-    private float totalSeconds;
+    private float uptimeSecs;
+    private float uptimeSeconds;
     private QuestionScreen.State state;
-    private float nextStateTime;
+    private float stateEndTime;
+    private float stateStartTime;
+    private float stateProgress;
+    private boolean firstStateTick;
 
     private List<QuestionPlayer> playerWidgets;
     private QuestionText questionNumberWidget;
@@ -46,10 +55,13 @@ public class QuestionScreen extends Screen {
         this.question = question;
         this.questionNumber = questionNumber;
 
-        this.totalTicks = 0.0f;
-        this.totalSeconds = 0.0f;
+        this.uptimeSecs = 0.0f;
+        this.uptimeSeconds = 0.0f;
         this.state = State.QUESTION_NUMBER_IN;
-        this.nextStateTime = 0.0f;
+        this.stateEndTime = 0.0f;
+        this.stateStartTime = 0.0f;
+        this.stateProgress = 0.0f;
+        this.firstStateTick = true;
 
         this.playerWidgets = new ArrayList<>();
         this.answerWidgets = new ArrayList<>();
@@ -104,7 +116,7 @@ public class QuestionScreen extends Screen {
 
         for (final var child : this.children()) {
             if (child instanceof ClickableWidget widget) {
-                widget.setAlpha(1.0f);
+                widget.setAlpha(0.0f);
             }
         }
     }
@@ -112,30 +124,56 @@ public class QuestionScreen extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
-        this.totalTicks += delta;
-        this.totalSeconds = totalTicks / 20.0f;
-        this.updateState();
+//        Minecraft runs at 20 ticks per second
+        this.uptimeSecs += delta / 20.0f;
+        this.stateProgress = ModUtil.lerp(this.stateStartTime, this.stateEndTime, this.uptimeSecs);
+
+        this.handleState();
+        this.firstStateTick = false;
+
+        if (this.stateEndTime > this.uptimeSecs) {
+            this.updateState();
+        }
+    }
+
+    private void handleState() {
+        switch (this.state) {
+            case QUESTION_NUMBER_IN -> this.questionNumberWidget.setAlpha(this.stateProgress);
+            case QUESTION_NUMBER_HOLD -> {}
+            case QUESTION_NUMBER_OUT -> this.questionNumberWidget.setAlpha(1 - this.stateProgress);
+        }
     }
 
     private void updateState() {
-//        switch (this.state) {
-//            case QUESTION_NUMBER_IN -> this.questionNumberWidget.setAlpha();
-//        }
-//
-//        if (this.nextStateTime > this.totalTicks) {
-//            this.state = this.state.next();
-//            this.nextStateTime = switch (this.state) {
-//                case QUESTION_NUMBER_IN, QUESTION_NUMBER_OUT -> QUESTION_NUMBER_FADE_TIME;
-//                case QUESTION_HOLD -> QUESTION_NUMBER_HOLD_TIME;
-//                case QUESTION_IN, QUESTION_OUT -> QUESTION_ZOOM_TIME;
-//                case QUESTION_NUMBER_HOLD ->
-//            };
-//        }
+        this.state = this.state.next();
+        float lastEndTime = this.stateEndTime;
+
+        this.stateEndTime = this.uptimeSecs + switch (this.state) {
+            case QUESTION_NUMBER_IN, QUESTION_NUMBER_OUT -> QUESTION_NUMBER_FADE_TIME;
+            case QUESTION_NUMBER_HOLD -> QUESTION_NUMBER_HOLD_TIME;
+            case QUESTION_IN, QUESTION_OUT -> QUESTION_ZOOM_TIME;
+            case QUESTION_HOLD -> this.question.holdTime();
+            case TIMER_IN, TIMER_OUT -> TIMER_MOVE_TIME;
+            case ANSWERING -> QUESTION_ANSWER_TIME;
+            case ANSWER_PRE_QUIP -> this.answerPreQuipTime;
+            case ANSWER_IN -> ANSWER_ZOOM_TIME;
+            case ANSWER_HOLD -> ANSWER_HOLD_TIME;
+            case ANSWER_POST_QUIP -> this.answerPostQuipTime;
+            case REVEAL_CORRECT -> CORRECT_REVEAL_TIME;
+            case REVEAL_INCORRECT -> INCORRECT_REVEAL_TIME;
+            case INCORRECT_QUIP -> this.incorrectQuipTime;
+            case KILLING_ROOM_TRANSITION_MOVE -> KILLING_ROOM_TRANSITION_MOVE_TIME;
+            case KILLING_ROOM_TRANSITION_LIGHTS -> KILLING_ROOM_TRANSITION_LIGHTS_TIME;
+            case ALL_CORRECT_LOOP_BACK -> ALL_CORRECT_LOOP_BACK_TIME;
+        };
+
+        this.stateStartTime = lastEndTime;
+        this.firstStateTick = true;
     }
 
     @Override
     public void close() {
-        MinecraftClient.getInstance().setScreen(this.parent);
+        MCTournament.CLIENT.setScreen(this.parent);
     }
 
     public enum State {
@@ -145,28 +183,33 @@ public class QuestionScreen extends Screen {
         QUESTION_IN,
         QUESTION_HOLD,
         QUESTION_OUT,
+        TIMER_IN,
         ANSWERING,
-        ANSWER_REVEAL_IN,
-        ANSWER_REVEAL_HOLD,
-        ALL_CORRECT_LOOP_BACK,
-        KILLING_ROOM_TRANSITION;
+        TIMER_OUT,
+        ANSWER_PRE_QUIP,
+        ANSWER_IN,
+        ANSWER_HOLD,
+        ANSWER_POST_QUIP,
+        REVEAL_CORRECT,
+        REVEAL_INCORRECT,
+        INCORRECT_QUIP,
+        KILLING_ROOM_TRANSITION_MOVE,
+        KILLING_ROOM_TRANSITION_LIGHTS,
+        ALL_CORRECT_LOOP_BACK;
 
-        private boolean playerIncorrect = false;
+        private boolean isPlayerIncorrect() {
 
-        public void setPlayerIncorrect(boolean playerIncorrect) {
-            this.playerIncorrect = playerIncorrect;
         }
 
         public State next() {
-            if (this.equals(State.ALL_CORRECT_LOOP_BACK)) {
-                return State.QUESTION_NUMBER_IN;
-            } else if (this.equals(State.KILLING_ROOM_TRANSITION)) {
-                return State.KILLING_ROOM_TRANSITION;
-            } else if (this.equals(State.ANSWER_REVEAL_HOLD)){
-                return this.playerIncorrect ? State.KILLING_ROOM_TRANSITION : State.ALL_CORRECT_LOOP_BACK;
-            } else {
-                return values()[ordinal() + 1];
-            }
+            return switch (this) {
+                case REVEAL_CORRECT -> this.isPlayerIncorrect() ? REVEAL_INCORRECT : ALL_CORRECT_LOOP_BACK;
+                case INCORRECT_QUIP -> Random.create().nextBoolean() ? KILLING_ROOM_TRANSITION_MOVE : KILLING_ROOM_TRANSITION_LIGHTS;
+                case KILLING_ROOM_TRANSITION_MOVE -> KILLING_ROOM_TRANSITION_MOVE;
+                case KILLING_ROOM_TRANSITION_LIGHTS -> KILLING_ROOM_TRANSITION_LIGHTS;
+                case ALL_CORRECT_LOOP_BACK -> QUESTION_IN;
+                default -> values()[this.ordinal() + 1];
+            };
         }
     }
 }

@@ -12,6 +12,7 @@ import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
+import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.font.ModFonts;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Question;
 
@@ -32,7 +33,7 @@ public class QuestionButton extends PressableWidget {
 
     @Override
     public void onPress() {
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        ClientPlayerEntity player = MCTournament.CLIENT.player;
 
         if (player != null) {
             player.sendMessage(Text.literal("You chose answer: " + this.answerNumber), true);

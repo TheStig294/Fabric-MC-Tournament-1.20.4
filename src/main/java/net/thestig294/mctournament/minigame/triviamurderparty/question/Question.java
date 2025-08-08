@@ -6,7 +6,8 @@ public record Question(
         String answer2,
         String answer3,
         String answer4,
-        int correctAnswer
+        int correctAnswer,
+        float holdTime
 ) {
     public boolean isCorrect(int answerNumber) {
         return answerNumber == this.correctAnswer;
