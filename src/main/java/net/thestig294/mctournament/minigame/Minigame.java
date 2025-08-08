@@ -16,7 +16,7 @@ public abstract class Minigame {
         this.variantSet = false;
     }
 
-    public abstract Text getName();
+    public abstract String getID();
 
     public abstract void serverInit();
 
@@ -32,6 +32,10 @@ public abstract class Minigame {
 
     @Environment(EnvType.CLIENT)
     public abstract void clientEnd();
+
+    public Text getName() {
+        return Text.translatable("minigame." + this.getID() + ".name");
+    }
 
     public void setVariant(String variant) {
         this.variant = variant;

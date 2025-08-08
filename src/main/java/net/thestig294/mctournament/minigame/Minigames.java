@@ -14,14 +14,22 @@ import java.util.*;
 public class Minigames {
     private static final Map<Identifier, Minigame> REGISTERED = new HashMap<>();
 
-    public static final Identifier TOURNAMENT_END = register(TournamentEnd.ID, new TournamentEnd());
-    public static final Identifier TRIVIA_MURDER_PARTY = register(TriviaMurderParty.ID, new TriviaMurderParty());
-    public static final Identifier TOWERFALL = register(Towerfall.ID, new Towerfall());
-    public static final Identifier MARIO_KART = register(MarioKart.ID, new MarioKart());
+    /**
+     * A special minigame that gets automatically played at the end of every tournament
+     */
+    public static final Identifier TOURNAMENT_END = register(new TournamentEnd());
+
+    public static final Identifier TRIVIA_MURDER_PARTY = register(new TriviaMurderParty());
+    public static final Identifier TOWERFALL = register(new Towerfall());
+    public static final Identifier MARIO_KART = register(new MarioKart());
 
 
-    private static Identifier register(String name, Minigame minigame) {
-        return register(new Identifier(MCTournament.MOD_ID, name), minigame);
+    public static Identifier register(Minigame minigame) {
+        return register(minigame.getID(), minigame);
+    }
+
+    private static Identifier register(String id, Minigame minigame) {
+        return register(new Identifier(MCTournament.MOD_ID, id), minigame);
     }
 
     public static Identifier register(Identifier id, Minigame minigame) {
@@ -84,5 +92,9 @@ public class Minigames {
             result.add(get(id));
         }
         return result;
+    }
+
+    public static void logRegistration(String type, Identifier minigameID) {
+        ModUtil.logRegistration(type, get(minigameID).toString());
     }
 }

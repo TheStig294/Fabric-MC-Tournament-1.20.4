@@ -155,16 +155,17 @@ public class QuestionScreen extends Screen {
             case QUESTION_HOLD -> this.question.holdTime();
             case TIMER_IN, TIMER_OUT -> TIMER_MOVE_TIME;
             case ANSWERING -> QUESTION_ANSWER_TIME;
-            case ANSWER_PRE_QUIP -> this.answerPreQuipTime;
+//            case ANSWER_PRE_QUIP -> this.answerPreQuipTime;
             case ANSWER_IN -> ANSWER_ZOOM_TIME;
             case ANSWER_HOLD -> ANSWER_HOLD_TIME;
-            case ANSWER_POST_QUIP -> this.answerPostQuipTime;
+//            case ANSWER_POST_QUIP -> this.answerPostQuipTime;
             case REVEAL_CORRECT -> CORRECT_REVEAL_TIME;
             case REVEAL_INCORRECT -> INCORRECT_REVEAL_TIME;
-            case INCORRECT_QUIP -> this.incorrectQuipTime;
+//            case INCORRECT_QUIP -> this.incorrectQuipTime;
             case KILLING_ROOM_TRANSITION_MOVE -> KILLING_ROOM_TRANSITION_MOVE_TIME;
             case KILLING_ROOM_TRANSITION_LIGHTS -> KILLING_ROOM_TRANSITION_LIGHTS_TIME;
             case ALL_CORRECT_LOOP_BACK -> ALL_CORRECT_LOOP_BACK_TIME;
+            default -> 0.0f;
         };
 
         this.stateStartTime = lastEndTime;
@@ -198,7 +199,7 @@ public class QuestionScreen extends Screen {
         ALL_CORRECT_LOOP_BACK;
 
         private boolean isPlayerIncorrect() {
-
+            return true;
         }
 
         public State next() {

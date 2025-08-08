@@ -2,19 +2,15 @@ package net.thestig294.mctournament.minigame.mariokart;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.text.Text;
 import net.thestig294.mctournament.minigame.Minigame;
 import net.thestig294.mctournament.minigame.Minigames;
-import net.thestig294.mctournament.util.ModUtil;
 
 import static net.thestig294.mctournament.minigame.MinigameVariants.registerVariant;
 
 public class MarioKart extends Minigame {
-    public static final String ID = "mario_kart";
-
     @Override
-    public Text getName() {
-        return Text.translatable("minigame.mario_kart.name");
+    public String getID() {
+        return "mario_kart";
     }
 
     @Override
@@ -50,6 +46,7 @@ public class MarioKart extends Minigame {
 
     }
 
+
     public static class Variants {
         public static final String YOSHIS_CIRCUIT = registerVariant(Minigames.MARIO_KART, "yoshis_circuit");
         public static final String COCONUT_MALL = registerVariant(Minigames.MARIO_KART, "coconut_mall");
@@ -58,7 +55,7 @@ public class MarioKart extends Minigame {
         public static final String BABY_PARK = registerVariant(Minigames.MARIO_KART, "baby_park");
 
         public static void register() {
-            ModUtil.logRegistration("variants", MarioKart.ID);
+            Minigames.logRegistration("variants", Minigames.MARIO_KART);
         }
     }
 }
