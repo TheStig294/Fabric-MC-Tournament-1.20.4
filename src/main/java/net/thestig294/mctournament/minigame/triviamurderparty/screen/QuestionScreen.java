@@ -6,7 +6,7 @@ import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.random.Random;
 import net.thestig294.mctournament.MCTournament;
-import net.thestig294.mctournament.font.ModFonts;
+import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Question;
 import net.thestig294.mctournament.util.ModUtil;
 import net.thestig294.mctournament.minigame.triviamurderparty.widget.*;
@@ -82,11 +82,11 @@ public class QuestionScreen extends Screen {
         }
 
         this.questionNumberWidget = this.addDrawableChild(new QuestionText(this.width / 2, this.height / 2,
-                Integer.toString(this.questionNumber), ModFonts.QUESTION_NUMBER, 20, Color.YELLOW,
+                Integer.toString(this.questionNumber), TriviaMurderParty.Fonts.QUESTION_NUMBER, 20, Color.YELLOW,
                 this.width / 2, this.textRenderer));
 
         this.questionWidget = this.addDrawableChild(new QuestionText(this.width / 30, this.height / 3,
-                this.question.question(), ModFonts.QUESTION,25, Color.WHITE, this.width * 3 / 5,
+                this.question.question(), TriviaMurderParty.Fonts.QUESTION,25, Color.WHITE, this.width * 3 / 5,
                 this.textRenderer));
 
         this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
@@ -99,19 +99,19 @@ public class QuestionScreen extends Screen {
                 this.height / 2 + 60, 140, 20, this.textRenderer, 4, this.question)));
 
         this.answeredCountWidgets.add(this.addDrawableChild(new QuestionText(5, this.height - 65,
-                "ANSWER\nNOW!", ModFonts.QUESTION_ANSWER, 15, Color.RED, 100, this.textRenderer)));
+                "ANSWER\nNOW!", TriviaMurderParty.Fonts.QUESTION_ANSWER, 15, Color.RED, 100, this.textRenderer)));
         this.answeredCountWidgets.add(this.addDrawableChild(new QuestionText( 15, this.height - 40,
-                "0", ModFonts.QUESTION_NUMBER, 20, Color.ORANGE, 100, this.textRenderer)));
+                "0", TriviaMurderParty.Fonts.QUESTION_NUMBER, 20, Color.ORANGE, 100, this.textRenderer)));
         this.answeredCountWidgets.add(this.addDrawableChild(new QuestionText( 0, this.height - 15,
-                "ANSWERED", ModFonts.QUESTION_ANSWER, 10, Color.GRAY, 100, this.textRenderer)));
+                "ANSWERED", TriviaMurderParty.Fonts.QUESTION_ANSWER, 10, Color.GRAY, 100, this.textRenderer)));
 
         this.timerWidget = this.addDrawableChild(new QuestionTimer(this.width / 3, this.height - 64,
                 64, 64, 20, 1.0f, 0));
 
         this.roomCodeWidgets.add(this.addDrawableChild(new QuestionText( this.width - 75, this.height - 30,
-                "MINECRAFT.TV", ModFonts.QUESTION_ANSWER, 10, Color.GRAY, 100, this.textRenderer)));
+                "MINECRAFT.TV", TriviaMurderParty.Fonts.QUESTION_ANSWER, 10, Color.GRAY, 100, this.textRenderer)));
         this.roomCodeWidgets.add(this.addDrawableChild(new QuestionText( this.width - 40, this.height - 15,
-                ModUtil.getRandomString(4, 2), ModFonts.QUESTION_ANSWER, 10, Color.RED,
+                ModUtil.getRandomString(4, 2), TriviaMurderParty.Fonts.QUESTION_ANSWER, 10, Color.RED,
                 100, this.textRenderer)));
 
         for (final var child : this.children()) {

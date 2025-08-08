@@ -28,7 +28,7 @@ public class MCTournament implements ModInitializer {
 
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> SERVER = server);
 
-		ModNetworking.registerNetworkingIds();
+		ModNetworking.registerNetworkIDs();
 
 		ModItems.registerItems();
 		ModItemGroups.registerItemGroups();

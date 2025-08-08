@@ -13,14 +13,11 @@ import java.util.*;
 
 public class Minigames {
     private static final Map<Identifier, Minigame> REGISTERED = new HashMap<>();
-    private static final Map<Identifier, List<String>> REGISTERED_VARIANTS = new HashMap<>();
-    public static final String DEFAULT_VARIANT = "default";
-    public static final String RANDOM_VARIANT = "random";
 
-    public static final Identifier TOURNAMENT_END = register("tournament_end", new TournamentEnd());
-    public static final Identifier TRIVIA_MURDER_PARTY = register("trivia_murder_party", new TriviaMurderParty());
-    public static final Identifier TOWERFALL = register("towerfall", new Towerfall());
-    public static final Identifier MARIO_KART = register("mario_kart", new MarioKart());
+    public static final Identifier TOURNAMENT_END = register(TournamentEnd.ID, new TournamentEnd());
+    public static final Identifier TRIVIA_MURDER_PARTY = register(TriviaMurderParty.ID, new TriviaMurderParty());
+    public static final Identifier TOWERFALL = register(Towerfall.ID, new Towerfall());
+    public static final Identifier MARIO_KART = register(MarioKart.ID, new MarioKart());
 
 
     private static Identifier register(String name, Minigame minigame) {
@@ -34,15 +31,15 @@ public class Minigames {
 
     public static void registerMinigames(boolean isClient) {
         MCTournament.LOGGER.info("Registering minigames for " + MCTournament.MOD_ID);
-        MCTournament.LOGGER.info(isClient ? "Client register" : "Server register");
 
-        if (isClient) {
-            for (final var entry : REGISTERED.entrySet()) {
-                entry.getValue().clientInit();
-            }
-        } else {
-            for (final var entry : REGISTERED.entrySet()) {
-                entry.getValue().serverInit();
+        for (final var entry : REGISTERED.entrySet()) {
+            Minigame minigame = entry.getValue();
+            MCTournament.LOGGER.info("Registering minigame on {}: {}", isClient ? "client" : "server", minigame.getName().getString());
+
+            if (isClient) {
+                minigame.clientInit();
+            } else {
+                minigame.serverInit();
             }
         }
     }
@@ -87,26 +84,5 @@ public class Minigames {
             result.add(get(id));
         }
         return result;
-    }
-
-    public static String registerVariant(Identifier minigame, String variant) {
-        if (!REGISTERED_VARIANTS.containsKey(minigame)) {
-            REGISTERED_VARIANTS.put(minigame, new ArrayList<>());
-            REGISTERED_VARIANTS.get(minigame).add(DEFAULT_VARIANT);
-        }
-
-        REGISTERED_VARIANTS.get(minigame).add(variant);
-        return variant;
-    }
-
-    public static String getRandomVariant(Identifier minigame) {
-        return getRandomVariant(minigame, true);
-    }
-
-    public static String getRandomVariant(Identifier minigame, boolean includeDefaultVariant) {
-        List<String> variants = REGISTERED_VARIANTS.get(minigame);
-        int randomIndex = Random.create().nextBetween(includeDefaultVariant ? 0 : 1, variants.size() - 1);
-
-        return variants.get(randomIndex);
     }
 }

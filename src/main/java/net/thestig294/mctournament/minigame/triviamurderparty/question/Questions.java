@@ -1,6 +1,6 @@
 package net.thestig294.mctournament.minigame.triviamurderparty.question;
 
-import net.thestig294.mctournament.minigame.Minigames;
+import net.thestig294.mctournament.minigame.MinigameVariants;
 
 import java.util.*;
 
@@ -11,7 +11,7 @@ public class Questions {
 
     public static void register(String q, String a1, String a2, String a3, String a4, int answer, float holdTime,
                                 String... categories) {
-        if (categories.length == 0) categories = new String[]{Minigames.DEFAULT_VARIANT};
+        if (categories.length == 0) categories = new String[]{MinigameVariants.DEFAULT};
 
         for (final var category : categories) {
             if (!REGISTERED.containsKey(category)) {
@@ -42,7 +42,8 @@ public class Questions {
         return QUESTION_INDEX;
     }
 
-    public static void registerQuestions() {
+
+    public static void register() {
         register("In what Daniel Day-Lewis film does he say the line “Stay alive! No matter what occurs. I will find you!”?",
                 "There Will Be Blood",
                 "In the Name of the Father",

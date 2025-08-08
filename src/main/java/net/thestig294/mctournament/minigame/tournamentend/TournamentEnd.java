@@ -8,6 +8,8 @@ import net.thestig294.mctournament.minigame.Minigame;
 
 // A special minigame that gets automatically played at the end of every tournament
 public class TournamentEnd extends Minigame {
+    public static final String ID = "tournament_end";
+
     @Override
     public Text getName() {
         return Text.translatable("minigame.tournament_end.name");

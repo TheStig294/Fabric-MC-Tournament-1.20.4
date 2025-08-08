@@ -12,7 +12,7 @@ public abstract class Minigame {
     private Boolean variantSet;
 
     public Minigame() {
-        this.variant = Minigames.DEFAULT_VARIANT;
+        this.variant = MinigameVariants.DEFAULT;
         this.variantSet = false;
     }
 
@@ -45,7 +45,7 @@ public abstract class Minigame {
                     This is not set until serverBegin()/clientBegin() is called!
                     Returning default variant.
                     """, this.getName().getString());
-            return Minigames.DEFAULT_VARIANT;
+            return MinigameVariants.DEFAULT;
         }
         return this.variant;
     }
@@ -60,5 +60,10 @@ public abstract class Minigame {
             return false;
         }
         return Objects.equals(this.variant, variant);
+    }
+
+    @Override
+    public String toString() {
+        return this.getName().getString();
     }
 }

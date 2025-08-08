@@ -2,6 +2,7 @@ package net.thestig294.mctournament.tournament;
 
 import net.minecraft.util.Identifier;
 import net.thestig294.mctournament.MCTournament;
+import net.thestig294.mctournament.minigame.MinigameVariants;
 import net.thestig294.mctournament.minigame.Minigames;
 
 import java.util.ArrayList;
@@ -33,15 +34,15 @@ public class TournamentSettings {
 
         for (int i = 0; i < this.variants.size(); i++) {
 //            Have to do this in Java just to test if 2 strings are equal lol...
-            if (Objects.equals(this.variants.get(i), Minigames.RANDOM_VARIANT)) {
+            if (Objects.equals(this.variants.get(i), MinigameVariants.RANDOM)) {
                 if (i >= this.minigameIDs.size()) {
                     MCTournament.LOGGER.error("""
                             Tried to set a random variant without specifying minigame. Setting to default.
                             Call TournamentSettings.minigames() first!
                             """);
-                    this.variants.set(i, Minigames.DEFAULT_VARIANT);
+                    this.variants.set(i, MinigameVariants.DEFAULT);
                 } else {
-                    this.variants.set(i, Minigames.getRandomVariant(this.minigameIDs.get(i)));
+                    this.variants.set(i, MinigameVariants.getRandom(this.minigameIDs.get(i)));
                 }
             }
         }
@@ -58,7 +59,7 @@ public class TournamentSettings {
             int paddingAmount = this.minigameIDs.size() - this.variants.size();
 
             for (int i = 0; i < paddingAmount; i++){
-                this.variants.add(Minigames.DEFAULT_VARIANT);
+                this.variants.add(MinigameVariants.DEFAULT);
             }
         }
 

@@ -13,7 +13,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.thestig294.mctournament.MCTournament;
-import net.thestig294.mctournament.font.ModFonts;
+import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Question;
 
 public class QuestionButton extends PressableWidget {
@@ -22,8 +22,10 @@ public class QuestionButton extends PressableWidget {
     private final TextRenderer textRenderer;
     private final boolean isCorrect;
 
-    public QuestionButton(Screen screen, int x, int y, int width, int height, TextRenderer textRenderer, int answerNumber, Question question) {
-        super(x, y, width, height, Text.literal(question.getAnswer(answerNumber)).styled(style -> style.withFont(ModFonts.QUESTION_ANSWER)));
+    public QuestionButton(Screen screen, int x, int y, int width, int height, TextRenderer textRenderer,
+                          int answerNumber, Question question) {
+        super(x, y, width, height, Text.literal(question.getAnswer(answerNumber))
+                .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER)));
 
         this.screen = screen;
         this.textRenderer = textRenderer;
@@ -39,7 +41,8 @@ public class QuestionButton extends PressableWidget {
             player.sendMessage(Text.literal("You chose answer: " + this.answerNumber), true);
 
             if (this.isCorrect()) {
-                MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.ambient(SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK));
+                MinecraftClient.getInstance().getSoundManager().play(
+                        PositionedSoundInstance.ambient(SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK));
             } else {
                 this.screen.close();
             }
@@ -49,12 +52,15 @@ public class QuestionButton extends PressableWidget {
     @Override
     protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         context.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
-        context.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), 0, this.isHovered() ? Colors.GRAY : Colors.BLACK);
+        context.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(),
+                0, this.isHovered() ? Colors.GRAY : Colors.BLACK);
         this.drawMessage(context, this.textRenderer, Colors.WHITE);
 
-        ClickableWidget.drawScrollableText(context, this.textRenderer, Text.literal(Integer.toString(this.answerNumber)).styled(style -> style
-                        .withFont(ModFonts.QUESTION_NUMBER)),
-                this.getX() - this.getWidth(), this.getY() - this.getHeight(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), Colors.YELLOW);
+        ClickableWidget.drawScrollableText(context, this.textRenderer, Text.literal(Integer.toString(this.answerNumber))
+                        .styled(style -> style
+                        .withFont(TriviaMurderParty.Fonts.QUESTION_NUMBER)),
+                this.getX() - this.getWidth(), this.getY() - this.getHeight(),
+                this.getX() + this.getWidth(), this.getY() + this.getHeight(), Colors.YELLOW);
         context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 

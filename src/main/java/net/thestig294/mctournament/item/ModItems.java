@@ -7,16 +7,17 @@ import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.item.custom.RemoteItem;
+import net.thestig294.mctournament.util.ModUtil;
 
 public class ModItems {
     public static final Item TROPHY = register("trophy", new Item(new FabricItemSettings()));
     public static final Item REMOTE = register("remote", new RemoteItem(new FabricItemSettings().maxCount(1)));
 
-    private static Item register(String name, Item item){
+    public static Item register(String name, Item item){
         return Registry.register(Registries.ITEM, new Identifier(MCTournament.MOD_ID, name), item);
     }
 
     public static void registerItems() {
-        MCTournament.LOGGER.info("Registering items for " + MCTournament.MOD_ID);
+        ModUtil.logRegistration("items");
     }
 }

@@ -1,8 +1,17 @@
 package net.thestig294.mctournament.util;
 
 import net.minecraft.util.math.random.Random;
+import net.thestig294.mctournament.MCTournament;
 
 public class ModUtil {
+    public static void logRegistration(String type) {
+        logRegistration(type, MCTournament.MOD_ID);
+    }
+
+    public static void logRegistration(String type, String ID) {
+        MCTournament.LOGGER.info("Registering {} for: {}", type, ID);
+    }
+
 //    Used for the fake room code shown on the bottom right of the QuestionScreen
 //    (And potentially elsewhere, so I'm shoving this in a Util class :P)
     public static String getRandomString(int length, int numberChars){

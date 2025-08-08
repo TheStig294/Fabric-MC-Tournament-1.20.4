@@ -5,10 +5,13 @@ import net.fabricmc.api.Environment;
 import net.minecraft.text.Text;
 import net.thestig294.mctournament.minigame.Minigame;
 import net.thestig294.mctournament.minigame.Minigames;
+import net.thestig294.mctournament.util.ModUtil;
 
-import static net.thestig294.mctournament.minigame.Minigames.registerVariant;
+import static net.thestig294.mctournament.minigame.MinigameVariants.registerVariant;
 
 public class Towerfall extends Minigame {
+    public static final String ID = "towerfall";
+
     @Override
     public Text getName() {
         return Text.translatable("minigame.towerfall.name");
@@ -16,7 +19,7 @@ public class Towerfall extends Minigame {
 
     @Override
     public void serverInit() {
-
+        Variants.register();
     }
 
     @Override
@@ -50,5 +53,9 @@ public class Towerfall extends Minigame {
     public static class Variants {
         public static final String LAST_ONE_STANDING = registerVariant(Minigames.TOWERFALL, "last_one_standing");
         public static final String TEAM_DEATHMATCH = registerVariant(Minigames.TOWERFALL, "team_deathmatch");
+
+        public static void register() {
+            ModUtil.logRegistration("variants", Towerfall.ID);
+        }
     }
 }

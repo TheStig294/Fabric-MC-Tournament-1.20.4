@@ -6,7 +6,7 @@ import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.sound.SoundManager;
 import net.minecraft.text.Text;
-import net.thestig294.mctournament.texture.ModTextures;
+import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 
 public class QuestionTimer extends ClickableWidget {
     private final float tickFrequency;
@@ -19,7 +19,7 @@ public class QuestionTimer extends ClickableWidget {
         super(x, y, width, height, Text.empty());
 
         final int MIN_LENGTH = 0;
-        final int MAX_LENGTH = ModTextures.QUESTION_TIMER_HAND_COUNT - 1;
+        final int MAX_LENGTH = TriviaMurderParty.Textures.QUESTION_TIMER_HAND_COUNT - 1;
 
         this.tickFrequency = tickFrequency;
         this.totalDelta = 0.0f;
@@ -38,8 +38,10 @@ public class QuestionTimer extends ClickableWidget {
             this.nextDeltaTick += this.tickFrequency;
         }
 
-        context.drawTexture(ModTextures.QUESTION_TIMER_BACK, this.getX(), this.getY(), 0, 0, this.getWidth(), this.getHeight(), this.getWidth(), this.getHeight());
-        context.drawTexture(ModTextures.QUESTION_TIMER_HANDS[this.ticksLeft], this.getX(), this.getY(), 0, 0, this.getWidth(), this.getHeight(), this.getWidth(), this.getHeight());
+        context.drawTexture(TriviaMurderParty.Textures.QUESTION_TIMER_BACK, this.getX(), this.getY(), 0, 0,
+                this.getWidth(), this.getHeight(), this.getWidth(), this.getHeight());
+        context.drawTexture(TriviaMurderParty.Textures.QUESTION_TIMER_HANDS[this.ticksLeft], this.getX(), this.getY(),
+                0, 0, this.getWidth(), this.getHeight(), this.getWidth(), this.getHeight());
         RenderSystem.disableBlend();
         context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
