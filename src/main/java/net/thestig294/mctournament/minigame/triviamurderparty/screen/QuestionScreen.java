@@ -65,7 +65,7 @@ public class QuestionScreen extends Screen {
     private List<QuestionText> roomCodeWidgets;
 
     public QuestionScreen(Question question, int questionNumber) {
-        this(question, questionNumber, State.QUESTION_NUMBER_IN);
+        this(question, questionNumber, State.TITLE_IN);
     }
 
     public QuestionScreen(Question question, int questionNumber, State startingState) {
@@ -212,7 +212,10 @@ public class QuestionScreen extends Screen {
 
                 this.setAlpha(this.titleWidgets, this.animate(1.0f, 0.0f));
             }
-            case WELCOME_IN -> this.questionNumberWidget.setAlpha(this.animate(0.0f, 1.0f));
+            case WELCOME_IN -> {
+                this.ifFirstStateTick(() -> this.questionNumberWidget.setText("WELCOME"));
+                this.questionNumberWidget.setAlpha(this.animate(0.0f, 1.0f));
+            }
             case WELCOME_HOLD -> {}
             case WELCOME_OUT -> this.questionNumberWidget.setAlpha(this.animate(1.0f, 0.0f));
             case SCREEN_IN -> {
