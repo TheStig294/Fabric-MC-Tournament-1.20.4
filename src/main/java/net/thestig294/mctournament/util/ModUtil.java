@@ -9,7 +9,7 @@ public class ModUtil {
     }
 
     public static void logRegistration(String type, String ID) {
-        MCTournament.LOGGER.info("Registering {} for: {}", type, ID);
+        MCTournament.LOGGER.info("Registering {} for {}", type, ID);
     }
 
 //    Used for the fake room code shown on the bottom right of the QuestionScreen

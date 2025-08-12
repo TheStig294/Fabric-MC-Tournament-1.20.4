@@ -42,7 +42,7 @@ public class Minigames {
 
         for (final var entry : REGISTERED.entrySet()) {
             Minigame minigame = entry.getValue();
-            MCTournament.LOGGER.info("Registering minigame on {}: {}", isClient ? "client" : "server", minigame.getName().getString());
+            MCTournament.LOGGER.info("Registering minigame {} on {}", minigame.getID(), isClient ? "client" : "server");
 
             if (isClient) {
                 minigame.clientInit();
@@ -95,6 +95,6 @@ public class Minigames {
     }
 
     public static void logRegistration(String type, Identifier minigameID) {
-        ModUtil.logRegistration(type, get(minigameID).toString());
+        ModUtil.logRegistration(type, get(minigameID).getID());
     }
 }
