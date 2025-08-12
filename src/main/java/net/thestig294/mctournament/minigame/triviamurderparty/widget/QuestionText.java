@@ -72,23 +72,23 @@ public class QuestionText extends MultilineTextWidget {
         context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
-    public void updateText(String string) {
-        this.updateText(string, this.updatedColor);
+    public void setText(String string) {
+        this.setText(string, this.updatedColor);
     }
 
-    public void updateText(String string, Color color) {
-        this.updateText(string, color.getRGB());
+    public void setText(String string, Color color) {
+        this.setText(string, color.getRGB());
     }
 
-    public void updateText(String string, int color) {
-        this.updateText(Text.literal(string).styled(style -> style.withFont(this.font)), color);
+    public void setText(String string, int color) {
+        this.setText(Text.literal(string).styled(style -> style.withFont(this.font)), color);
     }
 
-    public void updateText(Text text, Color color) {
-        updateText(text, color.getRGB());
+    public void setText(Text text, Color color) {
+        setText(text, color.getRGB());
     }
 
-    public void updateText(Text text, int color) {
+    public void setText(Text text, int color) {
         this.updatedText = text;
         this.updatedColor = color;
         this.textUpdated = true;
@@ -100,7 +100,7 @@ public class QuestionText extends MultilineTextWidget {
 
     public void setInt(int intValue){
         this.intValue = intValue;
-        this.updateText(Integer.toString(intValue));
+        this.setText(Integer.toString(intValue));
     }
 
     public int getOriginalX() {

@@ -1,6 +1,7 @@
 package net.thestig294.mctournament.minigame.triviamurderparty.screen;
 
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.text.Text;
@@ -64,7 +65,7 @@ public class QuestionScreen extends Screen {
     private List<QuestionText> roomCodeWidgets;
 
     public QuestionScreen(Question question, int questionNumber) {
-        this(question, questionNumber, State.TITLE_IN);
+        this(question, questionNumber, State.QUESTION_NUMBER_IN);
     }
 
     public QuestionScreen(Question question, int questionNumber, State startingState) {
@@ -94,11 +95,11 @@ public class QuestionScreen extends Screen {
     protected void init() {
         super.init();
 
-        this.titleWidgets.add(this.addDrawableChild(new QuestionText(this.width / 2, this.height * 2 / 5, "TRIVIA",
+        this.titleWidgets.add(this.addDrawableChild(new QuestionText(this.width / 2, this.height / 5, "TRIVIA",
                 TriviaMurderParty.Fonts.QUESTION_NUMBER, 20, ModColors.YELLOW, this.width, this.textRenderer)));
-        this.titleWidgets.add(this.addDrawableChild(new QuestionText(this.width / 2, this.height * 3 / 5, "MURDER",
+        this.titleWidgets.add(this.addDrawableChild(new QuestionText(this.width / 2, this.height * 2 / 5, "MURDER",
                 TriviaMurderParty.Fonts.QUESTION_NUMBER, 20, ModColors.RED, this.width, this.textRenderer)));
-        this.titleWidgets.add(this.addDrawableChild(new QuestionText(this.width / 2, this.height * 4 / 5, "PARTY",
+        this.titleWidgets.add(this.addDrawableChild(new QuestionText(this.width / 2, this.height * 3 / 5, "PARTY",
                 TriviaMurderParty.Fonts.QUESTION_NUMBER, 20, ModColors.LIGHT_BLUE, this.width, this.textRenderer)));
 
         this.leftBoxWidget = this.addDrawableChild(new QuestionBox(-this.width / 2,0, this.width / 2, this.height, ModColors.BLACK));
@@ -113,7 +114,7 @@ public class QuestionScreen extends Screen {
         }
 
         this.questionNumberWidget = this.addDrawableChild(new QuestionText(this.width / 2, this.height / 2,
-                "WELCOME", TriviaMurderParty.Fonts.QUESTION_NUMBER, 20, ModColors.YELLOW,
+                Integer.toString(this.questionNumber), TriviaMurderParty.Fonts.QUESTION_NUMBER, 20, ModColors.YELLOW,
                 this.width / 2, this.textRenderer));
 
         this.questionWidget = this.addDrawableChild(new QuestionText(this.width / 3, this.height / 2,
@@ -145,11 +146,7 @@ public class QuestionScreen extends Screen {
                 ModUtil.getRandomString(4, 2), TriviaMurderParty.Fonts.QUESTION_ANSWER, 10, ModColors.RED,
                 100, this.textRenderer)));
 
-        for (final var child : this.children()) {
-            if (child instanceof ClickableWidget widget) {
-                widget.setAlpha(0.0f);
-            }
-        }
+        this.handleRefresh();
     }
 
     @Override
@@ -166,6 +163,152 @@ public class QuestionScreen extends Screen {
         this.stateProgressPercent = (int) (this.stateProgress * 100);
 
         this.renderState();
+    }
+
+    private float animate(float start, float end) {
+        return ModUtil.lerpLinear(start, end, this.stateProgress);
+    }
+
+    private int animate(int start, int end) {
+        return (int) animate(((float) start), ((float) end));
+    }
+
+    private void everyStatePercent(int percent, Runnable function) {
+        if (this.stateProgressPercent % percent == 0) function.run();
+    }
+
+    private void ifFirstStateTick(Runnable function) {
+        if (this.firstStateTick) function.run();
+    }
+
+    private void setAlpha(List<? extends Element> widgets, float alpha) {
+        for (final var child : widgets) {
+            if (child instanceof ClickableWidget widget) {
+                widget.setAlpha(alpha);
+            }
+        }
+    }
+
+    private void renderState() {
+        switch (this.state) {
+            case TITLE_IN -> {
+                this.ifFirstStateTick(() -> {
+                    this.leftBoxWidget.setPosition(0,0);
+                    this.rightBoxWidget.setPosition(this.width / 2, 0);
+                    this.leftBoxWidget.setAlpha(1.0f);
+                    this.rightBoxWidget.setAlpha(1.0f);
+                });
+                this.setAlpha(this.titleWidgets, this.animate(0.0f, 1.0f));
+            }
+            case TITLE_HOLD -> this.everyStatePercent(TITLE_SHAKE_FREQUENCY, () -> this.titleWidgets.forEach(widget -> {
+                widget.setX(widget.getOriginalX() + Random.create().nextBetween(-TITLE_SHAKE_MAX, TITLE_SHAKE_MAX));
+                widget.setY(widget.getOriginalY() + Random.create().nextBetween(-TITLE_SHAKE_MAX, TITLE_SHAKE_MAX));
+            }));
+            case TITLE_OUT -> {
+                this.ifFirstStateTick(() -> this.titleWidgets.forEach(widget -> {
+                    widget.setX(widget.getOriginalX());
+                    widget.setY(widget.getOriginalY());
+                }));
+
+                this.setAlpha(this.titleWidgets, this.animate(1.0f, 0.0f));
+            }
+            case WELCOME_IN -> this.questionNumberWidget.setAlpha(this.animate(0.0f, 1.0f));
+            case WELCOME_HOLD -> {}
+            case WELCOME_OUT -> this.questionNumberWidget.setAlpha(this.animate(1.0f, 0.0f));
+            case SCREEN_IN -> {
+                this.leftBoxWidget.setX(this.animate(0, this.leftBoxWidget.getOriginalX()));
+                this.rightBoxWidget.setX(this.animate(this.width / 2, this.rightBoxWidget.getOriginalX()));
+            }
+            case HUD_IN -> {
+                this.playerWidgets.forEach(widget -> {
+                    widget.setY(this.animate(-widget.getOriginalY() - widget.getHeight(), widget.getOriginalY()));
+                    widget.setAlpha(this.animate(0.0f, 1.0f));
+                });
+                this.answeredCountWidgets.forEach(widget -> {
+                    widget.setY(this.animate(this.height, widget.getOriginalY()));
+                    widget.setAlpha(this.animate(0.0f, 1.0f));
+                });
+                this.roomCodeWidgets.forEach(widget -> {
+                    widget.setY(this.animate(this.height, widget.getOriginalY()));
+                    widget.setAlpha(this.animate(0.0f, 1.0f));
+                });
+            }
+            case QUESTION_NUMBER_IN -> {
+                this.ifFirstStateTick(() -> this.questionNumberWidget.setInt(this.questionNumber));
+                this.questionNumberWidget.setAlpha(this.animate(0.0f, 1.0f));
+            }
+            case QUESTION_NUMBER_HOLD -> {}
+            case QUESTION_NUMBER_OUT -> this.questionNumberWidget.setAlpha(this.animate(1.0f, 0.0f));
+            case QUESTION_IN -> {
+                this.ifFirstStateTick(() -> this.questionWidget.setPosition(this.width / 2, this.height));
+
+                this.questionWidget.setY(this.animate(this.height, this.questionWidget.getOriginalY()));
+                this.questionWidget.setAlpha(this.animate(0.0f, 1.0f));
+            }
+            case QUESTION_HOLD -> {}
+            case QUESTION_OUT -> this.questionWidget.setX(this.animate(this.width / 2, this.questionWidget.getOriginalX()));
+            case TIMER_IN -> {
+                this.answerWidgets.forEach(widget -> {
+                    widget.setX(this.animate(this.width + widget.getWidth(), widget.getOriginalX()));
+                    widget.setAlpha(this.animate(0.0f, 1.0f));
+                });
+                this.timerWidget.setY(this.animate(this.height, this.timerWidget.getOriginalY()));
+                this.timerWidget.setAlpha(this.animate(0.0f, 1.0f));
+                this.timerWidget.reset();
+            }
+        }
+
+        this.firstStateTick = false;
+    }
+
+    private void handleRefresh() {
+        this.setAlpha(this.children(), 0.0f);
+
+        switch (this.state) {
+            case TITLE_IN, TITLE_HOLD -> this.setAlpha(this.titleWidgets, 1.0f);
+            case TITLE_OUT -> {}
+            case WELCOME_IN, WELCOME_HOLD -> {
+                this.questionNumberWidget.setAlpha(1.0f);
+                this.questionNumberWidget.setText("WELCOME");
+            }
+            case WELCOME_OUT -> this.questionNumberWidget.setText("WELCOME");
+            case SCREEN_IN, HUD_IN, QUESTION_NUMBER_IN, QUESTION_NUMBER_HOLD, QUESTION_NUMBER_OUT -> {
+                this.setAlpha(this.playerWidgets, 1.0f);
+                this.setAlpha(this.answeredCountWidgets, 1.0f);
+                this.setAlpha(this.roomCodeWidgets, 1.0f);
+            }
+            case QUESTION_IN, QUESTION_HOLD, QUESTION_OUT -> {
+                this.setAlpha(this.playerWidgets, 1.0f);
+                this.setAlpha(this.answeredCountWidgets, 1.0f);
+                this.setAlpha(this.roomCodeWidgets, 1.0f);
+                this.questionWidget.setAlpha(1.0f);
+            }
+            case TIMER_IN, ANSWERING -> {
+                this.setAlpha(this.playerWidgets, 1.0f);
+                this.setAlpha(this.answeredCountWidgets, 1.0f);
+                this.setAlpha(this.roomCodeWidgets, 1.0f);
+                this.questionWidget.setAlpha(1.0f);
+                this.setAlpha(this.answerWidgets, 1.0f);
+                this.timerWidget.setAlpha(1.0f);
+                this.timerWidget.reset(0.0f, 0);
+            }
+            case TIMER_OUT, ANSWER_PRE_QUIP -> {
+                this.setAlpha(this.playerWidgets, 1.0f);
+                this.setAlpha(this.answeredCountWidgets, 1.0f);
+                this.setAlpha(this.roomCodeWidgets, 1.0f);
+                this.questionWidget.setAlpha(1.0f);
+                this.setAlpha(this.answerWidgets, 1.0f);
+            }
+            case ANSWER_IN -> {}
+            case ANSWER_HOLD -> {}
+            case ANSWER_POST_QUIP -> {}
+            case REVEAL_CORRECT -> {}
+            case REVEAL_INCORRECT -> {}
+            case INCORRECT_QUIP -> {}
+            case KILLING_ROOM_TRANSITION_MOVE -> {}
+            case KILLING_ROOM_TRANSITION_LIGHTS -> {}
+            case ALL_CORRECT_LOOP_BACK -> {}
+        }
     }
 
     float getQuip(QuipType quipType) {
@@ -205,86 +348,6 @@ public class QuestionScreen extends Screen {
 
         this.stateStartTime = lastEndTime;
         this.firstStateTick = true;
-    }
-
-    private float animate(float start, float end) {
-        return ModUtil.lerpLinear(start, end, this.stateProgress);
-    }
-
-    private int animate(int start, int end) {
-        return (int) animate(((float) start), ((float) end));
-    }
-
-    private void everyStatePercent(int percent, Runnable function) {
-        if (this.stateProgressPercent % percent == 0) function.run();
-    }
-
-    private void ifFirstStateTick(Runnable function) {
-        if (this.firstStateTick) function.run();
-    }
-
-    private void renderState() {
-        switch (this.state) {
-            case TITLE_IN -> {
-                this.ifFirstStateTick(() -> {
-                    this.leftBoxWidget.setPosition(0,0);
-                    this.rightBoxWidget.setPosition(this.width / 2, 0);
-                    this.leftBoxWidget.setAlpha(1.0f);
-                    this.rightBoxWidget.setAlpha(1.0f);
-                });
-                this.titleWidgets.forEach(widget -> widget.setAlpha(this.animate(0.0f, 1.0f)));
-            }
-            case TITLE_HOLD -> this.everyStatePercent(TITLE_SHAKE_FREQUENCY, () -> this.titleWidgets.forEach(widget -> {
-                widget.setX(widget.getOriginalX() + Random.create().nextBetween(-TITLE_SHAKE_MAX, TITLE_SHAKE_MAX));
-                widget.setY(widget.getOriginalY() + Random.create().nextBetween(-TITLE_SHAKE_MAX, TITLE_SHAKE_MAX));
-            }));
-            case TITLE_OUT -> this.titleWidgets.forEach(widget -> widget.setAlpha(this.animate(1.0f, 0.0f)));
-            case WELCOME_IN -> this.questionNumberWidget.setAlpha(this.animate(0.0f, 1.0f));
-            case WELCOME_HOLD -> {}
-            case WELCOME_OUT -> this.questionNumberWidget.setAlpha(this.animate(1.0f, 0.0f));
-            case SCREEN_IN -> {
-                this.leftBoxWidget.setX(this.animate(0, this.leftBoxWidget.getOriginalX()));
-                this.rightBoxWidget.setX(this.animate(this.width / 2, this.rightBoxWidget.getOriginalX()));
-            }
-            case HUD_IN -> {
-                this.ifFirstStateTick(() -> this.questionNumberWidget.setInt(this.questionNumber));
-
-                this.playerWidgets.forEach(widget -> {
-                    widget.setY(this.animate(-widget.getOriginalY(), widget.getOriginalY()));
-                    widget.setAlpha(this.animate(0.0f, 1.0f));
-                });
-                this.answeredCountWidgets.forEach(widget -> {
-                    widget.setY(this.animate(this.height - widget.getOriginalY(), widget.getOriginalY()));
-                    widget.setAlpha(this.animate(0.0f, 1.0f));
-                });
-                this.roomCodeWidgets.forEach(widget -> {
-                    widget.setY(this.animate(this.height - widget.getOriginalY(), widget.getOriginalY()));
-                    widget.setAlpha(this.animate(0.0f, 1.0f));
-                });
-            }
-            case QUESTION_NUMBER_IN -> this.questionNumberWidget.setAlpha(this.animate(0.0f, 1.0f));
-            case QUESTION_NUMBER_HOLD -> {}
-            case QUESTION_NUMBER_OUT -> this.questionNumberWidget.setAlpha(this.animate(1.0f, 0.0f));
-            case QUESTION_IN -> {
-                this.ifFirstStateTick(() -> this.questionWidget.setPosition(this.width / 2, this.height));
-
-                this.questionWidget.setY(this.animate(this.height, this.questionWidget.getOriginalY()));
-                this.questionWidget.setAlpha(this.animate(0.0f, 1.0f));
-            }
-            case QUESTION_HOLD -> {}
-            case QUESTION_OUT -> this.questionWidget.setX(this.animate(this.width / 2, this.questionWidget.getOriginalX()));
-            case TIMER_IN -> {
-                this.answerWidgets.forEach(widget -> {
-                    widget.setX(this.animate(this.width + widget.getWidth(), widget.getOriginalX()));
-                    widget.setAlpha(this.animate(0.0f, 1.0f));
-                });
-                this.timerWidget.setY(this.animate(this.height - this.timerWidget.getOriginalY(), this.timerWidget.getOriginalY()));
-                this.timerWidget.setAlpha(this.animate(0.0f, 1.0f));
-                this.timerWidget.reset();
-            }
-        }
-
-        this.firstStateTick = false;
     }
 
     @Override

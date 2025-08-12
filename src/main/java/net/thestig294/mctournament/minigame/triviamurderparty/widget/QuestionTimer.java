@@ -12,7 +12,7 @@ public class QuestionTimer extends ClickableWidget {
     private static final int MIN_LENGTH = 0;
     private static final int MAX_LENGTH = TriviaMurderParty.Textures.QUESTION_TIMER_HAND_COUNT - 1;
 
-    private final int length;
+    private int length;
     private final float tickFrequency;
     private final float startDelay;
     private float totalDelta;
@@ -52,13 +52,18 @@ public class QuestionTimer extends ClickableWidget {
     }
 
     public void reset() {
-        reset(this.startDelay);
+        this.reset(this.startDelay);
     }
 
     public void reset(float startDelay) {
         this.totalDelta = 0.0f;
         this.nextDeltaTick = this.tickFrequency + startDelay;
         this.ticksLeft = Math.max(MIN_LENGTH, Math.min(length, MAX_LENGTH));
+    }
+
+    public void reset(float startDelay, int length) {
+        this.length = length;
+        this.reset(startDelay);
     }
 
     @Override
