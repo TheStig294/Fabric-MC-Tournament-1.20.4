@@ -15,12 +15,15 @@ import net.minecraft.util.Colors;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Question;
+import net.thestig294.mctournament.util.ModColors;
 
 public class QuestionButton extends PressableWidget {
     private final int answerNumber;
     private final Screen screen;
     private final TextRenderer textRenderer;
     private final boolean isCorrect;
+    private final int originalX;
+    private final int originalY;
 
     public QuestionButton(Screen screen, int x, int y, int width, int height, TextRenderer textRenderer,
                           int answerNumber, Question question) {
@@ -31,6 +34,8 @@ public class QuestionButton extends PressableWidget {
         this.textRenderer = textRenderer;
         this.answerNumber = answerNumber;
         this.isCorrect = question.isCorrect(answerNumber);
+        this.originalX = x;
+        this.originalY = y;
     }
 
     @Override
@@ -53,14 +58,14 @@ public class QuestionButton extends PressableWidget {
     protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         context.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
         context.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(),
-                0, this.isHovered() ? Colors.GRAY : Colors.BLACK);
-        this.drawMessage(context, this.textRenderer, Colors.WHITE);
+                0, this.isHovered() ? ModColors.GREY.getRGB() : ModColors.BLACK.getRGB());
+        this.drawMessage(context, this.textRenderer, ModColors.WHITE.getRGB());
 
         ClickableWidget.drawScrollableText(context, this.textRenderer, Text.literal(Integer.toString(this.answerNumber))
                         .styled(style -> style
                         .withFont(TriviaMurderParty.Fonts.QUESTION_NUMBER)),
                 this.getX() - this.getWidth(), this.getY() - this.getHeight(),
-                this.getX() + this.getWidth(), this.getY() + this.getHeight(), Colors.YELLOW);
+                this.getX() + this.getWidth(), this.getY() + this.getHeight(), ModColors.YELLOW.getRGB());
         context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
@@ -71,5 +76,13 @@ public class QuestionButton extends PressableWidget {
 
     public boolean isCorrect(){
         return this.isCorrect;
+    }
+
+    public int getOriginalX() {
+        return this.originalX;
+    }
+
+    public int getOriginalY() {
+        return this.originalY;
     }
 }

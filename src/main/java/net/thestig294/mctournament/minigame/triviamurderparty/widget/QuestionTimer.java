@@ -9,22 +9,27 @@ import net.minecraft.text.Text;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 
 public class QuestionTimer extends ClickableWidget {
+    private static final int MIN_LENGTH = 0;
+    private static final int MAX_LENGTH = TriviaMurderParty.Textures.QUESTION_TIMER_HAND_COUNT - 1;
+
+    private final int length;
     private final float tickFrequency;
+    private final float startDelay;
     private float totalDelta;
     private float nextDeltaTick;
     private int ticksLeft;
+    private final int originalX;
+    private final int originalY;
 
-    public QuestionTimer(int x, int y, int width, int height,
-                         int length, float tickFrequency, int startDelay) {
+    public QuestionTimer(int x, int y, int width, int height, int length, float tickFrequency, float startDelay) {
         super(x, y, width, height, Text.empty());
 
-        final int MIN_LENGTH = 0;
-        final int MAX_LENGTH = TriviaMurderParty.Textures.QUESTION_TIMER_HAND_COUNT - 1;
-
+        this.length = length;
         this.tickFrequency = tickFrequency;
-        this.totalDelta = 0.0f;
-        this.nextDeltaTick = tickFrequency + startDelay;
-        this.ticksLeft = Math.max(MIN_LENGTH, Math.min(length, MAX_LENGTH));
+        this.startDelay = startDelay;
+        this.reset();
+        this.originalX = x;
+        this.originalY = y;
     }
 
     @Override
@@ -46,6 +51,16 @@ public class QuestionTimer extends ClickableWidget {
         context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
+    public void reset() {
+        reset(this.startDelay);
+    }
+
+    public void reset(float startDelay) {
+        this.totalDelta = 0.0f;
+        this.nextDeltaTick = this.tickFrequency + startDelay;
+        this.ticksLeft = Math.max(MIN_LENGTH, Math.min(length, MAX_LENGTH));
+    }
+
     @Override
     protected void appendClickableNarrations(NarrationMessageBuilder builder) {
 
@@ -54,5 +69,13 @@ public class QuestionTimer extends ClickableWidget {
     @Override
     public void playDownSound(SoundManager soundManager) {
 
+    }
+
+    public int getOriginalX() {
+        return this.originalX;
+    }
+
+    public int getOriginalY() {
+        return this.originalY;
     }
 }

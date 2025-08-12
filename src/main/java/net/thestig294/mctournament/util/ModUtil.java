@@ -43,9 +43,23 @@ public class ModUtil {
      * @param value
      * @return Percentage progress of the value, as a float
      */
-    public static float lerp(float start, float end, float value) {
+    public static float lerpPercent(float start, float end, float value) {
         float total = end - start;
         float progress = value - start;
         return progress / total;
+    }
+
+
+    /**
+     * Returns the value from start to end, that is the passed percent along from the start to the end
+     * @param start
+     * @param end
+     * @param percent
+     * @return Lerped value, that is the specified distance along from start to end
+     */
+    public static float lerpLinear(float start, float end, float percent) {
+        float difference = end - start;
+        float progress = difference * percent;
+        return start + progress;
     }
 }

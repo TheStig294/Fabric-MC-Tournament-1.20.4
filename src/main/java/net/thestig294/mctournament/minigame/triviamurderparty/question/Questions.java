@@ -50,29 +50,29 @@ public class Questions {
                 "My Beautiful Laundrette",
                 "The Last of the Mohicans",
                 4, 8.0f);
-//        register("How long does it take a freshly laid egg to hatch into a baby chicken?",
-//                "10 days",
-//                "3 weeks",
-//                "2 months",
-//                "Half a year",
-//                2, 3.5f);
-//        register("Which of these is Indian?",
-//                "Rooibos tea",
-//                "Zavarka tea",
-//                "Pu’erh tea",
-//                "Masala chai",
-//                4, 1.5f);
-//        register("Which country straddles two continents?",
-//                "Turkey",
-//                "Romania",
-//                "Yemen",
-//                "India",
-//                1, 2.0f);
-//        register("Which of these movies stars somebody in prison for a crime they did NOT commit?",
-//                "The Shawshank Redemption",
-//                "Cool Hand Luke",
-//                "Chicago",
-//                "Dead Man Walking",
-//                1, 4.0f);
+        register("How long does it take a freshly laid egg to hatch into a baby chicken?",
+                "10 days",
+                "3 weeks",
+                "2 months",
+                "Half a year",
+                2, 3.5f);
+        register("Which of these is Indian?",
+                "Rooibos tea",
+                "Zavarka tea",
+                "Pu’erh tea",
+                "Masala chai",
+                4, 1.5f);
+        register("Which country straddles two continents?",
+                "Turkey",
+                "Romania",
+                "Yemen",
+                "India",
+                1, 2.0f);
+        register("Which of these movies stars somebody in prison for a crime they did NOT commit?",
+                "The Shawshank Redemption",
+                "Cool Hand Luke",
+                "Chicago",
+                "Dead Man Walking",
+                1, 4.0f);
     }
 }

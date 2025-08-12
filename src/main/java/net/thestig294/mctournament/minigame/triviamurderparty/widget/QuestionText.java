@@ -16,9 +16,13 @@ import java.util.OptionalInt;
 
 public class QuestionText extends MultilineTextWidget {
     private final int lineHeight;
+    private final Identifier font;
     private Text updatedText;
     private int updatedColor;
+    private boolean textUpdated;
     private int intValue;
+    private final int originalX;
+    private final int originalY;
 
     private final int maxWidth;
     private final OptionalInt maxRows;
@@ -31,9 +35,13 @@ public class QuestionText extends MultilineTextWidget {
     public QuestionText(int x, int y, String text, Identifier font, int lineHeight, int color, int maxWidth, TextRenderer textRenderer, int intValue) {
         super(x, y, Text.literal(text).styled(style -> style.withFont(font)), textRenderer);
         this.lineHeight = lineHeight;
+        this.font = font;
         this.updatedText = Text.empty();
-        this.updatedColor = 0;
+        this.updatedColor = color;
+        this.textUpdated = false;
         this.intValue = intValue;
+        this.originalX = x;
+        this.originalY = y;
 
         this.cacheKeyToText = Util.cachedMapper(
                 cacheKey -> cacheKey.maxRows.isPresent()
@@ -53,28 +61,54 @@ public class QuestionText extends MultilineTextWidget {
     @Override
     public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         context.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
-        if (updatedText.equals(Text.empty())) {
+        if (this.textUpdated) {
+            context.drawCenteredTextWithShadow(this.getTextRenderer(), this.updatedText,
+                    this.getX(), this.getY() - this.getHeight(), this.updatedColor);
+        } else {
             MultilineText multilineText = this.cacheKeyToText.map(this.getCacheKey());
             multilineText.drawCenterWithShadow(context, this.getX(),
                     this.getY() - this.getHeight(), this.lineHeight, this.getTextColor());
-        } else {
-            context.drawCenteredTextWithShadow(this.getTextRenderer(), this.updatedText,
-                    this.getX() + this.getWidth() / 2, this.getY(), this.updatedColor);
         }
         context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+    }
+
+    public void updateText(String string) {
+        this.updateText(string, this.updatedColor);
+    }
+
+    public void updateText(String string, Color color) {
+        this.updateText(string, color.getRGB());
+    }
+
+    public void updateText(String string, int color) {
+        this.updateText(Text.literal(string).styled(style -> style.withFont(this.font)), color);
+    }
+
+    public void updateText(Text text, Color color) {
+        updateText(text, color.getRGB());
     }
 
     public void updateText(Text text, int color) {
         this.updatedText = text;
         this.updatedColor = color;
+        this.textUpdated = true;
     }
 
-    public int getIntValue() {
+    public int getInt() {
         return this.intValue;
     }
 
-    public void setIntValue(int intValue){
+    public void setInt(int intValue){
         this.intValue = intValue;
+        this.updateText(Integer.toString(intValue));
+    }
+
+    public int getOriginalX() {
+        return this.originalX;
+    }
+
+    public int getOriginalY() {
+        return this.originalY;
     }
 
     private QuestionText.CacheKey getCacheKey() {
