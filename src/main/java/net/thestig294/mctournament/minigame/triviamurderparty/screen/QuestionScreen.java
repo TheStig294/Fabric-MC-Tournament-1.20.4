@@ -58,7 +58,7 @@ public class QuestionScreen extends Screen {
         this.uptimeSecs = 0.0f;
         this.uptimeSeconds = 0.0f;
         this.state = State.QUESTION_NUMBER_IN;
-        this.stateEndTime = 0.0f;
+        this.stateEndTime = QUESTION_NUMBER_FADE_TIME;
         this.stateStartTime = 0.0f;
         this.stateProgress = 0.0f;
         this.firstStateTick = true;
@@ -76,7 +76,7 @@ public class QuestionScreen extends Screen {
         if (MCTournament.CLIENT.world == null) return;
         int i = 0;
         for (final var player : MCTournament.CLIENT.world.getPlayers()) {
-            this.playerWidgets.add(this.addDrawableChild(new QuestionPlayer(i * this.width / 8, 5,
+            this.playerWidgets.add(this.addDrawableChild(new QuestionPlayer(i * this.width / 8, 0,
                     this.width / 8, this.height / 3, player)));
             i++;
         }
@@ -85,7 +85,7 @@ public class QuestionScreen extends Screen {
                 Integer.toString(this.questionNumber), TriviaMurderParty.Fonts.QUESTION_NUMBER, 20, Color.YELLOW,
                 this.width / 2, this.textRenderer));
 
-        this.questionWidget = this.addDrawableChild(new QuestionText(this.width / 30, this.height / 3,
+        this.questionWidget = this.addDrawableChild(new QuestionText(this.width / 3, this.height / 2,
                 this.question.question(), TriviaMurderParty.Fonts.QUESTION,25, Color.WHITE, this.width * 3 / 5,
                 this.textRenderer));
 
@@ -98,25 +98,25 @@ public class QuestionScreen extends Screen {
         this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
                 this.height / 2 + 60, 140, 20, this.textRenderer, 4, this.question)));
 
-        this.answeredCountWidgets.add(this.addDrawableChild(new QuestionText(5, this.height - 65,
+        this.answeredCountWidgets.add(this.addDrawableChild(new QuestionText(25, this.height - 45,
                 "ANSWER\nNOW!", TriviaMurderParty.Fonts.QUESTION_ANSWER, 15, Color.RED, 100, this.textRenderer)));
-        this.answeredCountWidgets.add(this.addDrawableChild(new QuestionText( 15, this.height - 40,
+        this.answeredCountWidgets.add(this.addDrawableChild(new QuestionText( 25, this.height - 30,
                 "0", TriviaMurderParty.Fonts.QUESTION_NUMBER, 20, Color.ORANGE, 100, this.textRenderer)));
-        this.answeredCountWidgets.add(this.addDrawableChild(new QuestionText( 0, this.height - 15,
+        this.answeredCountWidgets.add(this.addDrawableChild(new QuestionText( 25, this.height,
                 "ANSWERED", TriviaMurderParty.Fonts.QUESTION_ANSWER, 10, Color.GRAY, 100, this.textRenderer)));
 
         this.timerWidget = this.addDrawableChild(new QuestionTimer(this.width / 3, this.height - 64,
                 64, 64, 20, 1.0f, 0));
 
-        this.roomCodeWidgets.add(this.addDrawableChild(new QuestionText( this.width - 75, this.height - 30,
+        this.roomCodeWidgets.add(this.addDrawableChild(new QuestionText( this.width - 40, this.height - 12,
                 "MINECRAFT.TV", TriviaMurderParty.Fonts.QUESTION_ANSWER, 10, Color.GRAY, 100, this.textRenderer)));
-        this.roomCodeWidgets.add(this.addDrawableChild(new QuestionText( this.width - 40, this.height - 15,
+        this.roomCodeWidgets.add(this.addDrawableChild(new QuestionText( this.width - 20, this.height,
                 ModUtil.getRandomString(4, 2), TriviaMurderParty.Fonts.QUESTION_ANSWER, 10, Color.RED,
                 100, this.textRenderer)));
 
         for (final var child : this.children()) {
             if (child instanceof ClickableWidget widget) {
-                widget.setAlpha(0.0f);
+                widget.setAlpha(1.0f);
             }
         }
     }
@@ -128,23 +128,27 @@ public class QuestionScreen extends Screen {
         this.uptimeSecs += delta / 20.0f;
         this.stateProgress = ModUtil.lerp(this.stateStartTime, this.stateEndTime, this.uptimeSecs);
 
-        this.handleState();
-        this.firstStateTick = false;
+        this.renderState();
 
-        if (this.stateEndTime > this.uptimeSecs) {
-            this.updateState();
+        if (this.stateEndTime <= this.uptimeSecs) {
+            this.nextState();
         }
     }
 
-    private void handleState() {
+    private void renderState() {
         switch (this.state) {
             case QUESTION_NUMBER_IN -> this.questionNumberWidget.setAlpha(this.stateProgress);
             case QUESTION_NUMBER_HOLD -> {}
             case QUESTION_NUMBER_OUT -> this.questionNumberWidget.setAlpha(1 - this.stateProgress);
+            case QUESTION_IN -> {}
+            case QUESTION_HOLD -> {}
+            case QUESTION_OUT -> {}
         }
+
+        this.firstStateTick = false;
     }
 
-    private void updateState() {
+    private void nextState() {
         this.state = this.state.next();
         float lastEndTime = this.stateEndTime;
 

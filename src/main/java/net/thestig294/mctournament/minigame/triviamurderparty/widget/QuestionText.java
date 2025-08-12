@@ -55,9 +55,11 @@ public class QuestionText extends MultilineTextWidget {
         context.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
         if (updatedText.equals(Text.empty())) {
             MultilineText multilineText = this.cacheKeyToText.map(this.getCacheKey());
-            multilineText.drawCenterWithShadow(context, this.getX() + this.getWidth() / 2, this.getY(), this.lineHeight, this.getTextColor());
+            multilineText.drawCenterWithShadow(context, this.getX(),
+                    this.getY() - this.getHeight(), this.lineHeight, this.getTextColor());
         } else {
-            context.drawCenteredTextWithShadow(this.getTextRenderer(), this.updatedText, this.getX() + this.getWidth() / 2, this.getY(), this.updatedColor);
+            context.drawCenteredTextWithShadow(this.getTextRenderer(), this.updatedText,
+                    this.getX() + this.getWidth() / 2, this.getY(), this.updatedColor);
         }
         context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
