@@ -34,6 +34,11 @@ public class TriviaMurderParty extends Minigame {
     }
 
     @Override
+    public void translateScores() {
+
+    }
+
+    @Override
     public void serverEnd() {
 
     }

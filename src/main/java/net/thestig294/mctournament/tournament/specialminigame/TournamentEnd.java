@@ -1,4 +1,4 @@
-package net.thestig294.mctournament.minigame.tournamentend;
+package net.thestig294.mctournament.tournament.specialminigame;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -46,5 +46,10 @@ public class TournamentEnd extends Minigame {
     @Override
     public void clientEnd() {
 
+    }
+
+//    The tournament scoreboard is used directly instead
+    @Override
+    public void translateScores() {
     }
 }

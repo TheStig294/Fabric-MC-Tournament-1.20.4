@@ -37,7 +37,7 @@ public class MCTournament implements ModInitializer {
 		ModTextures.registerTextures();
 
 		Minigames.registerMinigames(false);
-		Tournament.getInstance().serverInit();
+		Tournament.inst().serverInit();
 
         RemoteItem.init();
 	}

@@ -12,6 +12,6 @@ public class MCTournamentClient implements ClientModInitializer {
         MCTournament.CLIENT = MinecraftClient.getInstance();
 
         Minigames.registerMinigames(true);
-        Tournament.getInstance().clientInit();
+        Tournament.inst().clientInit();
     }
 }

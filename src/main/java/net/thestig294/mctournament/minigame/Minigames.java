@@ -4,7 +4,8 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.random.Random;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.mariokart.MarioKart;
-import net.thestig294.mctournament.minigame.tournamentend.TournamentEnd;
+import net.thestig294.mctournament.tournament.specialminigame.TournamentBegin;
+import net.thestig294.mctournament.tournament.specialminigame.TournamentEnd;
 import net.thestig294.mctournament.minigame.towerfall.Towerfall;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.util.ModUtil;
@@ -15,8 +16,9 @@ public class Minigames {
     private static final Map<Identifier, Minigame> REGISTERED = new HashMap<>();
 
     /**
-     * A special minigame that gets automatically played at the end of every tournament
+     * A special minigames that get automatically played at the beginning and end of every tournament
      */
+    public static final Identifier TOURNAMENT_BEGIN = register(new TournamentBegin());
     public static final Identifier TOURNAMENT_END = register(new TournamentEnd());
 
     public static final Identifier TRIVIA_MURDER_PARTY = register(new TriviaMurderParty());
@@ -52,9 +54,10 @@ public class Minigames {
         }
     }
 
-//    Gets all minigame IDs, except for the special "tournament end" minigame, as it's not a valid minigame to actually play...
+//    Gets all minigame IDs, except for the special minigames, as they aren't a valid minigame to actually play...
     public static ArrayList<Identifier> getMinigameIds() {
-        return new ArrayList<>(REGISTERED.keySet().stream().filter(identifier -> !identifier.equals(TOURNAMENT_END)).toList());
+        return new ArrayList<>(REGISTERED.keySet().stream()
+                .filter(identifier -> !identifier.equals(TOURNAMENT_END) && !identifier.equals(TOURNAMENT_BEGIN)).toList());
     }
 
     public static List<Identifier> getRandomMinigames(int count){

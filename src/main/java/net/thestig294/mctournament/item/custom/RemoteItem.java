@@ -25,7 +25,7 @@ public class RemoteItem extends Item {
         ItemStack itemStack = user.getStackInHand(hand);
 
         if (!world.isClient()) {
-            Tournament.getInstance().serverSetup(new TournamentSettings()
+            Tournament.inst().serverSetup(new TournamentSettings()
                     .minigames(Minigames.TRIVIA_MURDER_PARTY)
                     .variants(MinigameVariants.DEFAULT)
             );
@@ -37,7 +37,7 @@ public class RemoteItem extends Item {
     public ActionResult onAttackBlock(World world) {
         if (!world.isClient()) {
             MCTournament.SERVER.getPlayerManager().broadcast(Text.literal("Round ended!"), true);
-            Tournament.getInstance().endCurrentMinigame(false);
+            Tournament.inst().endCurrentMinigame(false);
         }
 
         return ActionResult.PASS;

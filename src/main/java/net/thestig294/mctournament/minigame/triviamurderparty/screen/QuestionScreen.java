@@ -4,6 +4,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.random.Random;
 import net.thestig294.mctournament.MCTournament;
@@ -105,12 +106,10 @@ public class QuestionScreen extends Screen {
         this.leftBoxWidget = this.addDrawableChild(new QuestionBox(-this.width / 2,0, this.width / 2, this.height, ModColors.BLACK));
         this.rightBoxWidget = this.addDrawableChild(new QuestionBox(this.width,0, this.width, this.height, ModColors.BLACK));
 
-        if (MCTournament.CLIENT.world == null) return;
-        int i = 0;
-        for (final var player : MCTournament.CLIENT.world.getPlayers()) {
+        List<AbstractClientPlayerEntity> players = ModUtil.clientGetPlayers();
+        for (int i = 0; i < players.size(); i++) {
             this.playerWidgets.add(this.addDrawableChild(new QuestionPlayer(i * this.width / 8, 0,
-                    this.width / 8, this.height / 3, player)));
-            i++;
+                    this.width / 8, this.height / 3, players.get(i))));
         }
 
         this.questionNumberWidget = this.addDrawableChild(new QuestionText(this.width / 2, this.height / 2,

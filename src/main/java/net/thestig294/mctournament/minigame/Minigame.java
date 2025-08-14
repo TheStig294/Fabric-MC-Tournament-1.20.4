@@ -22,6 +22,10 @@ public abstract class Minigame {
 
     public abstract void serverBegin();
 
+//    Called just before serverEnd() at the end of the round,
+//    mostly here as a reminder to manipulate the scoreboard so it's ready for the next minigame
+    public abstract void translateScores();
+
     public abstract void serverEnd();
 
     @Environment(EnvType.CLIENT)

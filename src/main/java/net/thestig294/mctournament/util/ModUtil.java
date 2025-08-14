@@ -1,7 +1,21 @@
 package net.thestig294.mctournament.util;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.client.network.AbstractClientPlayerEntity;
+import net.minecraft.client.network.PlayerListEntry;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.scoreboard.ScoreHolder;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.random.Random;
 import net.thestig294.mctournament.MCTournament;
+import org.apache.logging.log4j.core.jmx.Server;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Consumer;
 
 public class ModUtil {
     public static void logRegistration(String type) {
@@ -49,7 +63,6 @@ public class ModUtil {
         return progress / total;
     }
 
-
     /**
      * Returns the value from start to end, that is the passed percent along from the start to the end
      * @param start
@@ -61,5 +74,43 @@ public class ModUtil {
         float difference = end - start;
         float progress = difference * percent;
         return start + progress;
+    }
+
+    public static @Nullable ServerPlayerEntity getPlayer(String playerName) {
+        if (MCTournament.SERVER == null || MCTournament.SERVER.getPlayerManager() == null) return null;
+        return MCTournament.SERVER.getPlayerManager().getPlayer(playerName);
+    }
+
+    @Environment(EnvType.CLIENT)
+    public static @Nullable AbstractClientPlayerEntity clientGetPlayer(String playerName) {
+        if (MCTournament.CLIENT == null || MCTournament.CLIENT.world == null) return null;
+        for (final var player : getClientPlayers()) {
+            if (player.getNameForScoreboard().equals(playerName)) return player;
+        }
+        return null;
+    }
+
+    public static List<ServerPlayerEntity> getPlayers() {
+        if (MCTournament.SERVER == null || MCTournament.SERVER.getPlayerManager() == null) return Collections.emptyList();
+        return MCTournament.SERVER.getPlayerManager().getPlayerList();
+    }
+
+    public static void forAllPlayers(Consumer<ServerPlayerEntity> function) {
+        getPlayers().forEach(function);
+    }
+
+    @Environment(EnvType.CLIENT)
+    public static List<AbstractClientPlayerEntity> getClientPlayers() {
+        if (MCTournament.CLIENT == null || MCTournament.CLIENT.world == null) return Collections.emptyList();
+        return MCTournament.CLIENT.world.getPlayers();
+    }
+
+    @Environment(EnvType.CLIENT)
+    public static void clientForAllPlayers(Consumer<AbstractClientPlayerEntity> function) {
+        getClientPlayers().forEach(function);
+    }
+
+    public static ScoreHolder getScoreHolder(PlayerEntity player) {
+        return ScoreHolder.fromName(player.getNameForScoreboard());
     }
 }
