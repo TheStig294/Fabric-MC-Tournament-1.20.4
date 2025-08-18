@@ -17,7 +17,6 @@ import net.thestig294.mctournament.minigame.triviamurderparty.widget.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.SortedMap;
 
 public class QuestionScreen extends Screen {
     private static final float TITLE_FADE_TIME = 0.5f;
@@ -47,7 +46,6 @@ public class QuestionScreen extends Screen {
     private final int questionNumber;
 
     private float uptimeSecs;
-    private float uptimeSeconds;
     private State state;
     private float stateEndTime;
     private float stateStartTime;
@@ -56,16 +54,16 @@ public class QuestionScreen extends Screen {
     private boolean firstStateTick;
     private boolean firstState;
 
-    private List<QuestionText> titleWidgets;
+    private final List<QuestionText> titleWidgets;
     private QuestionBox leftBoxWidget;
     private QuestionBox rightBoxWidget;
-    private List<QuestionPlayer> playerWidgets;
+    private final List<QuestionPlayer> playerWidgets;
     private QuestionText questionNumberWidget;
     private QuestionText questionWidget;
-    private List<QuestionButton> answerWidgets;
-    private List<QuestionText> answeredCountWidgets;
+    private final List<QuestionButton> answerWidgets;
+    private final List<QuestionText> answeredCountWidgets;
     private QuestionTimer timerWidget;
-    private List<QuestionText> roomCodeWidgets;
+    private final List<QuestionText> roomCodeWidgets;
 
     public QuestionScreen(Question question, int questionNumber) {
         this(question, questionNumber, State.TITLE_IN);
@@ -78,7 +76,6 @@ public class QuestionScreen extends Screen {
         this.questionNumber = questionNumber;
 
         this.uptimeSecs = 0.0f;
-        this.uptimeSeconds = 0.0f;
         this.state = startingState;
         this.stateEndTime = 0.0f;
         this.stateStartTime = 0.0f;
@@ -108,7 +105,7 @@ public class QuestionScreen extends Screen {
         this.leftBoxWidget = this.addDrawableChild(new QuestionBox(-this.width / 2,0, this.width / 2, this.height, ModColors.BLACK));
         this.rightBoxWidget = this.addDrawableChild(new QuestionBox(this.width,0, this.width, this.height, ModColors.BLACK));
 
-        List<PlayerEntity> teamCaptains = Tournament.inst().clientScoreboard().getTeamCaptainsList();
+        List<PlayerEntity> teamCaptains = Tournament.inst().clientScoreboard().getValidTeamCaptains();
         for (int i = 0; i < teamCaptains.size(); i++) {
             this.playerWidgets.add(this.addDrawableChild(new QuestionPlayer(i * this.width / 8, 0,
                     this.width / 8, this.height / 3, teamCaptains.get(i))));
@@ -174,6 +171,7 @@ public class QuestionScreen extends Screen {
         return (int) animate(((float) start), ((float) end));
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void everyStatePercent(int percent, Runnable function) {
         if (this.stateProgressPercent % percent == 0) function.run();
     }
@@ -315,6 +313,7 @@ public class QuestionScreen extends Screen {
         }
     }
 
+    @SuppressWarnings("unused")
     float getQuip(QuipType quipType) {
         return 1.0f;
     }
@@ -347,7 +346,6 @@ public class QuestionScreen extends Screen {
             case KILLING_ROOM_TRANSITION_MOVE -> KILLING_ROOM_TRANSITION_MOVE_TIME;
             case KILLING_ROOM_TRANSITION_LIGHTS -> KILLING_ROOM_TRANSITION_LIGHTS_TIME;
             case ALL_CORRECT_LOOP_BACK -> ALL_CORRECT_LOOP_BACK_TIME;
-            default -> 0.0f;
         };
 
         this.stateStartTime = lastEndTime;

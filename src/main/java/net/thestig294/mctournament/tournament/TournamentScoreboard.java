@@ -30,20 +30,14 @@ public class TournamentScoreboard {
     private boolean hooksAdded;
     private Scoreboard scoreboard;
     private final List<Team> teams;
-    private final List<PlayerEntity> teamCaptains;
-    private ScoreboardObjective objective;
+    private final SortedMap<Integer, PlayerEntity> teamCaptains;
 
     public TournamentScoreboard(boolean isClient) {
         this.isClient = isClient;
         this.hooksAdded = false;
 
         this.teams = new ArrayList<>(MAX_TEAMS);
-        this.teamCaptains = new ArrayList<>(MAX_TEAMS);
-
-        for (int i = 0; i < MAX_TEAMS; i++) {
-            this.teams.add(null);
-            this.teamCaptains.add(null);
-        }
+        this.teamCaptains = new TreeMap<>();
 
         if (isClient) {
             this.clientInit();
@@ -55,13 +49,14 @@ public class TournamentScoreboard {
     @Environment(EnvType.CLIENT)
     public void clientInit() {
         World world = MCTournament.CLIENT.world;
-        this.scoreboard = world != null ? world.getScoreboard() : null;;
+        this.scoreboard = world != null ? world.getScoreboard() : null;
 
         ModNetworking.clientReceive(ModNetworking.SCOREBOARD_UPDATE_TEAMS, clientReceiveInfo -> {
             MCTournament.LOGGER.info("Client: Received team update!");
+            this.teams.clear();
             for (int i = 0; i < MAX_TEAMS; i++) {
                 Team team = this.scoreboard.getTeam(this.getTeamName(i));
-                this.teams.set(i, team);
+                this.teams.add(team);
                 MCTournament.LOGGER.info("Client: Added team: {} {}", i, team);
             }
         });
@@ -97,22 +92,23 @@ public class TournamentScoreboard {
     public void serverInit() {
         this.scoreboard = MCTournament.SERVER.getScoreboard();
 
-        this.objective = this.scoreboard.getNullableObjective(OBJECTIVE_NAME);
-        if (this.objective != null) this.scoreboard.removeObjective(this.objective);
-        this.objective = this.scoreboard.addObjective(OBJECTIVE_NAME, ScoreboardCriterion.DUMMY,
+        ScoreboardObjective objective = this.scoreboard.getNullableObjective(OBJECTIVE_NAME);
+        if (objective != null) this.scoreboard.removeObjective(objective);
+        this.scoreboard.addObjective(OBJECTIVE_NAME, ScoreboardCriterion.DUMMY,
                 Text.literal("Tournament Score"), ScoreboardCriterion.RenderType.INTEGER,
                 false, null);
 
+        this.teams.clear();
         for (int i = 0; i < MAX_TEAMS; i++) {
             Team team = this.getTeam(i);
             if (team != null) {
                 this.scoreboard.removeTeam(team);
             }
-            this.teams.set(i, this.scoreboard.addTeam(this.getTeamName(i)));
+            this.teams.add(this.scoreboard.addTeam(this.getTeamName(i)));
             MCTournament.LOGGER.info("Server: Added team: {} {}", i, this.teams.get(i));
         }
 
-        this.resetTeamCaptains();
+        this.teamCaptains.clear();
         ModUtil.forAllPlayers(this::addPlayerToTeam);
 
         if (!this.hooksAdded) {
@@ -145,10 +141,8 @@ public class TournamentScoreboard {
     }
 
     private void addHooks() {
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            this.addPlayerToTeam(handler.getPlayer());
-            ModNetworking.send(ModNetworking.SCOREBOARD_UPDATE_TEAMS, handler.getPlayer());
-        });
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
+                this.addPlayerToTeam(handler.getPlayer()));
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             ServerPlayerEntity player = handler.getPlayer();
@@ -194,10 +188,12 @@ public class TournamentScoreboard {
         return this.isClient;
     }
 
+    @SuppressWarnings("unused")
     public Scoreboard getScoreboard() {
         return this.scoreboard;
     }
 
+    @SuppressWarnings("unused")
     public @Nullable PlayerEntity getTeamCaptain(PlayerEntity player) {
         Team team = player.getScoreboardTeam();
         return team != null ? this.getTeamCaptain(team) : null;
@@ -215,18 +211,17 @@ public class TournamentScoreboard {
         return this.teamCaptains.get(teamNumber);
     }
 
+    @SuppressWarnings("unused")
     public List<PlayerEntity> getTeamCaptains() {
-        return this.teamCaptains;
+        return this.teamCaptains.values().stream().toList();
     }
 
     /**
      * @return A list of all team captains, in order of team name from 0 to {@code MAX_TEAMS},
      * ignoring teams with missing captains
      */
-    public List<PlayerEntity> getTeamCaptainsList() {
-        List<PlayerEntity> captains = new ArrayList<>();
-        this.teamCaptains.forEach(captain -> {if (captain != null) captains.add(captain);});
-        return captains;
+    public List<PlayerEntity> getValidTeamCaptains() {
+        return this.teamCaptains.values().stream().filter(Objects::nonNull).toList();
     }
 
     public void setTeamCaptain(Team team, @Nullable PlayerEntity captain) {
@@ -238,7 +233,7 @@ public class TournamentScoreboard {
     }
 
     public void setTeamCaptain(int teamNumber, @Nullable PlayerEntity captain) {
-        this.teamCaptains.set(teamNumber, captain);
+        this.teamCaptains.put(teamNumber, captain);
 
         if (!this.isClient()) {
             PacketByteBuf buffer = PacketByteBufs.create();
@@ -259,11 +254,7 @@ public class TournamentScoreboard {
     }
 
     public boolean isTeamCaptain(PlayerEntity player) {
-        for (final var captain : this.teamCaptains) {
-            if (Objects.equals(captain.getNameForScoreboard(), player.getNameForScoreboard())) return true;
-        }
-
-        return false;
+        return this.teamCaptains.containsValue(player);
     }
 
     public void findNewTeamCaptain(Team team) {
@@ -278,10 +269,6 @@ public class TournamentScoreboard {
 
     }
 
-    public void resetTeamCaptains() {
-        this.teamCaptains.clear();
-    }
-
     public String getTeamName(int teamNumber) {
         return TEAM_NAME_PREFIX + teamNumber;
     }
@@ -292,9 +279,10 @@ public class TournamentScoreboard {
 
     /**
      * Gets a player's team number
-     * @param player
+     * @param player PlayerEntity
      * @return the player's team number, or -1 if the player doesn't have a team or has an invalid team name
      */
+    @SuppressWarnings("unused")
     public int getTeamNumber(PlayerEntity player) {
         Team team = player.getScoreboardTeam();
         return team == null ? -1 : this.getTeamNumber(team);
@@ -306,7 +294,7 @@ public class TournamentScoreboard {
 
     /**
      * Converts a team name into a team number
-     * @param teamName
+     * @param teamName String of valid tournament team name
      * @return Team's team number, or -1 if not a properly formatted tournament team name.
      * <p>
      * See: {@link TournamentScoreboard#getTeamName(int)}
@@ -316,6 +304,7 @@ public class TournamentScoreboard {
         return teamNumber == null ? -1 : teamNumber;
     }
 
+    @SuppressWarnings("unused")
     public List<ServerPlayerEntity> getConnectedTeamMembers(String teamName) {
         Team team = this.scoreboard.getTeam(teamName);
         return team == null ? Collections.emptyList() : getConnectedTeamMembers(team);
