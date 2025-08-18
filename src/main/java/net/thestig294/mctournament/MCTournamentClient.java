@@ -4,6 +4,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.MinecraftClient;
 import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.tournament.Tournament;
+import net.thestig294.mctournament.util.ModTimer;
 
 public class MCTournamentClient implements ClientModInitializer {
     @Override
@@ -13,5 +14,7 @@ public class MCTournamentClient implements ClientModInitializer {
 
         Minigames.registerMinigames(true);
         Tournament.inst().clientInit();
+
+        ModTimer.init(true);
     }
 }

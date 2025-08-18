@@ -17,6 +17,7 @@ import net.thestig294.mctournament.minigame.triviamurderparty.widget.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.SortedMap;
 
 public class QuestionScreen extends Screen {
     private static final float TITLE_FADE_TIME = 0.5f;
@@ -107,7 +108,7 @@ public class QuestionScreen extends Screen {
         this.leftBoxWidget = this.addDrawableChild(new QuestionBox(-this.width / 2,0, this.width / 2, this.height, ModColors.BLACK));
         this.rightBoxWidget = this.addDrawableChild(new QuestionBox(this.width,0, this.width, this.height, ModColors.BLACK));
 
-        List<PlayerEntity> teamCaptains = Tournament.inst().clientScoreboard().getTeamCaptains();
+        List<PlayerEntity> teamCaptains = Tournament.inst().clientScoreboard().getTeamCaptainsList();
         for (int i = 0; i < teamCaptains.size(); i++) {
             this.playerWidgets.add(this.addDrawableChild(new QuestionPlayer(i * this.width / 8, 0,
                     this.width / 8, this.height / 3, teamCaptains.get(i))));

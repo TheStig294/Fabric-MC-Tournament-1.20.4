@@ -23,7 +23,7 @@ public class ModNetworking {
     public static final Identifier TOURNAMENT_END_ROUND = registerNetworkID("tournament_end_round");
     public static final Identifier TOURNAMENT_CLIENT_END_ROUND = registerNetworkID("tournament_client_end_round");
     public static final Identifier SCOREBOARD_UPDATE_TEAMS = registerNetworkID("scoreboard_update_teams");
-    public static final Identifier SCOREBOARD_UPDATE_TEAM_CAPTAIN = registerNetworkID("scoreboard_update_team_captain");
+    public static final Identifier SCOREBOARD_UPDATE_TEAM_CAPTAINS = registerNetworkID("scoreboard_update_team_captains");
 
 
     public static Identifier registerNetworkID(String name) {

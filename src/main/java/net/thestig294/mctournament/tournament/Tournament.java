@@ -26,7 +26,6 @@ public class Tournament {
         this.minigameIDs = settings.getMinigames();
         this.variants = settings.getVariants();
         this.scoreboard = this.scoreboard == null ? new TournamentScoreboard(false) : this.scoreboard;
-        this.scoreboard.serverInit();
 
         PacketByteBuf buffer = PacketByteBufs.create();
 

@@ -3,10 +3,8 @@ package net.thestig294.mctournament;
 import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.timer.Timer;
 import net.thestig294.mctournament.font.ModFonts;
 import net.thestig294.mctournament.item.ModItemGroups;
 import net.thestig294.mctournament.item.ModItems;
@@ -15,6 +13,7 @@ import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.network.ModNetworking;
 import net.thestig294.mctournament.texture.ModTextures;
 import net.thestig294.mctournament.tournament.Tournament;
+import net.thestig294.mctournament.util.ModTimer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,5 +41,7 @@ public class MCTournament implements ModInitializer {
 		Tournament.inst().serverInit();
 
         RemoteItem.init();
+
+        ModTimer.init(false);
 	}
 }
