@@ -1,18 +1,16 @@
-package net.thestig294.mctournament.tournament.specialminigame;
+package net.thestig294.mctournament.minigame.tournamentbegin;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.text.Text;
-import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.Minigame;
 
 /**
- * A special minigame that gets automatically played at the end of every tournament
+ * A special minigame that gets automatically played at the start of every tournament
  */
-public class TournamentEnd extends Minigame {
+public class TournamentBegin extends Minigame {
     @Override
     public String getID() {
-        return "tournament_end";
+        return "tournament_begin";
     }
 
     @Override
@@ -22,7 +20,12 @@ public class TournamentEnd extends Minigame {
 
     @Override
     public void serverBegin() {
-        MCTournament.SERVER.getPlayerManager().broadcast(Text.translatable("tournament.mctournament.end_message"), true);
+
+    }
+
+    @Override
+    public void translateScores() {
+
     }
 
     @Override
@@ -46,10 +49,5 @@ public class TournamentEnd extends Minigame {
     @Override
     public void clientEnd() {
 
-    }
-
-//    The tournament scoreboard is used directly instead
-    @Override
-    public void translateScores() {
     }
 }

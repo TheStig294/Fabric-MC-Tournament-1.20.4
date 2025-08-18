@@ -4,12 +4,13 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.random.Random;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Question;
+import net.thestig294.mctournament.tournament.Tournament;
 import net.thestig294.mctournament.util.ModColors;
 import net.thestig294.mctournament.util.ModUtil;
 import net.thestig294.mctournament.minigame.triviamurderparty.widget.*;
@@ -106,10 +107,10 @@ public class QuestionScreen extends Screen {
         this.leftBoxWidget = this.addDrawableChild(new QuestionBox(-this.width / 2,0, this.width / 2, this.height, ModColors.BLACK));
         this.rightBoxWidget = this.addDrawableChild(new QuestionBox(this.width,0, this.width, this.height, ModColors.BLACK));
 
-        List<AbstractClientPlayerEntity> players = ModUtil.clientGetPlayers();
-        for (int i = 0; i < players.size(); i++) {
+        List<PlayerEntity> teamCaptains = Tournament.inst().clientScoreboard().getTeamCaptains();
+        for (int i = 0; i < teamCaptains.size(); i++) {
             this.playerWidgets.add(this.addDrawableChild(new QuestionPlayer(i * this.width / 8, 0,
-                    this.width / 8, this.height / 3, players.get(i))));
+                    this.width / 8, this.height / 3, teamCaptains.get(i))));
         }
 
         this.questionNumberWidget = this.addDrawableChild(new QuestionText(this.width / 2, this.height / 2,

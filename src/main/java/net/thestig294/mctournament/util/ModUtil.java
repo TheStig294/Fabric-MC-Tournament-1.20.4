@@ -3,18 +3,19 @@ package net.thestig294.mctournament.util;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.scoreboard.ScoreHolder;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.world.timer.Timer;
+import net.minecraft.world.timer.TimerCallback;
 import net.thestig294.mctournament.MCTournament;
-import org.apache.logging.log4j.core.jmx.Server;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class ModUtil {
@@ -84,7 +85,7 @@ public class ModUtil {
     @Environment(EnvType.CLIENT)
     public static @Nullable AbstractClientPlayerEntity clientGetPlayer(String playerName) {
         if (MCTournament.CLIENT == null || MCTournament.CLIENT.world == null) return null;
-        for (final var player : getClientPlayers()) {
+        for (final var player : clientGetPlayers()) {
             if (player.getNameForScoreboard().equals(playerName)) return player;
         }
         return null;
@@ -100,17 +101,22 @@ public class ModUtil {
     }
 
     @Environment(EnvType.CLIENT)
-    public static List<AbstractClientPlayerEntity> getClientPlayers() {
+    public static List<AbstractClientPlayerEntity> clientGetPlayers() {
         if (MCTournament.CLIENT == null || MCTournament.CLIENT.world == null) return Collections.emptyList();
         return MCTournament.CLIENT.world.getPlayers();
     }
 
     @Environment(EnvType.CLIENT)
     public static void clientForAllPlayers(Consumer<AbstractClientPlayerEntity> function) {
-        getClientPlayers().forEach(function);
+        clientGetPlayers().forEach(function);
     }
 
     public static ScoreHolder getScoreHolder(PlayerEntity player) {
         return ScoreHolder.fromName(player.getNameForScoreboard());
+    }
+
+    public static void createTimer(String timerName, int delay, TimerCallback<MinecraftServer> lambda) {
+        Timer<MinecraftServer> timer = MCTournament.SERVER.getSaveProperties().getMainWorldProperties().getScheduledEvents();
+        timer.setEvent(MCTournament.MOD_ID + timerName, MCTournament.SERVER.getOverworld().getTime() + delay, lambda);
     }
 }

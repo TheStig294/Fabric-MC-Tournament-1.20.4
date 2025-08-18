@@ -3,40 +3,30 @@ package net.thestig294.mctournament.tournament;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.scoreboard.ServerScoreboard;
-import net.minecraft.scoreboard.Team;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.Minigame;
 import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.network.ModNetworking;
-import net.thestig294.mctournament.util.ModUtil;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 public class Tournament {
-    public static final int MAX_TEAMS = 8;
-
     private int round;
     private Minigame minigame;
     private List<Identifier> minigameIDs;
     private List<Minigame> minigames;
     private List<String> variants;
 
-    private ServerScoreboard scoreboard;
-    private final Map<Team, PlayerEntity> teamCaptains = new HashMap<>();
+    private TournamentScoreboard scoreboard;
+    private TournamentScoreboard clientScoreboard;
 
     public void serverSetup(TournamentSettings settings) {
         this.minigameIDs = settings.getMinigames();
         this.variants = settings.getVariants();
-        this.scoreboard = MCTournament.SERVER.getScoreboard();
-        this.teamCaptains.clear();
+        this.scoreboard = this.scoreboard == null ? new TournamentScoreboard(false) : this.scoreboard;
+        this.scoreboard.serverInit();
 
         PacketByteBuf buffer = PacketByteBufs.create();
 
@@ -68,6 +58,7 @@ public class Tournament {
             this.variants.add(buffer.readString());
         }
 
+        this.clientScoreboard = this.clientScoreboard == null ? new TournamentScoreboard(true) : this.clientScoreboard;
         this.sharedSetup(true);
     }
 
@@ -139,79 +130,13 @@ public class Tournament {
     }
 
 
-    public ServerScoreboard getServerScoreboard() {
+    public TournamentScoreboard serverScoreboard() {
         return this.scoreboard;
     }
 
     @Environment(EnvType.CLIENT)
-    public Scoreboard getClientScoreboard() {
-        ClientWorld world = MCTournament.CLIENT.world;
-        return world != null ? world.getScoreboard() : null;
-    }
-
-    public @Nullable PlayerEntity getTeamCaptain(PlayerEntity player) {
-        Team team = player.getScoreboardTeam();
-        return team != null ? this.getTeamCaptain(team.getName()) : null;
-    }
-
-    public @Nullable PlayerEntity getTeamCaptain(String teamName) {
-        return this.getTeamCaptain(this.scoreboard.getTeam(teamName));
-    }
-
-    public @Nullable PlayerEntity getTeamCaptain(Team team) {
-        return this.teamCaptains.getOrDefault(team, null);
-    }
-
-    public void setTeamCaptain(@Nullable PlayerEntity captain, String teamName)  {
-        this.setTeamCaptain(captain, this.scoreboard.getTeam(teamName));
-    }
-
-    public void setTeamCaptain(@Nullable PlayerEntity captain, Team team) {
-        this.teamCaptains.put(team, captain);
-    }
-
-    public boolean isTeamCaptain(PlayerEntity player) {
-        return this.teamCaptains.containsValue(player);
-    }
-
-    public void findNewTeamCaptain(Team team) {
-        for (final var playerName : team.getPlayerList()) {
-            ServerPlayerEntity captain = ModUtil.getPlayer(playerName);
-
-            if (captain != null) {
-                this.teamCaptains.put(team, captain);
-                return;
-            }
-        }
-
-    }
-
-    public void resetTeamCaptains() {
-        this.teamCaptains.clear();
-    }
-
-    public Team getTeam(int teamNumber) {
-        return this.scoreboard.getTeam(this.getTeamName(teamNumber));
-    }
-
-    public String getTeamName(int teamNumber) {
-        return MCTournament.MOD_ID + teamNumber;
-    }
-
-    public List<ServerPlayerEntity> getConnectedTeamMembers(String teamName) {
-        Team team = this.scoreboard.getTeam(teamName);
-        return team == null ? Collections.emptyList() : getConnectedTeamMembers(team);
-    }
-
-    public List<ServerPlayerEntity> getConnectedTeamMembers(Team team) {
-        List<ServerPlayerEntity> teamPlayers = new ArrayList<>();
-
-        for (final var playerName : team.getPlayerList()) {
-            ServerPlayerEntity player = ModUtil.getPlayer(playerName);
-            if ((player != null && !player.isDisconnected())) teamPlayers.add(player);
-        }
-
-        return teamPlayers;
+    public TournamentScoreboard clientScoreboard() {
+        return this.clientScoreboard;
     }
 
 
