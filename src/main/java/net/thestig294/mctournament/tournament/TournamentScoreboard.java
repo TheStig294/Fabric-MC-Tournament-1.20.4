@@ -12,9 +12,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.world.World;
 import net.thestig294.mctournament.MCTournament;
-import net.thestig294.mctournament.minigame.tournamentbegin.TournamentBegin;
 import net.thestig294.mctournament.network.ModNetworking;
-import net.thestig294.mctournament.util.ModTimer;
 import net.thestig294.mctournament.util.ModUtil;
 import net.thestig294.mctournament.util.ModUtilClient;
 import org.jetbrains.annotations.Nullable;
@@ -22,30 +20,26 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class TournamentScoreboard {
-    public static final int MAX_TEAMS = 2;
+    public static final int MAX_TEAMS = 8;
     public static final String TEAM_NAME_PREFIX = MCTournament.MOD_ID + '_';
     public static final String OBJECTIVE_NAME = "tournamentScore";
 
     private final boolean isClient;
     private boolean hooksAdded;
-    private Scoreboard scoreboard;
     private final List<Team> teams;
     private final SortedMap<Integer, PlayerEntity> teamCaptains;
+    private Scoreboard scoreboard;
 
     public TournamentScoreboard(boolean isClient) {
         this.isClient = isClient;
         this.hooksAdded = false;
-
         this.teams = new ArrayList<>(MAX_TEAMS);
         this.teamCaptains = new TreeMap<>();
-
-        if (isClient) {
-            this.clientInit();
-        } else {
-            this.serverInit();
-        }
     }
 
+    /**
+     * Called at the beginning of every tournament
+     */
     @Environment(EnvType.CLIENT)
     public void clientInit() {
         World world = MCTournament.CLIENT.world;
@@ -83,11 +77,12 @@ public class TournamentScoreboard {
                 }
             }
         });
+
+        ModNetworking.sendToServer(ModNetworking.SCOREBOARD_PLAYER_JOINED);
     }
 
     /**
-     * Called once the special {@link TournamentBegin} minigame has begun. <p>
-     * Should be called in {@link TournamentBegin#serverBegin()}
+     * Called at the beginning of every tournament
      */
     public void serverInit() {
         this.scoreboard = MCTournament.SERVER.getScoreboard();
@@ -115,39 +110,43 @@ public class TournamentScoreboard {
             this.hooksAdded = true;
             this.addHooks();
         }
+    }
 
-        ModTimer.serverSimple(1, () -> {
-            MCTournament.LOGGER.info("Server: Broadcasting team update!");
-            ModNetworking.broadcast(ModNetworking.SCOREBOARD_UPDATE_TEAMS);
+    private PacketByteBuf getTeamCaptainsInfoBuffer() {
+        PacketByteBuf buffer = PacketByteBufs.create();
+        buffer.writeInt(MAX_TEAMS);
 
-            MCTournament.LOGGER.info("Server: Broadcasting initial team captain updates!");
-            PacketByteBuf buffer = PacketByteBufs.create();
-            buffer.writeInt(MAX_TEAMS);
+        for (int i = 0; i < MAX_TEAMS; i++) {
+            buffer.writeInt(i);
 
-            for (int i = 0; i < MAX_TEAMS; i++) {
-                buffer.writeInt(i);
+            PlayerEntity captain = this.getTeamCaptain(i);
+            boolean isNull = captain == null;
+            buffer.writeBoolean(isNull);
 
-                PlayerEntity captain = this.getTeamCaptain(i);
-                boolean isNull = captain == null;
-                buffer.writeBoolean(isNull);
-
-                if (!isNull) {
-                    buffer.writeString(captain.getNameForScoreboard());
-                }
+            if (!isNull) {
+                buffer.writeString(captain.getNameForScoreboard());
             }
+        }
 
-            ModNetworking.broadcast(ModNetworking.SCOREBOARD_UPDATE_TEAM_CAPTAINS, buffer);
-        });
+        return buffer;
     }
 
     private void addHooks() {
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
-                this.addPlayerToTeam(handler.getPlayer()));
+        ModNetworking.serverReceive(ModNetworking.SCOREBOARD_PLAYER_JOINED, serverReceiveInfo -> {
+            ServerPlayerEntity player = serverReceiveInfo.player();
+            MCTournament.LOGGER.info("Server: Player joined: {}", player.getNameForScoreboard());
+            this.addPlayerToTeam(player);
+
+            ModNetworking.send(ModNetworking.SCOREBOARD_UPDATE_TEAMS, player);
+            ModNetworking.send(ModNetworking.SCOREBOARD_UPDATE_TEAM_CAPTAINS, player, this.getTeamCaptainsInfoBuffer());
+        });
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            MCTournament.LOGGER.info("Server: Player disconnected: {}", handler.getPlayer().getNameForScoreboard());
             ServerPlayerEntity player = handler.getPlayer();
             Team team = player.getScoreboardTeam();
 
+            MCTournament.LOGGER.info("Server: Team: {}, isTeamCaptain: {}", team, this.isTeamCaptain(player));
             if (team != null && this.isTeamCaptain(player)) {
                 this.findNewTeamCaptain(team);
             }

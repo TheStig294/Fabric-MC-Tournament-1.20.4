@@ -1,7 +1,5 @@
 package net.thestig294.mctournament.util;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
@@ -44,16 +42,7 @@ public class ModTimer {
         }
     }
 
-    public static void serverSimple(float secsDelay, Runnable function) {
-        simple(false, secsDelay, function);
-    }
-
-    @Environment(EnvType.CLIENT)
-    public static void clientSimple(float secsDelay, Runnable function) {
-        simple(true, secsDelay, function);
-    }
-
-    private static void simple(boolean isClient, float secsDelay, Runnable function) {
+    public static void simple(boolean isClient, float secsDelay, Runnable function) {
         long time = isClient ? CLIENT_TICKS : SERVER_TICKS;
         time += (long) (secsDelay * SECONDS_PER_TICK);
         PriorityQueue<QueuedFunction> queue = isClient ? CLIENT_QUEUE : SERVER_QUEUE;

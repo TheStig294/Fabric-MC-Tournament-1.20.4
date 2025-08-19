@@ -24,6 +24,7 @@ public class ModNetworking {
     public static final Identifier TOURNAMENT_CLIENT_END_ROUND = registerNetworkID("tournament_client_end_round");
     public static final Identifier SCOREBOARD_UPDATE_TEAMS = registerNetworkID("scoreboard_update_teams");
     public static final Identifier SCOREBOARD_UPDATE_TEAM_CAPTAINS = registerNetworkID("scoreboard_update_team_captains");
+    public static final Identifier SCOREBOARD_PLAYER_JOINED = registerNetworkID("scoreboard_player_joined");
 
 
     public static Identifier registerNetworkID(String name) {
@@ -34,6 +35,7 @@ public class ModNetworking {
         MCTournament.LOGGER.info("Registering networking IDs for " + MCTournament.MOD_ID);
     }
 
+    @SuppressWarnings("unused")
     public static void broadcast(Identifier channelName) {
         broadcast(channelName, PacketByteBufs.empty());
     }
@@ -45,10 +47,10 @@ public class ModNetworking {
     }
 
     public static void send(Identifier channelName, ServerPlayerEntity player) {
-        send(channelName, PacketByteBufs.empty(), player);
+        send(channelName, player, PacketByteBufs.empty());
     }
 
-    public static void send(Identifier channelName, PacketByteBuf buffer, ServerPlayerEntity player) {
+    public static void send(Identifier channelName, ServerPlayerEntity player, PacketByteBuf buffer) {
         ServerPlayNetworking.send(player, channelName, buffer);
     }
 

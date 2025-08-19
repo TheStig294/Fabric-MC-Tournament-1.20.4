@@ -2,32 +2,43 @@ package net.thestig294.mctournament.tournament;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
-import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.Minigame;
 import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.network.ModNetworking;
+import net.thestig294.mctournament.util.ModTimer;
 
 import java.util.*;
 
 public class Tournament {
-    private int round;
-    private Minigame minigame;
-    private List<Identifier> minigameIDs;
-    private List<Minigame> minigames;
-    private List<String> variants;
+    public static final int MINIGAME_BEGIN_DELAY_SECS = 2;
+
+    private int round = -1;
+    private Minigame minigame = null;
+    private List<Identifier> minigameIDs = new ArrayList<>();
+    private List<Minigame> minigames = new ArrayList<>();
+    private List<String> variants = new ArrayList<>();
 
     private TournamentScoreboard scoreboard;
     private TournamentScoreboard clientScoreboard;
 
     public void serverSetup(TournamentSettings settings) {
+        this.round = -1;
         this.minigameIDs = settings.getMinigames();
         this.variants = settings.getVariants();
         this.scoreboard = this.scoreboard == null ? new TournamentScoreboard(false) : this.scoreboard;
+        this.scoreboard.serverInit();
 
+        this.sharedSetup(false);
+        ModNetworking.broadcast(ModNetworking.TOURNAMENT_SETUP, this.getClientInfoBuffer());
+    }
+
+    private PacketByteBuf getClientInfoBuffer() {
         PacketByteBuf buffer = PacketByteBufs.create();
+        buffer.writeInt(this.round);
 
         buffer.writeInt(this.minigameIDs.size());
         for (final var id : this.minigameIDs) {
@@ -39,12 +50,13 @@ public class Tournament {
             buffer.writeString(variant);
         }
 
-        this.sharedSetup(false);
-        ModNetworking.broadcast(ModNetworking.TOURNAMENT_SETUP, buffer);
+        return buffer;
     }
 
     @Environment(EnvType.CLIENT)
     private void clientSetup(PacketByteBuf buffer) {
+        this.round = buffer.readInt();
+
         int minigameCount = buffer.readInt();
         this.minigameIDs = new ArrayList<>(minigameCount);
         for (int i = 0; i < minigameCount; i++) {
@@ -58,11 +70,11 @@ public class Tournament {
         }
 
         this.clientScoreboard = this.clientScoreboard == null ? new TournamentScoreboard(true) : this.clientScoreboard;
+        this.clientScoreboard.clientInit();
         this.sharedSetup(true);
     }
 
     private void sharedSetup(boolean isClient) {
-        this.round = -1;
         this.minigame = null;
         this.minigames = Minigames.get(this.minigameIDs);
 
@@ -78,24 +90,21 @@ public class Tournament {
         if (isClient) {
             ModNetworking.sendToServer(ModNetworking.TOURNAMENT_CLIENT_END_ROUND);
         } else {
-            this.endRound(false);
+            this.endRound(false, this.round);
         }
     }
 
-    private void endRound(boolean isClient) {
+    private void endRound(boolean isClient, int round) {
         if (isClient) {
             this.minigame.clientEnd();
-//            If we're not on a dedicated server, we need to update the client's copy of the current round
-            if (!MCTournament.CLIENT.isInSingleplayer()) {
-                this.round++;
-            }
+            this.round = round;
         } else {
             this.minigame.translateScores();
             this.minigame.serverEnd();
-//            Unfortunately, since the client and server and influence each other in singleplayer,
-//            there is no guarantee that the incrementation below will occur before this message is received
-            ModNetworking.broadcast(ModNetworking.TOURNAMENT_END_ROUND);
             this.round++;
+            PacketByteBuf buffer = PacketByteBufs.create();
+            buffer.writeInt(this.round);
+            ModNetworking.broadcast(ModNetworking.TOURNAMENT_END_ROUND, buffer);
         }
 
         this.updateMinigame(isClient);
@@ -111,24 +120,39 @@ public class Tournament {
             this.minigame.setVariant(this.variants.get(this.round));
         }
 
-        if (isClient) {
-            this.minigame.clientBegin();
-        } else {
-            this.minigame.serverBegin();
-        }
+//        Called after a small delay to allow for packets to be sent between the server and client,
+//        from the last minigame's end function, and the initial state update for the TournamentScoreboard
+        ModTimer.simple(isClient, MINIGAME_BEGIN_DELAY_SECS, () -> {
+            if (isClient) {
+                this.minigame.clientBegin();
+            } else {
+                this.minigame.serverBegin();
+            }
+        });
     }
 
     public void serverInit() {
-        ModNetworking.serverReceive(ModNetworking.TOURNAMENT_CLIENT_END_ROUND, serverReceiveInfo -> this.endRound(false));
+        ModNetworking.serverReceive(ModNetworking.TOURNAMENT_CLIENT_END_ROUND, serverReceiveInfo ->
+                this.endRound(false, this.round));
+
+        ModNetworking.serverReceive(ModNetworking.TOURNAMENT_SETUP, serverReceiveInfo ->
+                ModNetworking.send(ModNetworking.TOURNAMENT_SETUP, serverReceiveInfo.player(), this.getClientInfoBuffer()));
     }
 
     @Environment(EnvType.CLIENT)
     public void clientInit() {
-        ModNetworking.clientReceive(ModNetworking.TOURNAMENT_END_ROUND, clientReceiveInfo -> this.endRound(true));
-        ModNetworking.clientReceive(ModNetworking.TOURNAMENT_SETUP, clientReceiveInfo -> this.clientSetup(clientReceiveInfo.buffer()));
+        ModNetworking.clientReceive(ModNetworking.TOURNAMENT_END_ROUND, clientReceiveInfo ->
+                this.endRound(true, clientReceiveInfo.buffer().readInt()));
+
+        ModNetworking.clientReceive(ModNetworking.TOURNAMENT_SETUP, clientReceiveInfo ->
+                this.clientSetup(clientReceiveInfo.buffer()));
+
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) ->
+                ModNetworking.sendToServer(ModNetworking.TOURNAMENT_SETUP));
     }
 
 
+    @SuppressWarnings("unused")
     public TournamentScoreboard serverScoreboard() {
         return this.scoreboard;
     }

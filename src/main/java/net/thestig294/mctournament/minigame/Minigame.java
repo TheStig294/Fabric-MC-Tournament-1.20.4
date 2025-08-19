@@ -20,6 +20,10 @@ public abstract class Minigame {
 
     public abstract void serverInit();
 
+    /**
+     * Called after a small delay after the last round ends to allow for packets to be sent between the server and client.
+     * Also called after a player joins mid-round.
+     */
     public abstract void serverBegin();
 
 //    Called just before serverEnd() at the end of the round,
@@ -31,6 +35,10 @@ public abstract class Minigame {
     @Environment(EnvType.CLIENT)
     public abstract void clientInit();
 
+    /**
+     * Called after a small delay after the last round ends to allow for packets to be sent between the server and client.
+     * Also called after a player joins mid-round.
+     */
     @Environment(EnvType.CLIENT)
     public abstract void clientBegin();
 
@@ -58,6 +66,7 @@ public abstract class Minigame {
         return this.variant;
     }
 
+    @SuppressWarnings("unused")
     public boolean isVariant(String variant) {
         if (!this.variantSet) {
             MCTournament.LOGGER.error("""
