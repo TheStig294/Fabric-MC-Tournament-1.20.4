@@ -8,17 +8,22 @@ import net.thestig294.mctournament.MCTournament;
 import java.util.Objects;
 
 public abstract class Minigame {
-    private String variant;
-    private Boolean variantSet;
-
-    public Minigame() {
-        this.variant = MinigameVariants.DEFAULT;
-        this.variantSet = false;
-    }
+    private String variant = MinigameVariants.DEFAULT;
+    private Boolean variantSet = false;
+    private MinigameScoreboard scoreboard;
+    private MinigameScoreboard clientScoreboard;
 
     public abstract String getID();
 
+    public void serverPreInit() {
+        this.scoreboard = new MinigameScoreboard(this, false);
+    }
+
     public abstract void serverInit();
+
+    public void serverPreBegin() {
+        this.scoreboard.serverBegin();
+    }
 
     /**
      * Called after a small delay after the last round ends to allow for packets to be sent between the server and client.
@@ -26,14 +31,26 @@ public abstract class Minigame {
      */
     public abstract void serverBegin();
 
-//    Called just before serverEnd() at the end of the round,
-//    mostly here as a reminder to manipulate the scoreboard so it's ready for the next minigame
+    /**
+     * Called just before serverEnd() at the end of the round.
+     * Mostly here as a reminder to manipulate the scoreboard so it's ready for the next minigame
+     */
     public abstract void translateScores();
 
     public abstract void serverEnd();
 
     @Environment(EnvType.CLIENT)
+    public void clientPreInit() {
+        this.clientScoreboard = new MinigameScoreboard(this, true);
+    }
+
+    @Environment(EnvType.CLIENT)
     public abstract void clientInit();
+
+    @Environment(EnvType.CLIENT)
+    public void clientPreBegin() {
+        this.clientScoreboard.clientBegin();
+    }
 
     /**
      * Called after a small delay after the last round ends to allow for packets to be sent between the server and client.
@@ -82,5 +99,14 @@ public abstract class Minigame {
     @Override
     public String toString() {
         return this.getName().getString();
+    }
+
+    public MinigameScoreboard scoreboard() {
+        return this.scoreboard;
+    }
+
+    @Environment(EnvType.CLIENT)
+    public MinigameScoreboard clientScoreboard() {
+        return this.clientScoreboard;
     }
 }

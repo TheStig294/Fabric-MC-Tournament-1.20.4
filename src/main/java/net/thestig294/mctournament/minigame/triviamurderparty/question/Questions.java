@@ -8,17 +8,24 @@ public class Questions {
     private static final Map<String, List<Question>> REGISTERED = new HashMap<>();
     private static int QUESTION_INDEX = 0;
     private static List<Question> QUESTION_LIST = new ArrayList<>();
+    private static final List<Question> QUESTION_LIST_BY_ID = new ArrayList<>();
+    private static int NEXT_QUESTION_ID = 0;
 
     public static void register(String q, String a1, String a2, String a3, String a4, int answer, float holdTime,
                                 String... categories) {
         if (categories.length == 0) categories = new String[]{MinigameVariants.DEFAULT};
 
+        Question question = new Question(q, a1, a2, a3, a4, answer, holdTime, NEXT_QUESTION_ID);
+        QUESTION_LIST_BY_ID.add(question);
+
         for (final var category : categories) {
             if (!REGISTERED.containsKey(category)) {
                 REGISTERED.put(category, new ArrayList<>());
             }
-            REGISTERED.get(category).add(new Question(q, a1, a2, a3, a4, answer, holdTime));
+            REGISTERED.get(category).add(question);
         }
+
+        NEXT_QUESTION_ID++;
     }
 
     public static void shuffleCategory(String category) {
@@ -40,6 +47,10 @@ public class Questions {
 
     public static int getQuestionNumber() {
         return QUESTION_INDEX;
+    }
+
+    public static Question getQuestionByID(int id) {
+        return QUESTION_LIST_BY_ID.get(id);
     }
 
 

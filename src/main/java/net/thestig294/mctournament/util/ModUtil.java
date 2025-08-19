@@ -83,8 +83,4 @@ public class ModUtil {
     public static void forAllPlayers(Consumer<ServerPlayerEntity> function) {
         getPlayers().forEach(function);
     }
-
-    public static ScoreHolder getScoreHolder(PlayerEntity player) {
-        return ScoreHolder.fromName(player.getNameForScoreboard());
-    }
 }

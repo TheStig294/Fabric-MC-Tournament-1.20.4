@@ -1,5 +1,7 @@
 package net.thestig294.mctournament.minigame.triviamurderparty.screen;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
@@ -18,6 +20,7 @@ import net.thestig294.mctournament.minigame.triviamurderparty.widget.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Environment(EnvType.CLIENT)
 public class QuestionScreen extends Screen {
     private static final float TITLE_FADE_TIME = 0.5f;
     private static final float TITLE_HOLD_TIME = 4.0f;

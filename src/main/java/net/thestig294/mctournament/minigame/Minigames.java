@@ -47,8 +47,10 @@ public class Minigames {
             MCTournament.LOGGER.info("Registering minigame {} on {}", minigame.getID(), isClient ? "client" : "server");
 
             if (isClient) {
+                minigame.clientPreInit();
                 minigame.clientInit();
             } else {
+                minigame.serverPreInit();
                 minigame.serverInit();
             }
         }
