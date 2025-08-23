@@ -24,7 +24,7 @@ public class TournamentBegin extends Minigame {
     }
 
     @Override
-    public void translateScores() {
+    public void serverPreEnd() {
 
     }
 

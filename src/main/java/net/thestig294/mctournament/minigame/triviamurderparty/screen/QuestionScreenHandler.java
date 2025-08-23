@@ -21,11 +21,16 @@ public class QuestionScreenHandler {
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, serverReceiveInfo -> {
             PacketByteBuf buffer = serverReceiveInfo.buf();
             boolean isCorrect = buffer.readBoolean();
+            String playerName = buffer.readString();
 
             if (isCorrect) {
-                String playerName = buffer.readString();
                 this.scoreboard.addScore(playerName, CORRECT_ANSWER_POINTS);
             }
+
+            ModNetworking.broadcast(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, PacketByteBufs.create()
+                    .writeString(playerName)
+                    .writeBoolean(isCorrect)
+            );
         });
     }
 
@@ -35,10 +40,9 @@ public class QuestionScreenHandler {
     }
 
     private void broadcastNextQuestionScreen() {
-        PacketByteBuf buffer = PacketByteBufs.create();
-        buffer.writeInt(Questions.getNext().id());
-        buffer.writeInt(Questions.getQuestionNumber());
-
-        ModNetworking.broadcast(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN, buffer);
+        ModNetworking.broadcast(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN, PacketByteBufs.create()
+                .writeInt(Questions.getNext().id())
+                .writeInt(Questions.getQuestionNumber())
+        );
     }
 }

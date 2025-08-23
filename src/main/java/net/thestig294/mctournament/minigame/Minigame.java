@@ -15,6 +15,13 @@ public abstract class Minigame {
 
     public abstract String getID();
 
+    /**
+     * Used for translating a minigame's player scores to a scaled value suitable for adding to the player's
+     * overall tournament score
+     * @return Multiplier int for translating a minigame's score to a tournament score
+     */
+    public abstract float getScoreMultiplier();
+
     public void serverPreInit() {
         this.scoreboard = new MinigameScoreboard(this, false);
     }
@@ -31,11 +38,11 @@ public abstract class Minigame {
      */
     public abstract void serverBegin();
 
-    /**
-     * Called just before serverEnd() at the end of the round.
-     * Mostly here as a reminder to manipulate the scoreboard so it's ready for the next minigame
-     */
-    public abstract void translateScores();
+
+    public void serverPreEnd() {
+        this.scoreboard.submitToTournamentScoreboard();
+        this.scoreboard.clear();
+    }
 
     public abstract void serverEnd();
 
@@ -46,11 +53,6 @@ public abstract class Minigame {
 
     @Environment(EnvType.CLIENT)
     public abstract void clientInit();
-
-    @Environment(EnvType.CLIENT)
-    public void clientPreBegin() {
-        this.clientScoreboard.clientBegin();
-    }
 
     /**
      * Called after a small delay after the last round ends to allow for packets to be sent between the server and client.

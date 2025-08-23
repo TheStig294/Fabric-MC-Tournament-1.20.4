@@ -50,6 +50,6 @@ public class TournamentEnd extends Minigame {
 
 //    The tournament scoreboard is used directly instead
     @Override
-    public void translateScores() {
+    public void serverPreEnd() {
     }
 }

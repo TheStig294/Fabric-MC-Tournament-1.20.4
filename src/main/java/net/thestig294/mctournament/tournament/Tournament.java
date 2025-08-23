@@ -99,12 +99,12 @@ public class Tournament {
             this.minigame.clientEnd();
             this.round = round;
         } else {
-            this.minigame.translateScores();
+            this.minigame.serverPreEnd();
             this.minigame.serverEnd();
             this.round++;
-            PacketByteBuf buffer = PacketByteBufs.create();
-            buffer.writeInt(this.round);
-            ModNetworking.broadcast(ModNetworking.TOURNAMENT_END_ROUND, buffer);
+
+            ModNetworking.broadcast(ModNetworking.TOURNAMENT_END_ROUND, PacketByteBufs.create()
+                    .writeInt(this.round));
         }
 
         this.updateMinigame(isClient);

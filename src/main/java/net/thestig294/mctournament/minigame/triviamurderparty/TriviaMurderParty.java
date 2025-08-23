@@ -27,6 +27,11 @@ public class TriviaMurderParty extends Minigame {
     }
 
     @Override
+    public float getScoreMultiplier() {
+        return 1.0f;
+    }
+
+    @Override
     public void serverInit() {
         Questions.register();
         this.questionScreenHandler = new QuestionScreenHandler(this, this.scoreboard());
@@ -35,11 +40,6 @@ public class TriviaMurderParty extends Minigame {
     @Override
     public void serverBegin() {
         this.questionScreenHandler.begin();
-    }
-
-    @Override
-    public void translateScores() {
-
     }
 
     @Override

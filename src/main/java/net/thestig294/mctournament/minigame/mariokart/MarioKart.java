@@ -24,7 +24,7 @@ public class MarioKart extends Minigame {
     }
 
     @Override
-    public void translateScores() {
+    public void serverPreEnd() {
 
     }
 
