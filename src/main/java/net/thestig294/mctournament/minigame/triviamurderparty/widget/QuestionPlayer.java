@@ -12,6 +12,7 @@ public class QuestionPlayer extends ClickableWidget {
     private final PlayerEntity player;
     private final int originalX;
     private final int originalY;
+    private boolean forceLookForward;
 
     public QuestionPlayer(int x, int y, int width, int height, PlayerEntity player) {
         super(x, y, width, height, Text.empty());
@@ -19,10 +20,16 @@ public class QuestionPlayer extends ClickableWidget {
         this.player = player;
         this.originalX = x;
         this.originalY = y;
+        this.forceLookForward = false;
     }
 
     @Override
     protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
+        if (this.forceLookForward) {
+            mouseX = this.getX() + (this.getWidth() / 2);
+            mouseY = this.getY() + (this.getHeight() / 2);
+        }
+
         context.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
         InventoryScreen.drawEntity(context, this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(),
                 30, 0.0625f, mouseX, mouseY, this.player);
@@ -45,5 +52,13 @@ public class QuestionPlayer extends ClickableWidget {
 
     public int getOriginalY() {
         return this.originalY;
+    }
+
+    public void forceLookForward(boolean doForce) {
+        this.forceLookForward = doForce;
+    }
+
+    public PlayerEntity getPlayer() {
+        return this.player;
     }
 }

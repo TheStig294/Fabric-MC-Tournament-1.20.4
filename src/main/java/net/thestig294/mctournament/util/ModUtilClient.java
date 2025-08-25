@@ -2,7 +2,9 @@ package net.thestig294.mctournament.util;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.sound.SoundEvent;
 import net.thestig294.mctournament.MCTournament;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,5 +29,17 @@ public class ModUtilClient {
 
     public static void clientForAllPlayers(Consumer<PlayerEntity> function) {
         clientGetPlayers().forEach(function);
+    }
+
+    public static void playSound(SoundEvent sound) {
+        playSound(sound, 1.0f);
+    }
+
+    public static void playSound(SoundEvent sound, float pitch) {
+        playSound(sound, pitch, 1.0f);
+    }
+
+    public static void playSound(SoundEvent sound, float pitch, float volume) {
+        MCTournament.CLIENT.getSoundManager().play(PositionedSoundInstance.master(sound, pitch, volume));
     }
 }

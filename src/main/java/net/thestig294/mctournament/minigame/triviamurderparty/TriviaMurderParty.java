@@ -50,14 +50,7 @@ public class TriviaMurderParty extends Minigame {
     @Environment(EnvType.CLIENT)
     @Override
     public void clientInit() {
-        ModNetworking.clientReceive(NetworkIDs.QUESTION_SCREEN, clientReceiveInfo -> {
-            PacketByteBuf buffer = clientReceiveInfo.buffer();
-            int id = buffer.readInt();
-            int questionNumber = buffer.readInt();
-
-            Question question = Questions.getQuestionByID(id);
-            MCTournament.CLIENT.setScreen(new QuestionScreen(question, questionNumber));
-        });
+        QuestionScreen.clientInit();
     }
 
     @Environment(EnvType.CLIENT)

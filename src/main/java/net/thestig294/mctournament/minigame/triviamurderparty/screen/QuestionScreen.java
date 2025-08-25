@@ -7,18 +7,25 @@ import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.random.Random;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Question;
+import net.thestig294.mctournament.minigame.triviamurderparty.question.Questions;
+import net.thestig294.mctournament.network.ModNetworking;
 import net.thestig294.mctournament.tournament.Tournament;
 import net.thestig294.mctournament.util.ModColors;
 import net.thestig294.mctournament.util.ModUtil;
 import net.thestig294.mctournament.minigame.triviamurderparty.widget.*;
+import net.thestig294.mctournament.util.ModUtilClient;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Environment(EnvType.CLIENT)
 public class QuestionScreen extends Screen {
@@ -57,6 +64,8 @@ public class QuestionScreen extends Screen {
     private boolean firstStateTick;
     private boolean firstState;
 
+    private final Map<String, Boolean> playerAnswers;
+
     private final List<QuestionText> titleWidgets;
     private QuestionBox leftBoxWidget;
     private QuestionBox rightBoxWidget;
@@ -86,6 +95,8 @@ public class QuestionScreen extends Screen {
         this.stateProgressPercent = 0;
         this.firstStateTick = true;
         this.firstState = true;
+
+        this.playerAnswers = new HashMap<>();
 
         this.titleWidgets = new ArrayList<>();
         this.playerWidgets = new ArrayList<>();
@@ -122,13 +133,13 @@ public class QuestionScreen extends Screen {
                 this.question.question(), TriviaMurderParty.Fonts.QUESTION,25, ModColors.WHITE, this.width * 3 / 5,
                 this.textRenderer));
 
-        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
+        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this.width * 2/3,
                 this.height / 2 - 30, 140, 20, this.textRenderer, 1, this.question)));
-        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
+        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this.width * 2/3,
                 this.height / 2, 140, 20, this.textRenderer, 2, this.question)));
-        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
+        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this.width * 2/3,
                 this.height / 2 + 30, 140, 20, this.textRenderer, 3, this.question)));
-        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
+        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this.width * 2/3,
                 this.height / 2 + 60, 140, 20, this.textRenderer, 4, this.question)));
 
         this.answeredCountWidgets.add(this.addDrawableChild(new QuestionText(25, this.height - 45,
@@ -261,6 +272,18 @@ public class QuestionScreen extends Screen {
                 this.timerWidget.setAlpha(this.animate(0.0f, 1.0f));
                 this.timerWidget.reset();
             }
+            case ANSWERING -> {}
+            case TIMER_OUT -> {}
+            case ANSWER_PRE_QUIP -> {}
+            case ANSWER_IN -> {}
+            case ANSWER_HOLD -> {}
+            case ANSWER_POST_QUIP -> {}
+            case REVEAL_CORRECT -> {}
+            case REVEAL_INCORRECT -> {}
+            case INCORRECT_QUIP -> {}
+            case KILLING_ROOM_TRANSITION_MOVE -> {}
+            case KILLING_ROOM_TRANSITION_LIGHTS -> {}
+            case ALL_CORRECT_LOOP_BACK -> {}
         }
 
         this.firstStateTick = false;
@@ -355,11 +378,6 @@ public class QuestionScreen extends Screen {
         this.firstStateTick = true;
     }
 
-    @Override
-    public void close() {
-        MCTournament.CLIENT.setScreen(this.parent);
-    }
-
     public enum State {
         TITLE_IN, // Entrypoint for a new quiz
         TITLE_HOLD,
@@ -410,5 +428,41 @@ public class QuestionScreen extends Screen {
         PRE_ANSWER,
         POST_ANSWER,
         INCORRECT
+    }
+
+    @Override
+    public void close() {
+        MCTournament.CLIENT.setScreen(this.parent);
+    }
+
+    public static void clientInit() {
+        ModNetworking.clientReceive(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN, clientReceiveInfo -> {
+            PacketByteBuf buffer = clientReceiveInfo.buffer();
+            int id = buffer.readInt();
+            int questionNumber = buffer.readInt();
+
+            Question question = Questions.getQuestionByID(id);
+            MCTournament.CLIENT.setScreen(new QuestionScreen(question, questionNumber));
+        });
+
+        ModNetworking.clientReceive(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, clientReceiveInfo -> {
+            PacketByteBuf buffer = clientReceiveInfo.buffer();
+            String playerName = buffer.readString();
+            boolean isCorrect = buffer.readBoolean();
+
+            if (MCTournament.CLIENT.currentScreen instanceof QuestionScreen questionScreen) {
+//                See this: https://stackoverflow.com/questions/27482579/how-is-this-private-variable-accessible
+//                Java be wildin'
+                questionScreen.playerAnswers.put(playerName, isCorrect);
+
+                for (final var playerWidget : questionScreen.playerWidgets) {
+                    if (playerWidget.getPlayer().getNameForScoreboard().equals(playerName)) {
+                        playerWidget.forceLookForward(true);
+                        ModUtilClient.playSound(SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK);
+                        break;
+                    }
+                }
+            }
+        });
     }
 }

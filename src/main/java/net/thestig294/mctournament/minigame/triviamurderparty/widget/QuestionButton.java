@@ -1,36 +1,32 @@
 package net.thestig294.mctournament.minigame.triviamurderparty.widget;
 
-import net.minecraft.client.MinecraftClient;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.PressableWidget;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.sound.PositionedSoundInstance;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.util.Colors;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Question;
+import net.thestig294.mctournament.network.ModNetworking;
+import net.thestig294.mctournament.tournament.Tournament;
 import net.thestig294.mctournament.util.ModColors;
 
 public class QuestionButton extends PressableWidget {
     private final int answerNumber;
-    private final Screen screen;
     private final TextRenderer textRenderer;
     private final boolean isCorrect;
     private final int originalX;
     private final int originalY;
 
-    public QuestionButton(Screen screen, int x, int y, int width, int height, TextRenderer textRenderer,
+    public QuestionButton(int x, int y, int width, int height, TextRenderer textRenderer,
                           int answerNumber, Question question) {
         super(x, y, width, height, Text.literal(question.getAnswer(answerNumber))
                 .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER)));
 
-        this.screen = screen;
         this.textRenderer = textRenderer;
         this.answerNumber = answerNumber;
         this.isCorrect = question.isCorrect(answerNumber);
@@ -41,17 +37,12 @@ public class QuestionButton extends PressableWidget {
     @Override
     public void onPress() {
         ClientPlayerEntity player = MCTournament.CLIENT.player;
+        if (player == null || !Tournament.inst().clientScoreboard().isTeamCaptain(player)) return;
 
-        if (player != null) {
-            player.sendMessage(Text.literal("You chose answer: " + this.answerNumber), true);
-
-            if (this.isCorrect()) {
-                MinecraftClient.getInstance().getSoundManager().play(
-                        PositionedSoundInstance.ambient(SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK));
-            } else {
-                this.screen.close();
-            }
-        }
+        ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, PacketByteBufs.create()
+                .writeString(player.getNameForScoreboard())
+                .writeBoolean(this.isCorrect)
+        );
     }
 
     @Override
@@ -72,10 +63,6 @@ public class QuestionButton extends PressableWidget {
     @Override
     protected void appendClickableNarrations(NarrationMessageBuilder builder) {
 //        Not going to bother with the narrator... Sorry screen-reader users!
-    }
-
-    public boolean isCorrect(){
-        return this.isCorrect;
     }
 
     public int getOriginalX() {

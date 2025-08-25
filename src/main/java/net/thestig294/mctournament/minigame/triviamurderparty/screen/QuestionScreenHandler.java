@@ -20,8 +20,8 @@ public class QuestionScreenHandler {
 
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, serverReceiveInfo -> {
             PacketByteBuf buffer = serverReceiveInfo.buf();
-            boolean isCorrect = buffer.readBoolean();
             String playerName = buffer.readString();
+            boolean isCorrect = buffer.readBoolean();
 
             if (isCorrect) {
                 this.scoreboard.addScore(playerName, CORRECT_ANSWER_POINTS);
