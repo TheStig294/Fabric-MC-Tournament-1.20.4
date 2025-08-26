@@ -124,7 +124,6 @@ public class Tournament {
 //        from the last minigame's end function, and the initial state update for the TournamentScoreboard
         ModTimer.simple(isClient, MINIGAME_BEGIN_DELAY_SECS, () -> {
             if (isClient) {
-                this.minigame.clientPreBegin();
                 this.minigame.clientBegin();
             } else {
                 this.minigame.serverPreBegin();
@@ -154,7 +153,6 @@ public class Tournament {
     }
 
 
-    @SuppressWarnings("unused")
     public TournamentScoreboard scoreboard() {
         return this.scoreboard;
     }
@@ -162,6 +160,10 @@ public class Tournament {
     @Environment(EnvType.CLIENT)
     public TournamentScoreboard clientScoreboard() {
         return this.clientScoreboard;
+    }
+
+    public Minigame minigame() {
+        return this.minigame;
     }
 
 

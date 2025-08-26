@@ -6,6 +6,7 @@ import net.minecraft.client.font.MultilineText;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.MultilineTextWidget;
+import net.minecraft.client.sound.SoundManager;
 import net.minecraft.text.Text;
 import net.minecraft.util.CachedMapper;
 import net.minecraft.util.Identifier;
@@ -70,6 +71,11 @@ public class QuestionText extends MultilineTextWidget {
                     this.getY() - this.getHeight(), this.lineHeight, this.getTextColor());
         }
         context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+    }
+
+    @Override
+    public void playDownSound(SoundManager soundManager) {
+
     }
 
     public void setText(String string) {

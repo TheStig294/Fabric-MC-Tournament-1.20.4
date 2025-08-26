@@ -4,6 +4,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.text.Text;
 import net.thestig294.mctournament.MCTournament;
+import net.thestig294.mctournament.tournament.Tournament;
 
 import java.util.Objects;
 
@@ -40,7 +41,7 @@ public abstract class Minigame {
 
 
     public void serverPreEnd() {
-        this.scoreboard.submitToTournamentScoreboard();
+        Tournament.inst().scoreboard().updateOverallScores();
         this.scoreboard.clear();
     }
 
@@ -85,7 +86,6 @@ public abstract class Minigame {
         return this.variant;
     }
 
-    @SuppressWarnings("unused")
     public boolean isVariant(String variant) {
         if (!this.variantSet) {
             MCTournament.LOGGER.error("""

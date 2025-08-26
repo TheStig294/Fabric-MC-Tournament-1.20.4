@@ -133,13 +133,13 @@ public class QuestionScreen extends Screen {
                 this.question.question(), TriviaMurderParty.Fonts.QUESTION,25, ModColors.WHITE, this.width * 3 / 5,
                 this.textRenderer));
 
-        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this.width * 2/3,
+        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
                 this.height / 2 - 30, 140, 20, this.textRenderer, 1, this.question)));
-        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this.width * 2/3,
+        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
                 this.height / 2, 140, 20, this.textRenderer, 2, this.question)));
-        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this.width * 2/3,
+        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
                 this.height / 2 + 30, 140, 20, this.textRenderer, 3, this.question)));
-        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this.width * 2/3,
+        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
                 this.height / 2 + 60, 140, 20, this.textRenderer, 4, this.question)));
 
         this.answeredCountWidgets.add(this.addDrawableChild(new QuestionText(25, this.height - 45,
@@ -185,7 +185,6 @@ public class QuestionScreen extends Screen {
         return (int) animate(((float) start), ((float) end));
     }
 
-    @SuppressWarnings("SameParameterValue")
     private void everyStatePercent(int percent, Runnable function) {
         if (this.stateProgressPercent % percent == 0) function.run();
     }
@@ -339,7 +338,6 @@ public class QuestionScreen extends Screen {
         }
     }
 
-    @SuppressWarnings("unused")
     float getQuip(QuipType quipType) {
         return 1.0f;
     }
@@ -376,6 +374,46 @@ public class QuestionScreen extends Screen {
 
         this.stateStartTime = lastEndTime;
         this.firstStateTick = true;
+    }
+
+    public static void clientInit() {
+        ModNetworking.clientReceive(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN, clientReceiveInfo -> {
+            PacketByteBuf buffer = clientReceiveInfo.buffer();
+            int id = buffer.readInt();
+            int questionNumber = buffer.readInt();
+
+            Question question = Questions.getQuestionByID(id);
+            MCTournament.CLIENT.setScreen(new QuestionScreen(question, questionNumber));
+        });
+
+        ModNetworking.clientReceive(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, clientReceiveInfo -> {
+            PacketByteBuf buffer = clientReceiveInfo.buffer();
+            String playerName = buffer.readString();
+            boolean isCorrect = buffer.readBoolean();
+
+            if (MCTournament.CLIENT.currentScreen instanceof QuestionScreen questionScreen) {
+//                See this: https://stackoverflow.com/questions/27482579/how-is-this-private-variable-accessible
+//                Java be wildin'
+                questionScreen.playerAnswers.put(playerName, isCorrect);
+
+                for (final var playerWidget : questionScreen.playerWidgets) {
+                    if (playerWidget.getPlayer().getNameForScoreboard().equals(playerName)) {
+                        playerWidget.forceLookForward(true);
+                        ModUtilClient.playSound(SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK);
+                        break;
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
+    public void close() {
+        MCTournament.CLIENT.setScreen(this.parent);
+    }
+
+    public void lockButtons() {
+        this.answerWidgets.forEach(QuestionButton::lock);
     }
 
     public enum State {
@@ -428,41 +466,5 @@ public class QuestionScreen extends Screen {
         PRE_ANSWER,
         POST_ANSWER,
         INCORRECT
-    }
-
-    @Override
-    public void close() {
-        MCTournament.CLIENT.setScreen(this.parent);
-    }
-
-    public static void clientInit() {
-        ModNetworking.clientReceive(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN, clientReceiveInfo -> {
-            PacketByteBuf buffer = clientReceiveInfo.buffer();
-            int id = buffer.readInt();
-            int questionNumber = buffer.readInt();
-
-            Question question = Questions.getQuestionByID(id);
-            MCTournament.CLIENT.setScreen(new QuestionScreen(question, questionNumber));
-        });
-
-        ModNetworking.clientReceive(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, clientReceiveInfo -> {
-            PacketByteBuf buffer = clientReceiveInfo.buffer();
-            String playerName = buffer.readString();
-            boolean isCorrect = buffer.readBoolean();
-
-            if (MCTournament.CLIENT.currentScreen instanceof QuestionScreen questionScreen) {
-//                See this: https://stackoverflow.com/questions/27482579/how-is-this-private-variable-accessible
-//                Java be wildin'
-                questionScreen.playerAnswers.put(playerName, isCorrect);
-
-                for (final var playerWidget : questionScreen.playerWidgets) {
-                    if (playerWidget.getPlayer().getNameForScoreboard().equals(playerName)) {
-                        playerWidget.forceLookForward(true);
-                        ModUtilClient.playSound(SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK);
-                        break;
-                    }
-                }
-            }
-        });
     }
 }

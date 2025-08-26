@@ -3,6 +3,7 @@ package net.thestig294.mctournament.minigame.triviamurderparty.widget;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.sound.SoundManager;
 import net.minecraft.text.Text;
 
 import java.awt.*;
@@ -28,6 +29,11 @@ public class QuestionBox extends ClickableWidget {
 
     @Override
     protected void appendClickableNarrations(NarrationMessageBuilder builder) {
+
+    }
+
+    @Override
+    public void playDownSound(SoundManager soundManager) {
 
     }
 

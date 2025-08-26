@@ -35,7 +35,6 @@ public class ModNetworking {
         MCTournament.LOGGER.info("Registering networking IDs for " + MCTournament.MOD_ID);
     }
 
-    @SuppressWarnings("unused")
     public static void broadcast(Identifier channelName) {
         broadcast(channelName, PacketByteBufs.empty());
     }

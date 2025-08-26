@@ -14,6 +14,11 @@ public class TournamentBegin extends Minigame {
     }
 
     @Override
+    public float getScoreMultiplier() {
+        return 1.0f;
+    }
+
+    @Override
     public void serverInit() {
 
     }

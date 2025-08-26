@@ -12,6 +12,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.world.World;
 import net.thestig294.mctournament.MCTournament;
+import net.thestig294.mctournament.minigame.MinigameScoreboard;
 import net.thestig294.mctournament.network.ModNetworking;
 import net.thestig294.mctournament.util.ModUtil;
 import net.thestig294.mctournament.util.ModUtilClient;
@@ -22,13 +23,14 @@ import java.util.*;
 public class TournamentScoreboard {
     public static final int MAX_TEAMS = 8;
     public static final String TEAM_NAME_PREFIX = MCTournament.MOD_ID + '_';
-    public static final String OBJECTIVE_NAME = "tournamentScore";
+    public static final String OBJECTIVE_NAME = MCTournament.MOD_ID + ":tournamentScore";
 
     private final boolean isClient;
     private boolean hooksAdded;
     private final List<Team> teams;
     private final SortedMap<Integer, PlayerEntity> teamCaptains;
     private Scoreboard scoreboard;
+    private ScoreboardObjective objective;
 
     public TournamentScoreboard(boolean isClient) {
         this.isClient = isClient;
@@ -46,17 +48,15 @@ public class TournamentScoreboard {
         this.scoreboard = world != null ? world.getScoreboard() : null;
 
         ModNetworking.clientReceive(ModNetworking.SCOREBOARD_UPDATE_TEAMS, clientReceiveInfo -> {
-            MCTournament.LOGGER.info("Client: Received team update!");
             this.teams.clear();
+
             for (int i = 0; i < MAX_TEAMS; i++) {
                 Team team = this.scoreboard.getTeam(this.getTeamName(i));
                 this.teams.add(team);
-                MCTournament.LOGGER.info("Client: Added team: {} {}", i, team);
             }
         });
 
         ModNetworking.clientReceive(ModNetworking.SCOREBOARD_UPDATE_TEAM_CAPTAINS, clientReceiveInfo -> {
-            MCTournament.LOGGER.info("Client: Received team captains update!");
             PacketByteBuf buffer = clientReceiveInfo.buffer();
             int noOfCaptains = buffer.readInt();
 
@@ -65,7 +65,6 @@ public class TournamentScoreboard {
                 boolean isNull = buffer.readBoolean();
                 Team team = this.getTeam(teamNumber);
                 if (team == null) continue;
-                MCTournament.LOGGER.info("Client: Updating captain for team: {}, isNull: {}", teamNumber, isNull);
 
                 if (isNull) {
                     this.setTeamCaptain(team, null);
@@ -73,7 +72,6 @@ public class TournamentScoreboard {
                     String playerName = buffer.readString();
                     PlayerEntity player = ModUtilClient.clientGetPlayer(playerName);
                     this.setTeamCaptain(team, player);
-                    MCTournament.LOGGER.info("Client: Set captain for team {} to {}", teamNumber, playerName);
                 }
             }
         });
@@ -87,11 +85,10 @@ public class TournamentScoreboard {
     public void serverInit() {
         this.scoreboard = MCTournament.SERVER.getScoreboard();
 
-        ScoreboardObjective objective = this.scoreboard.getNullableObjective(OBJECTIVE_NAME);
-        if (objective != null) this.scoreboard.removeObjective(objective);
-        this.scoreboard.addObjective(OBJECTIVE_NAME, ScoreboardCriterion.DUMMY,
-                Text.literal("Tournament Score"), ScoreboardCriterion.RenderType.INTEGER,
-                false, null);
+        this.objective = this.scoreboard.getNullableObjective(OBJECTIVE_NAME);
+        if (this.objective != null) this.scoreboard.removeObjective(this.objective);
+        this.objective = this.scoreboard.addObjective(OBJECTIVE_NAME, ScoreboardCriterion.DUMMY, Text.literal("Tournament Score"),
+                ScoreboardCriterion.RenderType.INTEGER, false, null);
 
         this.teams.clear();
         for (int i = 0; i < MAX_TEAMS; i++) {
@@ -100,7 +97,6 @@ public class TournamentScoreboard {
                 this.scoreboard.removeTeam(team);
             }
             this.teams.add(this.scoreboard.addTeam(this.getTeamName(i)));
-            MCTournament.LOGGER.info("Server: Added team: {} {}", i, this.teams.get(i));
         }
 
         this.teamCaptains.clear();
@@ -134,7 +130,6 @@ public class TournamentScoreboard {
     private void addHooks() {
         ModNetworking.serverReceive(ModNetworking.SCOREBOARD_PLAYER_JOINED, serverReceiveInfo -> {
             ServerPlayerEntity player = serverReceiveInfo.player();
-            MCTournament.LOGGER.info("Server: Player joined: {}", player.getNameForScoreboard());
             this.addPlayerToTeam(player);
 
             ModNetworking.send(ModNetworking.SCOREBOARD_UPDATE_TEAMS, player);
@@ -142,11 +137,9 @@ public class TournamentScoreboard {
         });
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
-            MCTournament.LOGGER.info("Server: Player disconnected: {}", handler.getPlayer().getNameForScoreboard());
             ServerPlayerEntity player = handler.getPlayer();
             Team team = player.getScoreboardTeam();
 
-            MCTournament.LOGGER.info("Server: Team: {}, isTeamCaptain: {}", team, this.isTeamCaptain(player));
             if (team != null && this.isTeamCaptain(player)) {
                 this.findNewTeamCaptain(team);
             }
@@ -187,12 +180,14 @@ public class TournamentScoreboard {
         return this.isClient;
     }
 
-    @SuppressWarnings("unused")
-    public Scoreboard getScoreboard() {
+    public @Nullable Scoreboard getScoreboard() {
         return this.scoreboard;
     }
 
-    @SuppressWarnings("unused")
+    public @Nullable ScoreboardObjective getObjective() {
+        return this.objective;
+    }
+
     public @Nullable PlayerEntity getTeamCaptain(PlayerEntity player) {
         Team team = player.getScoreboardTeam();
         return team != null ? this.getTeamCaptain(team) : null;
@@ -210,7 +205,6 @@ public class TournamentScoreboard {
         return this.teamCaptains.get(teamNumber);
     }
 
-    @SuppressWarnings("unused")
     public List<PlayerEntity> getTeamCaptains() {
         return this.teamCaptains.values().stream().toList();
     }
@@ -247,7 +241,6 @@ public class TournamentScoreboard {
                 buffer.writeString(captain.getNameForScoreboard());
             }
 
-            MCTournament.LOGGER.info("Server: Broadcasting team captain update for: {}!", captain);
             ModNetworking.broadcast(ModNetworking.SCOREBOARD_UPDATE_TEAM_CAPTAINS, buffer);
         }
     }
@@ -281,7 +274,6 @@ public class TournamentScoreboard {
      * @param player PlayerEntity
      * @return the player's team number, or -1 if the player doesn't have a team or has an invalid team name
      */
-    @SuppressWarnings("unused")
     public int getTeamNumber(PlayerEntity player) {
         Team team = player.getScoreboardTeam();
         return team == null ? -1 : this.getTeamNumber(team);
@@ -303,7 +295,6 @@ public class TournamentScoreboard {
         return teamNumber == null ? -1 : teamNumber;
     }
 
-    @SuppressWarnings("unused")
     public List<ServerPlayerEntity> getConnectedTeamMembers(String teamName) {
         Team team = this.scoreboard.getTeam(teamName);
         return team == null ? Collections.emptyList() : getConnectedTeamMembers(team);
@@ -318,5 +309,20 @@ public class TournamentScoreboard {
         }
 
         return teamPlayers;
+    }
+
+    public void updateOverallScores() {
+        MinigameScoreboard minigameScoreboard = Tournament.inst().minigame().scoreboard();
+        float multiplier = minigameScoreboard.getScoreMultiplier();
+
+        for (int i = 0; i < MAX_TEAMS; i++) {
+            Team team = this.getTeam(i);
+            if (team == null) continue;
+
+            for (final var playerName : team.getPlayerList()) {
+                int minigameScore = (int) (minigameScoreboard.getScore(playerName) * multiplier);
+                this.scoreboard.getOrCreateScore(ScoreHolder.fromName(playerName), this.objective).incrementScore(minigameScore);
+            }
+        }
     }
 }

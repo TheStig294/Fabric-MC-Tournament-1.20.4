@@ -1,7 +1,6 @@
 package net.thestig294.mctournament.minigame;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.scoreboard.*;
 import net.minecraft.text.Text;
 import net.thestig294.mctournament.MCTournament;
@@ -11,15 +10,20 @@ import org.jetbrains.annotations.Nullable;
 
 public class MinigameScoreboard {
     private final Minigame minigame;
-    private final Scoreboard scoreboard;
+    private final boolean isClient;
+    private Scoreboard scoreboard;
 
     public MinigameScoreboard(Minigame minigame, boolean isClient) {
-        Tournament tournament = Tournament.inst();
         this.minigame = minigame;
-        this.scoreboard = isClient ? tournament.clientScoreboard().getScoreboard() : tournament.scoreboard().getScoreboard();
+        this.isClient = isClient;
     }
 
     public void serverBegin() {
+        Tournament tournament = Tournament.inst();
+        TournamentScoreboard tournamentScoreboard = this.isClient ? tournament.clientScoreboard() : tournament.scoreboard();
+        if (tournamentScoreboard == null) return;
+
+        this.scoreboard = tournamentScoreboard.getScoreboard();
         this.resetObjective(this.getObjectivePrefix(), this.getMainObjectiveDisplayName());
     }
 
@@ -70,8 +74,13 @@ public class MinigameScoreboard {
         this.addObjective(name, displayName);
     }
 
-    // Score functions that do not specify a name use the minigame's "main" objective instead,
-    // that has a blank name containing only the scoreboard objective prefix
+    /**
+     * Score functions that do not specify a name use the minigame's "main" objective instead,
+     * that has a blank name containing only the scoreboard objective prefix. <p>
+     * The "main" objective is the one used to translate a player's score to their overall tournament score at the end of a round
+     * @param playerName Player's scoreboard-safe name string (See: {@link PlayerEntity#getNameForScoreboard()})
+     * @return Player's overall minigame score, or creates a score and returns 0 if it doesn't exist
+     */
     public int getScore(String playerName) {
         return this.getScore(playerName, "");
     }
@@ -98,27 +107,13 @@ public class MinigameScoreboard {
         this.setScore(playerName, this.getScore(playerName) + score, objectiveName);
     }
 
-    public void submitToTournamentScoreboard() {
-        ScoreboardObjective tournamentObjective = this.scoreboard.getNullableObjective(TournamentScoreboard.OBJECTIVE_NAME);
-        if (tournamentObjective == null) return;
-
-        TournamentScoreboard tournamentScoreboard = Tournament.inst().scoreboard();
-        float multiplier = this.minigame.getScoreMultiplier();
-
-        for (int i = 0; i < TournamentScoreboard.MAX_TEAMS; i++) {
-            Team team = tournamentScoreboard.getTeam(i);
-            if (team == null) continue;
-
-            for (final var playerName : team.getPlayerList()) {
-                int minigameScore = (int) (this.getScore(playerName) * multiplier);
-                this.scoreboard.getOrCreateScore(ScoreHolder.fromName(playerName), tournamentObjective).incrementScore(minigameScore);
-            }
-        }
-    }
-
     public void clear() {
         this.scoreboard.getObjectives().stream()
                 .filter(objective -> objective.getName().startsWith(this.getObjectivePrefix()))
                 .forEach(this.scoreboard::removeObjective);
+    }
+
+    public float getScoreMultiplier() {
+        return this.minigame.getScoreMultiplier();
     }
 }

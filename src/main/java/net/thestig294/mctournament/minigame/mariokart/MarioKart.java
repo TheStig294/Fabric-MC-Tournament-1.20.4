@@ -14,6 +14,11 @@ public class MarioKart extends Minigame {
     }
 
     @Override
+    public float getScoreMultiplier() {
+        return 1.0f;
+    }
+
+    @Override
     public void serverInit() {
         Variants.register();
     }
