@@ -17,6 +17,7 @@ public class Tournament {
     public static final int MINIGAME_BEGIN_DELAY_SECS = 2;
 
     private int round = -1;
+    private boolean isActive = false;
     private Minigame minigame = null;
     private List<Identifier> minigameIDs = new ArrayList<>();
     private List<Minigame> minigames = new ArrayList<>();
@@ -27,6 +28,7 @@ public class Tournament {
 
     public void serverSetup(TournamentSettings settings) {
         this.round = -1;
+        this.isActive = true;
         this.minigameIDs = settings.getMinigames();
         this.variants = settings.getVariants();
         this.scoreboard = this.scoreboard == null ? new TournamentScoreboard(false) : this.scoreboard;
@@ -56,6 +58,7 @@ public class Tournament {
     @Environment(EnvType.CLIENT)
     private void clientSetup(PacketByteBuf buffer) {
         this.round = buffer.readInt();
+        this.isActive = true;
 
         int minigameCount = buffer.readInt();
         this.minigameIDs = new ArrayList<>(minigameCount);
@@ -85,7 +88,7 @@ public class Tournament {
 //    and for the Tournament instance to tally the scores from the minigame's scoreboard.
 //    Can be called from a single client, or from the server
     public void endCurrentMinigame(boolean isClient) {
-        if (this.minigame == null) return;
+        if (!this.isActive) return;
 
         if (isClient) {
             ModNetworking.sendToServer(ModNetworking.TOURNAMENT_CLIENT_END_ROUND);
@@ -113,21 +116,28 @@ public class Tournament {
     private void updateMinigame(boolean isClient) {
         if (this.round <= -1) {
             this.minigame = Minigames.get(Minigames.TOURNAMENT_BEGIN);
-        } else if (this.round >= this.minigames.size()) {
+        } else if (this.round == this.minigames.size()) {
             this.minigame = Minigames.get(Minigames.TOURNAMENT_END);
+        } else if (this.minigame != null && this.minigame.equals(Minigames.get(Minigames.TOURNAMENT_END))) {
+            this.isActive = false;
+            return;
         } else {
             this.minigame = this.minigames.get(this.round);
             this.minigame.setVariant(this.variants.get(this.round));
         }
 
+
 //        Called after a small delay to allow for packets to be sent between the server and client,
 //        from the last minigame's end function, and the initial state update for the TournamentScoreboard
+//        Caching the value of the current minigame so that it is not changed by the time the timer runs...
+        Minigame minigame = this.minigame;
+
         ModTimer.simple(isClient, MINIGAME_BEGIN_DELAY_SECS, () -> {
             if (isClient) {
-                this.minigame.clientBegin();
+                minigame.clientBegin();
             } else {
-                this.minigame.serverPreBegin();
-                this.minigame.serverBegin();
+                minigame.serverPreBegin();
+                minigame.serverBegin();
             }
         });
     }
@@ -136,8 +146,10 @@ public class Tournament {
         ModNetworking.serverReceive(ModNetworking.TOURNAMENT_CLIENT_END_ROUND, serverReceiveInfo ->
                 this.endRound(false, this.round));
 
-        ModNetworking.serverReceive(ModNetworking.TOURNAMENT_SETUP, serverReceiveInfo ->
-                ModNetworking.send(ModNetworking.TOURNAMENT_SETUP, serverReceiveInfo.player(), this.getClientInfoBuffer()));
+        ModNetworking.serverReceive(ModNetworking.TOURNAMENT_MID_ROUND_JOIN, serverReceiveInfo -> {
+            if (!this.isActive) return;
+            ModNetworking.send(ModNetworking.TOURNAMENT_SETUP, serverReceiveInfo.player(), this.getClientInfoBuffer());
+        });
     }
 
     @Environment(EnvType.CLIENT)
@@ -149,7 +161,7 @@ public class Tournament {
                 this.clientSetup(clientReceiveInfo.buffer()));
 
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) ->
-                ModNetworking.sendToServer(ModNetworking.TOURNAMENT_SETUP));
+                ModNetworking.sendToServer(ModNetworking.TOURNAMENT_MID_ROUND_JOIN));
     }
 
 
