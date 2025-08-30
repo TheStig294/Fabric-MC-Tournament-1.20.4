@@ -1,6 +1,4 @@
 {
-  "screen.mctournament.question" : "Question Screen",
-
   "itemGroup.mctournament" : "MC Tournament",
   "itemGroup.minigame_trivia_murder_party" : "Minigame - Trivia Murder Party",
   "item.mctournament.trophy" : "Trophy",
@@ -12,5 +10,8 @@
   "minigame.towerfall.name" : "Towerfall",
   "minigame.mario_kart.name" : "Mario Kart",
 
-  "tournament.mctournament.end_message": "Tournament over! Thanks for playing!"
+  "tournament.mctournament.end_message": "Tournament over! Thanks for playing!",
+
+  "screen.mctournament.question" : "Question Screen",
+  "widget.mctournament.question_player_team_captain" : "Your team"
 }

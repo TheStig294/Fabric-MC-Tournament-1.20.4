@@ -202,7 +202,6 @@ public class TournamentScoreboard {
         return this.objective;
     }
 
-    @SuppressWarnings("unused")
     public @Nullable PlayerEntity getTeamCaptain(PlayerEntity player) {
         Team team = player.getScoreboardTeam();
         return team != null ? this.getTeamCaptain(team) : null;
