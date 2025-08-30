@@ -64,6 +64,7 @@ public class QuestionScreen extends Screen {
     private boolean firstStateTick;
     private boolean firstState;
 
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private final Map<String, Boolean> playerAnswers;
 
     private final List<QuestionText> titleWidgets;
@@ -78,7 +79,7 @@ public class QuestionScreen extends Screen {
     private final List<QuestionText> roomCodeWidgets;
 
     public QuestionScreen(Question question, int questionNumber) {
-        this(question, questionNumber, State.TITLE_IN);
+        this(question, questionNumber, State.SCREEN_IN);
     }
 
     public QuestionScreen(Question question, int questionNumber, State startingState) {
@@ -122,7 +123,7 @@ public class QuestionScreen extends Screen {
         List<PlayerEntity> teamCaptains = Tournament.inst().clientScoreboard().getValidTeamCaptains();
         for (int i = 0; i < teamCaptains.size(); i++) {
             this.playerWidgets.add(this.addDrawableChild(new QuestionPlayer(i * this.width / 8, 0,
-                    this.width / 8, this.height / 3, teamCaptains.get(i))));
+                    this.width / 8, this.height / 3, teamCaptains.get(i), this.textRenderer)));
         }
 
         this.questionNumberWidget = this.addDrawableChild(new QuestionText(this.width / 2, this.height / 2,
@@ -185,6 +186,7 @@ public class QuestionScreen extends Screen {
         return (int) animate(((float) start), ((float) end));
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void everyStatePercent(int percent, Runnable function) {
         if (this.stateProgressPercent % percent == 0) function.run();
     }
@@ -231,6 +233,10 @@ public class QuestionScreen extends Screen {
             case WELCOME_HOLD -> {}
             case WELCOME_OUT -> this.questionNumberWidget.setAlpha(this.animate(1.0f, 0.0f));
             case SCREEN_IN -> {
+                this.ifFirstStateTick(() -> {
+                    this.leftBoxWidget.setAlpha(1.0f);
+                    this.rightBoxWidget.setAlpha(1.0f);
+                });
                 this.leftBoxWidget.setX(this.animate(0, this.leftBoxWidget.getOriginalX()));
                 this.rightBoxWidget.setX(this.animate(this.width / 2, this.rightBoxWidget.getOriginalX()));
             }
@@ -338,6 +344,7 @@ public class QuestionScreen extends Screen {
         }
     }
 
+    @SuppressWarnings("unused")
     float getQuip(QuipType quipType) {
         return 1.0f;
     }
@@ -398,7 +405,7 @@ public class QuestionScreen extends Screen {
 
                 for (final var playerWidget : questionScreen.playerWidgets) {
                     if (playerWidget.getPlayer().getNameForScoreboard().equals(playerName)) {
-                        playerWidget.forceLookForward(true);
+                        playerWidget.setAnswerState(QuestionPlayer.AnswerState.ANSWERED);
                         ModUtilClient.playSound(SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK);
                         break;
                     }

@@ -2,16 +2,12 @@ package net.thestig294.mctournament.minigame.triviamurderparty;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
-import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.Minigame;
 import net.thestig294.mctournament.minigame.Minigames;
-import net.thestig294.mctournament.minigame.triviamurderparty.question.Question;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Questions;
 import net.thestig294.mctournament.minigame.triviamurderparty.screen.QuestionScreen;
 import net.thestig294.mctournament.minigame.triviamurderparty.screen.QuestionScreenHandler;
-import net.thestig294.mctournament.network.ModNetworking;
 
 import static net.thestig294.mctournament.font.ModFonts.registerFont;
 import static net.thestig294.mctournament.minigame.MinigameVariants.registerVariant;
@@ -39,6 +35,7 @@ public class TriviaMurderParty extends Minigame {
 
     @Override
     public void serverBegin() {
+        this.hideNametags();
         this.questionScreenHandler.begin();
     }
 
@@ -92,6 +89,7 @@ public class TriviaMurderParty extends Minigame {
         }
     }
 
+    @SuppressWarnings("unused")
     public static class Variants {
         public static final String GAMING = registerVariant(Minigames.TRIVIA_MURDER_PARTY, "gaming");
         public static final String AUSSIE = registerVariant(Minigames.TRIVIA_MURDER_PARTY, "aussie");

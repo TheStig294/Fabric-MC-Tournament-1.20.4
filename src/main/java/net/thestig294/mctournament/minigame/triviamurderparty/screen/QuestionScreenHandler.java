@@ -1,13 +1,14 @@
 package net.thestig294.mctournament.minigame.triviamurderparty.screen;
 
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.thestig294.mctournament.minigame.MinigameScoreboard;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Questions;
 import net.thestig294.mctournament.network.ModNetworking;
 
+// I see where you're coming from IntelliJ... but no....
+@SuppressWarnings("ClassCanBeRecord")
 public class QuestionScreenHandler {
     public static final int CORRECT_ANSWER_POINTS = 1000;
 

@@ -104,6 +104,7 @@ public class Tournament {
         } else {
             this.minigame.serverPreEnd();
             this.minigame.serverEnd();
+            this.scoreboard.serverEnd();
             this.round++;
 
             ModNetworking.broadcast(ModNetworking.TOURNAMENT_END_ROUND, PacketByteBufs.create()

@@ -19,9 +19,10 @@ import net.thestig294.mctournament.util.ModUtilClient;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 public class TournamentScoreboard {
-    public static final int MAX_TEAMS = 8;
+    public static final int MAX_TEAMS = 2;
     public static final String TEAM_NAME_PREFIX = MCTournament.MOD_ID + '_';
     public static final String OBJECTIVE_NAME = MCTournament.MOD_ID + ":tournamentScore";
 
@@ -49,11 +50,7 @@ public class TournamentScoreboard {
 
         ModNetworking.clientReceive(ModNetworking.SCOREBOARD_UPDATE_TEAMS, clientReceiveInfo -> {
             this.teams.clear();
-
-            for (int i = 0; i < MAX_TEAMS; i++) {
-                Team team = this.scoreboard.getTeam(this.getTeamName(i));
-                this.teams.add(team);
-            }
+            this.forAllNullableTeams(this.teams::add);
         });
 
         ModNetworking.clientReceive(ModNetworking.SCOREBOARD_UPDATE_TEAM_CAPTAINS, clientReceiveInfo -> {
@@ -106,6 +103,10 @@ public class TournamentScoreboard {
             this.hooksAdded = true;
             this.addHooks();
         }
+    }
+
+    public void serverEnd() {
+        this.setGlobalNametagVisibility(true);
     }
 
     private PacketByteBuf getTeamCaptainsInfoBuffer() {
@@ -176,6 +177,18 @@ public class TournamentScoreboard {
         }
     }
 
+    public void forAllTeams(Consumer<Team> lambda) {
+        this.forAllNullableTeams(team -> {
+            if (team != null) lambda.accept(team);
+        });
+    }
+
+    public void forAllNullableTeams(Consumer<Team> lambda) {
+        for (int i = 0; i < MAX_TEAMS; i++) {
+            lambda.accept(this.getTeam(i));
+        }
+    }
+
     public boolean isClient() {
         return this.isClient;
     }
@@ -184,10 +197,12 @@ public class TournamentScoreboard {
         return this.scoreboard;
     }
 
+    @SuppressWarnings("unused")
     public @Nullable ScoreboardObjective getObjective() {
         return this.objective;
     }
 
+    @SuppressWarnings("unused")
     public @Nullable PlayerEntity getTeamCaptain(PlayerEntity player) {
         Team team = player.getScoreboardTeam();
         return team != null ? this.getTeamCaptain(team) : null;
@@ -205,6 +220,7 @@ public class TournamentScoreboard {
         return this.teamCaptains.get(teamNumber);
     }
 
+    @SuppressWarnings("unused")
     public List<PlayerEntity> getTeamCaptains() {
         return this.teamCaptains.values().stream().toList();
     }
@@ -274,6 +290,7 @@ public class TournamentScoreboard {
      * @param player PlayerEntity
      * @return the player's team number, or -1 if the player doesn't have a team or has an invalid team name
      */
+    @SuppressWarnings("unused")
     public int getTeamNumber(PlayerEntity player) {
         Team team = player.getScoreboardTeam();
         return team == null ? -1 : this.getTeamNumber(team);
@@ -295,6 +312,7 @@ public class TournamentScoreboard {
         return teamNumber == null ? -1 : teamNumber;
     }
 
+    @SuppressWarnings("unused")
     public List<ServerPlayerEntity> getConnectedTeamMembers(String teamName) {
         Team team = this.scoreboard.getTeam(teamName);
         return team == null ? Collections.emptyList() : getConnectedTeamMembers(team);
@@ -315,14 +333,17 @@ public class TournamentScoreboard {
         MinigameScoreboard minigameScoreboard = Tournament.inst().minigame().scoreboard();
         float multiplier = minigameScoreboard.getScoreMultiplier();
 
-        for (int i = 0; i < MAX_TEAMS; i++) {
-            Team team = this.getTeam(i);
-            if (team == null) continue;
+        this.forAllTeams(team -> team.getPlayerList().forEach(playerName -> {
+            int minigameScore = (int) (minigameScoreboard.getScore(playerName) * multiplier);
+            this.scoreboard.getOrCreateScore(ScoreHolder.fromName(playerName), this.objective).incrementScore(minigameScore);
+        }));
+    }
 
-            for (final var playerName : team.getPlayerList()) {
-                int minigameScore = (int) (minigameScoreboard.getScore(playerName) * multiplier);
-                this.scoreboard.getOrCreateScore(ScoreHolder.fromName(playerName), this.objective).incrementScore(minigameScore);
-            }
-        }
+    public void setGlobalNametagVisibility(boolean isVisible) {
+        this.forAllTeams(team -> this.setNametagVisibility(team, isVisible));
+    }
+
+    public void setNametagVisibility(Team team, boolean isVisible) {
+        team.setNameTagVisibilityRule(isVisible ? AbstractTeam.VisibilityRule.ALWAYS : AbstractTeam.VisibilityRule.NEVER);
     }
 }

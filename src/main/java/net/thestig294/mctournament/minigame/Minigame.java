@@ -6,8 +6,6 @@ import net.minecraft.text.Text;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.tournament.Tournament;
 
-import java.util.Objects;
-
 public abstract class Minigame {
     private String variant = MinigameVariants.DEFAULT;
     private Boolean variantSet = false;
@@ -86,18 +84,6 @@ public abstract class Minigame {
         return this.variant;
     }
 
-    public boolean isVariant(String variant) {
-        if (!this.variantSet) {
-            MCTournament.LOGGER.error("""
-                    Trying to call Minigame.isVariant() of {} before the variant is set!
-                    This is not set until serverBegin()/clientBegin() is called!
-                    Returning false.
-                    """, this.getName().getString());
-            return false;
-        }
-        return Objects.equals(this.variant, variant);
-    }
-
     @Override
     public String toString() {
         return this.getName().getString();
@@ -107,8 +93,13 @@ public abstract class Minigame {
         return this.scoreboard;
     }
 
+    @SuppressWarnings("unused")
     @Environment(EnvType.CLIENT)
     public MinigameScoreboard clientScoreboard() {
         return this.clientScoreboard;
+    }
+
+    public void hideNametags() {
+        Tournament.inst().scoreboard().setGlobalNametagVisibility(false);
     }
 }
