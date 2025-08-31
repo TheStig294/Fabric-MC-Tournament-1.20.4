@@ -6,6 +6,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.sound.SoundEvents;
@@ -135,13 +136,13 @@ public class QuestionScreen extends Screen {
                 this.textRenderer));
 
         this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
-                this.height / 2 - 30, 140, 20, this.textRenderer, 1, this.question)));
+                this.height / 2 - 30, 140, 20, this.textRenderer, 1, this.question, 0)));
         this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
-                this.height / 2, 140, 20, this.textRenderer, 2, this.question)));
+                this.height / 2, 140, 20, this.textRenderer, 2, this.question, 1)));
         this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
-                this.height / 2 + 30, 140, 20, this.textRenderer, 3, this.question)));
+                this.height / 2 + 30, 140, 20, this.textRenderer, 3, this.question, 2)));
         this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
-                this.height / 2 + 60, 140, 20, this.textRenderer, 4, this.question)));
+                this.height / 2 + 60, 140, 20, this.textRenderer, 4, this.question, 3)));
 
         this.answeredCountWidgets.add(this.addDrawableChild(new QuestionText(25, this.height - 45,
                 "ANSWER\nNOW!", TriviaMurderParty.Fonts.QUESTION_ANSWER, 15, ModColors.RED, 100, this.textRenderer)));
@@ -397,18 +398,28 @@ public class QuestionScreen extends Screen {
             PacketByteBuf buffer = clientReceiveInfo.buffer();
             String playerName = buffer.readString();
             boolean isCorrect = buffer.readBoolean();
+            boolean isCaptain = buffer.readBoolean();
+            int answerPosition = buffer.readInt();
+
+            ClientPlayerEntity clientPlayer = MCTournament.CLIENT.player;
+            PlayerEntity answeredPlayer = ModUtilClient.clientGetPlayer(playerName);
+            if (clientPlayer == null) return;
 
             if (MCTournament.CLIENT.currentScreen instanceof QuestionScreen questionScreen) {
 //                See this: https://stackoverflow.com/questions/27482579/how-is-this-private-variable-accessible
 //                Java be wildin'
                 questionScreen.playerAnswers.put(playerName, isCorrect);
 
-                for (final var playerWidget : questionScreen.playerWidgets) {
-                    if (playerWidget.getPlayer().getNameForScoreboard().equals(playerName)) {
-                        playerWidget.setAnswerState(QuestionPlayer.AnswerState.ANSWERED);
-                        ModUtilClient.playSound(SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK);
-                        break;
+                if (isCaptain) {
+                    for (final var playerWidget : questionScreen.playerWidgets) {
+                        if (playerWidget.getPlayer().getNameForScoreboard().equals(playerName)) {
+                            playerWidget.setAnswerState(QuestionPlayer.AnswerState.ANSWERED);
+                            ModUtilClient.playSound(SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK);
+                            break;
+                        }
                     }
+                } else if (clientPlayer.isTeammate(answeredPlayer)) {
+                    questionScreen.answerWidgets.get(answerPosition).setPlayerHead(answeredPlayer);
                 }
             }
         });

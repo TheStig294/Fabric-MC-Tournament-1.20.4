@@ -8,6 +8,7 @@ import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.PressableWidget;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.sound.SoundManager;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
@@ -23,12 +24,12 @@ public class QuestionButton extends PressableWidget {
     private final TextRenderer textRenderer;
     private final boolean isCorrect;
     private final int originalX;
-    private final int originalY;
+    private final int answerPosition;
     private boolean locked;
     private boolean pressed;
 
     public QuestionButton(QuestionScreen screen, int x, int y, int width, int height, TextRenderer textRenderer,
-                          int answerNumber, Question question) {
+                          int answerNumber, Question question, int answerPosition) {
         super(x, y, width, height, Text.literal(question.getAnswer(answerNumber))
                 .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER)));
 
@@ -37,24 +38,29 @@ public class QuestionButton extends PressableWidget {
         this.answerNumber = answerNumber;
         this.isCorrect = question.isCorrect(answerNumber);
         this.originalX = x;
-        this.originalY = y;
+        this.answerPosition = answerPosition;
         this.locked = false;
         this.pressed = false;
     }
 
     @Override
     public void onRelease(double mouseX, double mouseY) {
-        if (this.locked) return;
-        this.pressed = false;
         ClientPlayerEntity player = MCTournament.CLIENT.player;
-        if (player == null || !Tournament.inst().clientScoreboard().isTeamCaptain(player)) return;
+        if (player == null || this.locked) return;
+        this.pressed = false;
+
+        boolean isCaptain = Tournament.inst().clientScoreboard().isTeamCaptain(player);
 
         ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, PacketByteBufs.create()
                 .writeString(player.getNameForScoreboard())
                 .writeBoolean(this.isCorrect)
+                .writeBoolean(isCaptain)
+                .writeInt(this.answerPosition)
         );
 
-        this.screen.lockButtons();
+        if (isCaptain) {
+            this.screen.lockButtons();
+        }
     }
 
     @Override
@@ -92,10 +98,6 @@ public class QuestionButton extends PressableWidget {
         return this.originalX;
     }
 
-    public int getOriginalY() {
-        return this.originalY;
-    }
-
     public void lock() {
         this.locked = true;
     }
@@ -110,5 +112,9 @@ public class QuestionButton extends PressableWidget {
         } else {
             return ModColors.BLACK.getRGB();
         }
+    }
+
+    public void setPlayerHead(PlayerEntity player) {
+
     }
 }

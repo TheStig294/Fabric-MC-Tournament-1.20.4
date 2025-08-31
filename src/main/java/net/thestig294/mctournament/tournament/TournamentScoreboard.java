@@ -261,7 +261,7 @@ public class TournamentScoreboard {
     }
 
     public boolean isTeamCaptain(PlayerEntity player) {
-        return this.teamCaptains.containsValue(player);
+        return player != null && this.teamCaptains.containsValue(player);
     }
 
     public void findNewTeamCaptain(Team team) {
