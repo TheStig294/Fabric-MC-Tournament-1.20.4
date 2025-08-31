@@ -67,7 +67,7 @@ public class TournamentScoreboard {
                     this.setTeamCaptain(team, null);
                 } else {
                     String playerName = buffer.readString();
-                    PlayerEntity player = ModUtilClient.clientGetPlayer(playerName);
+                    PlayerEntity player = ModUtilClient.getPlayer(playerName);
                     this.setTeamCaptain(team, player);
                 }
             }

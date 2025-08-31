@@ -3,11 +3,15 @@ package net.thestig294.mctournament.minigame.triviamurderparty.widget;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.PlayerSkinDrawer;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.PressableWidget;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.client.sound.SoundManager;
+import net.minecraft.client.util.SkinTextures;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import net.thestig294.mctournament.MCTournament;
@@ -18,15 +22,21 @@ import net.thestig294.mctournament.network.ModNetworking;
 import net.thestig294.mctournament.tournament.Tournament;
 import net.thestig294.mctournament.util.ModColors;
 
+import java.util.*;
+
 public class QuestionButton extends PressableWidget {
+    private static final int PLAYER_HEAD_SIZE = 12;
+
     private final QuestionScreen screen;
     private final int answerNumber;
     private final TextRenderer textRenderer;
     private final boolean isCorrect;
     private final int originalX;
     private final int answerPosition;
+    private final Map<PlayerEntity, SkinTextures> playerHeads;
     private boolean locked;
     private boolean pressed;
+    private boolean selectedAnswer;
 
     public QuestionButton(QuestionScreen screen, int x, int y, int width, int height, TextRenderer textRenderer,
                           int answerNumber, Question question, int answerPosition) {
@@ -39,8 +49,10 @@ public class QuestionButton extends PressableWidget {
         this.isCorrect = question.isCorrect(answerNumber);
         this.originalX = x;
         this.answerPosition = answerPosition;
+        this.playerHeads = new HashMap<>();
         this.locked = false;
         this.pressed = false;
+        this.selectedAnswer = false;
     }
 
     @Override
@@ -59,6 +71,7 @@ public class QuestionButton extends PressableWidget {
         );
 
         if (isCaptain) {
+            this.selectedAnswer = true;
             this.screen.lockButtons();
         }
     }
@@ -77,15 +90,25 @@ public class QuestionButton extends PressableWidget {
     @Override
     protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         context.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
+
         context.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(),
                 0, this.getColor());
-        this.drawMessage(context, this.textRenderer, ModColors.WHITE.getRGB());
+        this.drawMessage(context, this.textRenderer, this.getTextColor());
 
         ClickableWidget.drawScrollableText(context, this.textRenderer, Text.literal(Integer.toString(this.answerNumber))
                         .styled(style -> style
                         .withFont(TriviaMurderParty.Fonts.QUESTION_NUMBER)),
                 this.getX() - this.getWidth(), this.getY() - this.getHeight(),
                 this.getX() + this.getWidth(), this.getY() + this.getHeight(), ModColors.YELLOW.getRGB());
+
+        if (!this.locked) {
+            int playerHeadOffset = 10;
+            for (final var playerSkin : this.playerHeads.values()) {
+                PlayerSkinDrawer.draw(context, playerSkin, this.getX() + playerHeadOffset, this.getY() - PLAYER_HEAD_SIZE, PLAYER_HEAD_SIZE);
+                playerHeadOffset += PLAYER_HEAD_SIZE;
+            }
+        }
+
         context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
@@ -114,7 +137,23 @@ public class QuestionButton extends PressableWidget {
         }
     }
 
-    public void setPlayerHead(PlayerEntity player) {
+    public int getTextColor() {
+        return this.selectedAnswer ? ModColors.YELLOW.getRGB() : ModColors.WHITE.getRGB();
+    }
 
+    public void setPlayerHead(PlayerEntity player) {
+        ClientPlayNetworkHandler networkHandler = MCTournament.CLIENT.getNetworkHandler();
+        if (networkHandler == null) return;
+        PlayerListEntry playerListEntry = networkHandler.getPlayerListEntry(player.getUuid());
+        if (playerListEntry == null) return;
+        this.playerHeads.put(player, playerListEntry.getSkinTextures());
+    }
+
+    public void removePlayerHead(PlayerEntity player) {
+        this.playerHeads.remove(player);
+    }
+
+    public void setSelectedAnswer() {
+        this.selectedAnswer = true;
     }
 }

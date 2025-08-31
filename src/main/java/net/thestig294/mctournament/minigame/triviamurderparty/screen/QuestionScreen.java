@@ -402,7 +402,7 @@ public class QuestionScreen extends Screen {
             int answerPosition = buffer.readInt();
 
             ClientPlayerEntity clientPlayer = MCTournament.CLIENT.player;
-            PlayerEntity answeredPlayer = ModUtilClient.clientGetPlayer(playerName);
+            PlayerEntity answeredPlayer = ModUtilClient.getPlayer(playerName);
             if (clientPlayer == null) return;
 
             if (MCTournament.CLIENT.currentScreen instanceof QuestionScreen questionScreen) {
@@ -418,7 +418,15 @@ public class QuestionScreen extends Screen {
                             break;
                         }
                     }
+                    if (clientPlayer.isTeammate(answeredPlayer)) {
+                        questionScreen.lockButtons();
+                        questionScreen.answerWidgets.get(answerPosition).setSelectedAnswer();
+                    }
+
                 } else if (clientPlayer.isTeammate(answeredPlayer)) {
+                    for (final var answerWidget : questionScreen.answerWidgets) {
+                        answerWidget.removePlayerHead(answeredPlayer);
+                    }
                     questionScreen.answerWidgets.get(answerPosition).setPlayerHead(answeredPlayer);
                 }
             }
