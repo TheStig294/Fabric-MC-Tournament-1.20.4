@@ -12,7 +12,6 @@ public class ModTimer {
 
     private static long SERVER_TICKS = 0;
     private static long CLIENT_TICKS = 0;
-    private static final int SECONDS_PER_TICK = 20;
 
     private static PriorityQueue<QueuedFunction> newQueue() {
         return new PriorityQueue<>(Comparator.comparingLong(func -> func.time));
@@ -44,7 +43,8 @@ public class ModTimer {
 
     public static void simple(boolean isClient, float secsDelay, Runnable function) {
         long time = isClient ? CLIENT_TICKS : SERVER_TICKS;
-        time += (long) (secsDelay * SECONDS_PER_TICK);
+        float ticksPerSecond = isClient ? ModUtilClient.getTicksPerSecond() : ModUtil.getTicksPerSecond();
+        time += (long) (secsDelay * ticksPerSecond);
         PriorityQueue<QueuedFunction> queue = isClient ? CLIENT_QUEUE : SERVER_QUEUE;
         queue.add(new QueuedFunction(time, function));
     }

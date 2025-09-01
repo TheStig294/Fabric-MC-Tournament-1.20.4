@@ -28,6 +28,11 @@ public class TriviaMurderParty extends Minigame {
     }
 
     @Override
+    public boolean ignoreTeamCaptainScoreTransfer() {
+        return false;
+    }
+
+    @Override
     public void serverInit() {
         Questions.register();
         this.questionScreenHandler = new QuestionScreenHandler(this, this.scoreboard());
@@ -65,6 +70,7 @@ public class TriviaMurderParty extends Minigame {
     public static class NetworkIDs {
         public static final Identifier QUESTION_SCREEN = registerNetworkID("question_screen");
         public static final Identifier QUESTION_ANSWERED = registerNetworkID("question_answered");
+        public static final Identifier QUESTION_ANSWERING_END = registerNetworkID("question_answering_end");
     }
 
     public static class Fonts {

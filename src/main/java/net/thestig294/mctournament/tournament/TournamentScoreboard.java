@@ -12,6 +12,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.world.World;
 import net.thestig294.mctournament.MCTournament;
+import net.thestig294.mctournament.minigame.Minigame;
 import net.thestig294.mctournament.minigame.MinigameScoreboard;
 import net.thestig294.mctournament.network.ModNetworking;
 import net.thestig294.mctournament.util.ModUtil;
@@ -30,6 +31,7 @@ public class TournamentScoreboard {
     private boolean hooksAdded;
     private final List<Team> teams;
     private final SortedMap<Integer, PlayerEntity> teamCaptains;
+    private final SortedMap<Integer, String> teamCaptainNames;
     private Scoreboard scoreboard;
     private ScoreboardObjective objective;
 
@@ -38,6 +40,7 @@ public class TournamentScoreboard {
         this.hooksAdded = false;
         this.teams = new ArrayList<>(MAX_TEAMS);
         this.teamCaptains = new TreeMap<>();
+        this.teamCaptainNames = new TreeMap<>();
     }
 
     /**
@@ -97,6 +100,7 @@ public class TournamentScoreboard {
         }
 
         this.teamCaptains.clear();
+        this.teamCaptainNames.clear();
         ModUtil.forAllPlayers(this::addPlayerToTeam);
 
         if (!this.hooksAdded) {
@@ -243,6 +247,16 @@ public class TournamentScoreboard {
     public void setTeamCaptain(int teamNumber, @Nullable PlayerEntity captain) {
         this.teamCaptains.put(teamNumber, captain);
 
+        if (captain == null) {
+            this.teamCaptainNames.put(teamNumber, null);
+        } else {
+//        Whenever a new team captain is chosen, transfer the old captain's main minigame score over to the new captain
+            String oldTeamCaptainName = this.teamCaptainNames.getOrDefault(teamNumber, null);
+            if (oldTeamCaptainName != null) this.transferTeamCaptainScore(oldTeamCaptainName, captain.getNameForScoreboard());
+
+            this.teamCaptainNames.put(teamNumber, captain.getNameForScoreboard());
+        }
+
         if (!this.isClient()) {
             PacketByteBuf buffer = PacketByteBufs.create();
             int noOfCaptainUpdates = 1;
@@ -273,7 +287,14 @@ public class TournamentScoreboard {
                 return;
             }
         }
+    }
 
+    public void transferTeamCaptainScore(String oldCaptainName, String newCaptainName) {
+        Minigame minigame = Tournament.inst().minigame();
+        if (minigame.ignoreTeamCaptainScoreTransfer()) return;
+
+        MinigameScoreboard minigameScoreboard = minigame.scoreboard();
+        minigameScoreboard.setScore(newCaptainName, minigameScoreboard.getScore(oldCaptainName));
     }
 
     public String getTeamName(int teamNumber) {

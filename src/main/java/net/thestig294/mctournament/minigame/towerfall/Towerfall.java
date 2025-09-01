@@ -19,6 +19,11 @@ public class Towerfall extends Minigame {
     }
 
     @Override
+    public boolean ignoreTeamCaptainScoreTransfer() {
+        return false;
+    }
+
+    @Override
     public void serverInit() {
         Variants.register();
     }
@@ -57,6 +62,7 @@ public class Towerfall extends Minigame {
     }
 
 
+    @SuppressWarnings("unused")
     public static class Variants {
         public static final String LAST_ONE_STANDING = registerVariant(Minigames.TOWERFALL, "last_one_standing");
         public static final String TEAM_DEATHMATCH = registerVariant(Minigames.TOWERFALL, "team_deathmatch");

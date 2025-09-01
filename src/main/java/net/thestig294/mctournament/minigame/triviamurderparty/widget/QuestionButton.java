@@ -32,6 +32,9 @@ public class QuestionButton extends PressableWidget {
     private final TextRenderer textRenderer;
     private final boolean isCorrect;
     private final int originalX;
+    private final int originalY;
+    private final int originalWidth;
+    private final int originalHeight;
     private final int answerPosition;
     private final Map<PlayerEntity, SkinTextures> playerHeads;
     private boolean locked;
@@ -48,6 +51,9 @@ public class QuestionButton extends PressableWidget {
         this.answerNumber = answerNumber;
         this.isCorrect = question.isCorrect(answerNumber);
         this.originalX = x;
+        this.originalY = y;
+        this.originalWidth = width;
+        this.originalHeight = height;
         this.answerPosition = answerPosition;
         this.playerHeads = new HashMap<>();
         this.locked = false;
@@ -121,6 +127,10 @@ public class QuestionButton extends PressableWidget {
         return this.originalX;
     }
 
+    public int getOriginalY() {
+        return this.originalY;
+    }
+
     public void lock() {
         this.locked = true;
     }
@@ -155,5 +165,17 @@ public class QuestionButton extends PressableWidget {
 
     public void setSelectedAnswer() {
         this.selectedAnswer = true;
+    }
+
+    public boolean isCorrect() {
+        return this.isCorrect;
+    }
+
+    public int getOriginalWidth() {
+        return this.originalWidth;
+    }
+
+    public int getOriginalHeight() {
+        return this.originalHeight;
     }
 }

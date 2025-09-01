@@ -40,11 +40,11 @@ public class QuestionScreen extends Screen {
     private static final float HUD_IN_TIME = 1.0f;
 
     private static final float QUESTION_NUMBER_FADE_TIME = 1.0f;
-    private static final float QUESTION_NUMBER_HOLD_TIME = 3.0f;
+    private static final float QUESTION_NUMBER_HOLD_TIME = 1.0f;
     private static final float QUESTION_ZOOM_TIME = 1.0f;
     private static final float TIMER_MOVE_TIME = 1.0f;
-    private static final float QUESTION_ANSWER_TIME = 20.0f;
-    private static final float ANSWER_ZOOM_TIME = 0.5f;
+    private static final float ANSWER_ZOOM_TIME = 0.2f;
+    private static final int ANSWER_SIZE_MULTIPLIER = 2;
     private static final float ANSWER_HOLD_TIME = 3.0f;
     private static final float CORRECT_REVEAL_TIME = 3.0f;
     private static final float INCORRECT_REVEAL_TIME = 3.0f;
@@ -55,6 +55,10 @@ public class QuestionScreen extends Screen {
     private final Screen parent;
     private final Question question;
     private final int questionNumber;
+    private final int answeringTimeSeconds;
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    private final Map<String, Boolean> playerAnswers;
+    private int answeredCount;
 
     private float uptimeSecs;
     private State state;
@@ -64,9 +68,7 @@ public class QuestionScreen extends Screen {
     private int stateProgressPercent;
     private boolean firstStateTick;
     private boolean firstState;
-
-    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-    private final Map<String, Boolean> playerAnswers;
+    private int timerTicksLeft;
 
     private final List<QuestionText> titleWidgets;
     private QuestionBox leftBoxWidget;
@@ -79,15 +81,18 @@ public class QuestionScreen extends Screen {
     private QuestionTimer timerWidget;
     private final List<QuestionText> roomCodeWidgets;
 
-    public QuestionScreen(Question question, int questionNumber) {
-        this(question, questionNumber, State.SCREEN_IN);
+    public QuestionScreen(Question question, int questionNumber, int answeringTimeSeconds) {
+        this(question, questionNumber, answeringTimeSeconds, State.SCREEN_IN);
     }
 
-    public QuestionScreen(Question question, int questionNumber, State startingState) {
+    public QuestionScreen(Question question, int questionNumber, int answeringTimeSeconds, State startingState) {
         super(Text.empty());
         this.parent = MCTournament.CLIENT.currentScreen;
         this.question = question;
         this.questionNumber = questionNumber;
+        this.answeringTimeSeconds = answeringTimeSeconds;
+        this.playerAnswers = new HashMap<>();
+        this.answeredCount = 0;
 
         this.uptimeSecs = 0.0f;
         this.state = startingState;
@@ -97,8 +102,6 @@ public class QuestionScreen extends Screen {
         this.stateProgressPercent = 0;
         this.firstStateTick = true;
         this.firstState = true;
-
-        this.playerAnswers = new HashMap<>();
 
         this.titleWidgets = new ArrayList<>();
         this.playerWidgets = new ArrayList<>();
@@ -111,6 +114,7 @@ public class QuestionScreen extends Screen {
     protected void init() {
         super.init();
 
+        this.titleWidgets.clear();
         this.titleWidgets.add(this.addDrawableChild(new QuestionText(this.width / 2, this.height / 5, "TRIVIA",
                 TriviaMurderParty.Fonts.QUESTION_NUMBER, 20, ModColors.YELLOW, this.width, this.textRenderer)));
         this.titleWidgets.add(this.addDrawableChild(new QuestionText(this.width / 2, this.height * 2 / 5, "MURDER",
@@ -121,6 +125,7 @@ public class QuestionScreen extends Screen {
         this.leftBoxWidget = this.addDrawableChild(new QuestionBox(-this.width / 2,0, this.width / 2, this.height, ModColors.BLACK));
         this.rightBoxWidget = this.addDrawableChild(new QuestionBox(this.width,0, this.width, this.height, ModColors.BLACK));
 
+        this.playerWidgets.clear();
         List<PlayerEntity> teamCaptains = Tournament.inst().clientScoreboard().getValidTeamCaptains();
         for (int i = 0; i < teamCaptains.size(); i++) {
             this.playerWidgets.add(this.addDrawableChild(new QuestionPlayer(i * this.width / 8, 0,
@@ -135,6 +140,7 @@ public class QuestionScreen extends Screen {
                 this.question.question(), TriviaMurderParty.Fonts.QUESTION,25, ModColors.WHITE, this.width * 3 / 5,
                 this.textRenderer));
 
+        this.answerWidgets.clear();
         this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
                 this.height / 2 - 30, 140, 20, this.textRenderer, 1, this.question, 0)));
         this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
@@ -144,6 +150,7 @@ public class QuestionScreen extends Screen {
         this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
                 this.height / 2 + 60, 140, 20, this.textRenderer, 4, this.question, 3)));
 
+        this.answeredCountWidgets.clear();
         this.answeredCountWidgets.add(this.addDrawableChild(new QuestionText(25, this.height - 45,
                 "ANSWER\nNOW!", TriviaMurderParty.Fonts.QUESTION_ANSWER, 15, ModColors.RED, 100, this.textRenderer)));
         this.answeredCountWidgets.add(this.addDrawableChild(new QuestionText( 25, this.height - 30,
@@ -152,8 +159,9 @@ public class QuestionScreen extends Screen {
                 "ANSWERED", TriviaMurderParty.Fonts.QUESTION_ANSWER, 10, ModColors.GREY, 100, this.textRenderer)));
 
         this.timerWidget = this.addDrawableChild(new QuestionTimer(this.width / 3, this.height - 64,
-                64, 64, 20, 1.0f, TIMER_MOVE_TIME));
+                64, 64, this.answeringTimeSeconds, 1.0f, TIMER_MOVE_TIME));
 
+        this.roomCodeWidgets.clear();
         this.roomCodeWidgets.add(this.addDrawableChild(new QuestionText( this.width - 40, this.height - 12,
                 "MINECRAFT.TV", TriviaMurderParty.Fonts.QUESTION_ANSWER, 10, ModColors.GREY, 100, this.textRenderer)));
         this.roomCodeWidgets.add(this.addDrawableChild(new QuestionText( this.width - 20, this.height,
@@ -171,8 +179,7 @@ public class QuestionScreen extends Screen {
             this.nextState();
         }
 
-//        Minecraft runs at 20 ticks per second
-        this.uptimeSecs += delta / 20.0f;
+        this.uptimeSecs += delta / ModUtilClient.getTicksPerSecond();
         this.stateProgress = ModUtil.lerpPercent(this.stateStartTime, this.stateEndTime, this.uptimeSecs);
         this.stateProgressPercent = (int) (this.stateProgress * 100);
 
@@ -207,12 +214,7 @@ public class QuestionScreen extends Screen {
     private void renderState() {
         switch (this.state) {
             case TITLE_IN -> {
-                this.ifFirstStateTick(() -> {
-                    this.leftBoxWidget.setPosition(0,0);
-                    this.rightBoxWidget.setPosition(this.width / 2, 0);
-                    this.leftBoxWidget.setAlpha(1.0f);
-                    this.rightBoxWidget.setAlpha(1.0f);
-                });
+                this.ifFirstStateTick(this::resetBoxWidgets);
                 this.setAlpha(this.titleWidgets, this.animate(0.0f, 1.0f));
             }
             case TITLE_HOLD -> this.everyStatePercent(TITLE_SHAKE_FREQUENCY, () -> this.titleWidgets.forEach(widget -> {
@@ -231,13 +233,10 @@ public class QuestionScreen extends Screen {
                 this.ifFirstStateTick(() -> this.questionNumberWidget.setText("WELCOME"));
                 this.questionNumberWidget.setAlpha(this.animate(0.0f, 1.0f));
             }
-            case WELCOME_HOLD -> {}
+            case WELCOME_QUIP -> {}
             case WELCOME_OUT -> this.questionNumberWidget.setAlpha(this.animate(1.0f, 0.0f));
             case SCREEN_IN -> {
-                this.ifFirstStateTick(() -> {
-                    this.leftBoxWidget.setAlpha(1.0f);
-                    this.rightBoxWidget.setAlpha(1.0f);
-                });
+                this.ifFirstStateTick(this::resetBoxWidgets);
                 this.leftBoxWidget.setX(this.animate(0, this.leftBoxWidget.getOriginalX()));
                 this.rightBoxWidget.setX(this.animate(this.width / 2, this.rightBoxWidget.getOriginalX()));
             }
@@ -278,10 +277,27 @@ public class QuestionScreen extends Screen {
                 this.timerWidget.setAlpha(this.animate(0.0f, 1.0f));
                 this.timerWidget.reset();
             }
-            case ANSWERING -> {}
-            case TIMER_OUT -> {}
+            case ANSWERING -> this.timerTicksLeft = this.timerWidget.getTicksLeft();
+            case TIMER_OUT -> {
+                this.ifFirstStateTick(() -> {
+                    this.lockButtons();
+                    ModUtilClient.playSound(SoundEvents.BLOCK_BELL_USE);
+                });
+                this.timerWidget.setY(this.animate(this.timerWidget.getOriginalY(), this.height));
+                this.timerWidget.setAlpha(this.animate(1.0f, 0.0f));
+                this.timerWidget.reset(0.0f, 0);
+            }
             case ANSWER_PRE_QUIP -> {}
-            case ANSWER_IN -> {}
+            case ANSWER_IN -> this.answerWidgets.forEach(widget -> {
+                if (widget.isCorrect()) {
+                    widget.setX(this.animate(widget.getOriginalX(), this.getFinalAnswerX(widget)));
+                    widget.setY(this.animate(widget.getOriginalY(), this.getFinalAnswerY(widget)));
+                    widget.setWidth(this.animate(widget.getOriginalWidth(), widget.getOriginalWidth() * ANSWER_SIZE_MULTIPLIER));
+                    widget.setHeight(this.animate(widget.getOriginalHeight(), widget.getOriginalHeight() * ANSWER_SIZE_MULTIPLIER));
+                } else {
+                    widget.setAlpha(this.animate(1.0f, 0.0f));
+                }
+            });
             case ANSWER_HOLD -> {}
             case ANSWER_POST_QUIP -> {}
             case REVEAL_CORRECT -> {}
@@ -301,41 +317,45 @@ public class QuestionScreen extends Screen {
         switch (this.state) {
             case TITLE_IN, TITLE_HOLD -> this.setAlpha(this.titleWidgets, 1.0f);
             case TITLE_OUT -> {}
-            case WELCOME_IN, WELCOME_HOLD -> {
+            case WELCOME_IN, WELCOME_QUIP -> {
                 this.questionNumberWidget.setAlpha(1.0f);
                 this.questionNumberWidget.setText("WELCOME");
             }
             case WELCOME_OUT -> this.questionNumberWidget.setText("WELCOME");
-            case SCREEN_IN, HUD_IN, QUESTION_NUMBER_IN, QUESTION_NUMBER_HOLD, QUESTION_NUMBER_OUT -> {
-                this.setAlpha(this.playerWidgets, 1.0f);
-                this.setAlpha(this.answeredCountWidgets, 1.0f);
-                this.setAlpha(this.roomCodeWidgets, 1.0f);
-            }
+            case SCREEN_IN -> {}
+            case HUD_IN, QUESTION_NUMBER_IN, QUESTION_NUMBER_HOLD, QUESTION_NUMBER_OUT -> this.resetMainHUD();
             case QUESTION_IN, QUESTION_HOLD, QUESTION_OUT -> {
-                this.setAlpha(this.playerWidgets, 1.0f);
-                this.setAlpha(this.answeredCountWidgets, 1.0f);
-                this.setAlpha(this.roomCodeWidgets, 1.0f);
+                this.resetMainHUD();
                 this.questionWidget.setAlpha(1.0f);
             }
             case TIMER_IN, ANSWERING -> {
-                this.setAlpha(this.playerWidgets, 1.0f);
-                this.setAlpha(this.answeredCountWidgets, 1.0f);
-                this.setAlpha(this.roomCodeWidgets, 1.0f);
+                this.resetMainHUD();
                 this.questionWidget.setAlpha(1.0f);
                 this.setAlpha(this.answerWidgets, 1.0f);
                 this.timerWidget.setAlpha(1.0f);
-                this.timerWidget.reset(0.0f, 0);
+                this.timerWidget.reset(0.0f, this.timerTicksLeft);
             }
             case TIMER_OUT, ANSWER_PRE_QUIP -> {
-                this.setAlpha(this.playerWidgets, 1.0f);
-                this.setAlpha(this.answeredCountWidgets, 1.0f);
-                this.setAlpha(this.roomCodeWidgets, 1.0f);
+                this.resetMainHUD();
                 this.questionWidget.setAlpha(1.0f);
                 this.setAlpha(this.answerWidgets, 1.0f);
+                this.lockButtons();
             }
-            case ANSWER_IN -> {}
-            case ANSWER_HOLD -> {}
-            case ANSWER_POST_QUIP -> {}
+            case ANSWER_IN, ANSWER_HOLD, ANSWER_POST_QUIP -> {
+                this.resetMainHUD();
+                this.questionWidget.setAlpha(1.0f);
+                for (final var widget : this.answerWidgets) {
+                    if (widget.isCorrect()) {
+                        widget.setAlpha(1.0f);
+                        widget.setWidth(widget.getOriginalWidth() * ANSWER_SIZE_MULTIPLIER);
+                        widget.setHeight(widget.getOriginalHeight() * ANSWER_SIZE_MULTIPLIER);
+                        widget.setX(this.getFinalAnswerX(widget));
+                        widget.setY(this.getFinalAnswerY(widget));
+                        break;
+                    }
+                }
+                this.lockButtons();
+            }
             case REVEAL_CORRECT -> {}
             case REVEAL_INCORRECT -> {}
             case INCORRECT_QUIP -> {}
@@ -343,11 +363,6 @@ public class QuestionScreen extends Screen {
             case KILLING_ROOM_TRANSITION_LIGHTS -> {}
             case ALL_CORRECT_LOOP_BACK -> {}
         }
-    }
-
-    @SuppressWarnings("unused")
-    float getQuip(QuipType quipType) {
-        return 1.0f;
     }
 
     private void nextState() {
@@ -359,7 +374,7 @@ public class QuestionScreen extends Screen {
             case TITLE_IN, TITLE_OUT -> TITLE_FADE_TIME;
             case TITLE_HOLD -> TITLE_HOLD_TIME;
             case WELCOME_IN, WELCOME_OUT -> WELCOME_FADE_TIME;
-            case WELCOME_HOLD -> this.getQuip(QuipType.WELCOME);
+            case WELCOME_QUIP -> this.getQuip(QuipType.WELCOME);
             case SCREEN_IN -> SCREEN_IN_TIME;
             case HUD_IN -> HUD_IN_TIME;
             case QUESTION_NUMBER_IN, QUESTION_NUMBER_OUT -> QUESTION_NUMBER_FADE_TIME;
@@ -367,7 +382,7 @@ public class QuestionScreen extends Screen {
             case QUESTION_IN, QUESTION_OUT -> QUESTION_ZOOM_TIME;
             case QUESTION_HOLD -> this.question.holdTime();
             case TIMER_IN, TIMER_OUT -> TIMER_MOVE_TIME;
-            case ANSWERING -> QUESTION_ANSWER_TIME;
+            case ANSWERING -> this.answeringTimeSeconds;
             case ANSWER_PRE_QUIP -> this.getQuip(QuipType.PRE_ANSWER);
             case ANSWER_IN -> ANSWER_ZOOM_TIME;
             case ANSWER_HOLD -> ANSWER_HOLD_TIME;
@@ -389,9 +404,11 @@ public class QuestionScreen extends Screen {
             PacketByteBuf buffer = clientReceiveInfo.buffer();
             int id = buffer.readInt();
             int questionNumber = buffer.readInt();
+            int answeringSeconds = buffer.readInt();
 
+            if (MCTournament.CLIENT.currentScreen instanceof QuestionScreen questionScreen) questionScreen.close();
             Question question = Questions.getQuestionByID(id);
-            MCTournament.CLIENT.setScreen(new QuestionScreen(question, questionNumber));
+            MCTournament.CLIENT.setScreen(new QuestionScreen(question, questionNumber, answeringSeconds));
         });
 
         ModNetworking.clientReceive(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, clientReceiveInfo -> {
@@ -422,6 +439,8 @@ public class QuestionScreen extends Screen {
                         questionScreen.lockButtons();
                         questionScreen.answerWidgets.get(answerPosition).setSelectedAnswer();
                     }
+                    questionScreen.answeredCount++;
+                    questionScreen.answeredCountWidgets.get(1).setInt(questionScreen.answeredCount);
 
                 } else if (clientPlayer.isTeammate(answeredPlayer)) {
                     for (final var answerWidget : questionScreen.answerWidgets) {
@@ -431,6 +450,12 @@ public class QuestionScreen extends Screen {
                 }
             }
         });
+
+        ModNetworking.clientReceive(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERING_END, clientReceiveInfo -> {
+            if (MCTournament.CLIENT.currentScreen instanceof QuestionScreen questionScreen && questionScreen.state == State.ANSWERING) {
+                questionScreen.forceStateEnd();
+            }
+        });
     }
 
     @Override
@@ -438,8 +463,38 @@ public class QuestionScreen extends Screen {
         MCTournament.CLIENT.setScreen(this.parent);
     }
 
+    @SuppressWarnings("unused")
+    float getQuip(QuipType quipType) {
+        return 1.0f;
+    }
+
     public void lockButtons() {
         this.answerWidgets.forEach(QuestionButton::lock);
+    }
+
+    private void forceStateEnd() {
+        this.stateEndTime = this.uptimeSecs;
+    }
+
+    private void resetBoxWidgets() {
+        this.leftBoxWidget.setPosition(0,0);
+        this.rightBoxWidget.setPosition(this.width / 2, 0);
+        this.leftBoxWidget.setAlpha(1.0f);
+        this.rightBoxWidget.setAlpha(1.0f);
+    }
+
+    private void resetMainHUD() {
+        this.setAlpha(this.playerWidgets, 1.0f);
+        this.setAlpha(this.answeredCountWidgets, 1.0f);
+        this.setAlpha(this.roomCodeWidgets, 1.0f);
+    }
+
+    private int getFinalAnswerX(QuestionButton widget) {
+        return (this.width / 2) - (widget.getWidth() / 2);
+    }
+
+    private int getFinalAnswerY(QuestionButton widget) {
+        return this.height - widget.getHeight() - 10;
     }
 
     public enum State {
@@ -447,11 +502,11 @@ public class QuestionScreen extends Screen {
         TITLE_HOLD,
         TITLE_OUT,
         WELCOME_IN,
-        WELCOME_HOLD,
+        WELCOME_QUIP,
         WELCOME_OUT,
         SCREEN_IN, // Entrypoint for returning from a killing room
         HUD_IN,
-        QUESTION_NUMBER_IN,
+        QUESTION_NUMBER_IN, // Entrypoint for a new question after all players answered correctly
         QUESTION_NUMBER_HOLD,
         QUESTION_NUMBER_OUT,
         QUESTION_IN,

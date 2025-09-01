@@ -6,21 +6,26 @@ import net.thestig294.mctournament.minigame.MinigameScoreboard;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Questions;
 import net.thestig294.mctournament.network.ModNetworking;
+import net.thestig294.mctournament.tournament.Tournament;
+import net.thestig294.mctournament.util.ModTimer;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class QuestionScreenHandler {
     public static final int CORRECT_ANSWER_POINTS = 1000;
+    public static final int ANSWERING_TIME_SECONDS = 20;
+//    The time in seconds the game secretly lets you answer even though the question timer is visibly up
+    public static final int ANSWERING_TIME_FORGIVENESS = 1;
 
     private final TriviaMurderParty minigame;
     private final MinigameScoreboard scoreboard;
-    private final Set<String> answeredPlayers;
+    private final Set<String> answeredCaptains;
 
     public QuestionScreenHandler(TriviaMurderParty minigame, MinigameScoreboard scoreboard) {
         this.minigame = minigame;
         this.scoreboard = scoreboard;
-        this.answeredPlayers = new HashSet<>();
+        this.answeredCaptains = new HashSet<>();
 
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, serverReceiveInfo -> {
             PacketByteBuf buffer = serverReceiveInfo.buf();
@@ -29,19 +34,25 @@ public class QuestionScreenHandler {
             boolean isCaptain = buffer.readBoolean();
             int answerPosition = buffer.readInt();
 
-            if (this.answeredPlayers.contains(playerName)) return;
-
-            if (isCorrect && isCaptain) {
-                this.scoreboard.addScore(playerName, CORRECT_ANSWER_POINTS);
-                this.answeredPlayers.add(playerName);
-            }
-
             ModNetworking.broadcast(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, PacketByteBufs.create()
                     .writeString(playerName)
                     .writeBoolean(isCorrect)
                     .writeBoolean(isCaptain)
                     .writeInt(answerPosition)
             );
+
+            if (isCaptain && !this.answeredCaptains.contains(playerName)) {
+                this.answeredCaptains.add(playerName);
+                if (isCorrect) this.scoreboard.addScore(playerName, CORRECT_ANSWER_POINTS);
+
+//                Ending answering once all captains have answered
+                int answeredPlayers = this.answeredCaptains.size();
+                int playersToAnswer = Tournament.inst().scoreboard().getValidTeamCaptains().size();
+
+                if (answeredPlayers >= playersToAnswer) {
+                    this.broadcastAnsweringEnd();
+                }
+            }
         });
     }
 
@@ -51,11 +62,19 @@ public class QuestionScreenHandler {
     }
 
     public void broadcastNextQuestionScreen() {
-        this.answeredPlayers.clear();
+        this.answeredCaptains.clear();
 
         ModNetworking.broadcast(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN, PacketByteBufs.create()
                 .writeInt(Questions.getNext().id())
                 .writeInt(Questions.getQuestionNumber())
+                .writeInt(ANSWERING_TIME_SECONDS)
         );
+
+//        Ending answering time once time runs out, and the forgiveness buffer runs out too
+        ModTimer.simple(false, ANSWERING_TIME_SECONDS + ANSWERING_TIME_FORGIVENESS, this::broadcastAnsweringEnd);
+    }
+
+    private void broadcastAnsweringEnd() {
+        ModNetworking.broadcast(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERING_END);
     }
 }

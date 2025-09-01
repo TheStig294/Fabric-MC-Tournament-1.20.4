@@ -21,6 +21,8 @@ public abstract class Minigame {
      */
     public abstract float getScoreMultiplier();
 
+    public abstract boolean ignoreTeamCaptainScoreTransfer();
+
     public void serverPreInit() {
         this.scoreboard = new MinigameScoreboard(this, false);
     }
@@ -36,7 +38,6 @@ public abstract class Minigame {
      * Also called after a player joins mid-round.
      */
     public abstract void serverBegin();
-
 
     public void serverPreEnd() {
         Tournament.inst().scoreboard().updateOverallScores();

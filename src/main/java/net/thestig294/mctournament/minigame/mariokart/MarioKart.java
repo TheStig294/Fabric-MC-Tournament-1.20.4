@@ -19,6 +19,11 @@ public class MarioKart extends Minigame {
     }
 
     @Override
+    public boolean ignoreTeamCaptainScoreTransfer() {
+        return true;
+    }
+
+    @Override
     public void serverInit() {
         Variants.register();
     }
@@ -57,6 +62,7 @@ public class MarioKart extends Minigame {
     }
 
 
+    @SuppressWarnings("unused")
     public static class Variants {
         public static final String YOSHIS_CIRCUIT = registerVariant(Minigames.MARIO_KART, "yoshis_circuit");
         public static final String COCONUT_MALL = registerVariant(Minigames.MARIO_KART, "coconut_mall");

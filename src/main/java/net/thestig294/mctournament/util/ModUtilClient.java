@@ -4,6 +4,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.sound.PositionedSoundInstance;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.SoundEvent;
 import net.thestig294.mctournament.MCTournament;
@@ -37,5 +38,11 @@ public class ModUtilClient {
 
     public static void playSound(SoundEvent sound, float pitch, float volume) {
         MCTournament.CLIENT.getSoundManager().play(PositionedSoundInstance.master(sound, pitch, volume));
+    }
+
+    public static float getTicksPerSecond() {
+        ClientWorld world = MCTournament.CLIENT.world;
+        if (world == null) return 20.0f;
+        return world.getTickManager().getTickRate();
     }
 }

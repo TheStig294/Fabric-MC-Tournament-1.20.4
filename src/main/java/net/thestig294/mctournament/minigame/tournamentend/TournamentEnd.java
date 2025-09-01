@@ -21,6 +21,11 @@ public class TournamentEnd extends Minigame {
     }
 
     @Override
+    public boolean ignoreTeamCaptainScoreTransfer() {
+        return false;
+    }
+
+    @Override
     public void serverInit() {
 
     }

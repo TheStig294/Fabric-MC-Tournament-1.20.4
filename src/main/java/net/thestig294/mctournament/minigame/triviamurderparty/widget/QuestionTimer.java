@@ -7,6 +7,7 @@ import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.sound.SoundManager;
 import net.minecraft.text.Text;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
+import net.thestig294.mctournament.util.ModUtilClient;
 
 public class QuestionTimer extends ClickableWidget {
     private static final int MIN_LENGTH = 0;
@@ -18,7 +19,6 @@ public class QuestionTimer extends ClickableWidget {
     private float totalDelta;
     private float nextDeltaTick;
     private int ticksLeft;
-    private final int originalX;
     private final int originalY;
 
     public QuestionTimer(int x, int y, int width, int height, int length, float tickFrequency, float startDelay) {
@@ -28,7 +28,6 @@ public class QuestionTimer extends ClickableWidget {
         this.tickFrequency = tickFrequency;
         this.startDelay = startDelay;
         this.reset();
-        this.originalX = x;
         this.originalY = y;
     }
 
@@ -37,8 +36,8 @@ public class QuestionTimer extends ClickableWidget {
         context.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
         RenderSystem.enableBlend();
         this.totalDelta += delta;
-//        Minecraft runs at 20 ticks/second
-        if (this.totalDelta / 20 >= this.nextDeltaTick && this.ticksLeft > 0) {
+
+        if (this.totalDelta / ModUtilClient.getTicksPerSecond() >= this.nextDeltaTick && this.ticksLeft > 0) {
             this.ticksLeft--;
             this.nextDeltaTick += this.tickFrequency;
         }
@@ -76,11 +75,11 @@ public class QuestionTimer extends ClickableWidget {
 
     }
 
-    public int getOriginalX() {
-        return this.originalX;
-    }
-
     public int getOriginalY() {
         return this.originalY;
+    }
+
+    public int getTicksLeft() {
+        return this.ticksLeft;
     }
 }

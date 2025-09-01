@@ -1,7 +1,5 @@
 package net.thestig294.mctournament.util;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.scoreboard.ScoreHolder;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.random.Random;
 import net.thestig294.mctournament.MCTournament;
@@ -46,9 +44,9 @@ public class ModUtil {
 
     /**
      * Returns how close a float is from the start, to the end value, as a percentage
-     * @param start
-     * @param end
-     * @param value
+     * @param start starting value
+     * @param end end value
+     * @param value current value
      * @return Percentage progress of the value, as a float
      */
     public static float lerpPercent(float start, float end, float value) {
@@ -59,9 +57,9 @@ public class ModUtil {
 
     /**
      * Returns the value from start to end, that is the passed percent along from the start to the end
-     * @param start
-     * @param end
-     * @param percent
+     * @param start starting value
+     * @param end ending value
+     * @param percent current percent progress from start to end
      * @return Lerped value, that is the specified distance along from start to end
      */
     public static float lerpLinear(float start, float end, float percent) {
@@ -82,5 +80,9 @@ public class ModUtil {
 
     public static void forAllPlayers(Consumer<ServerPlayerEntity> function) {
         getPlayers().forEach(function);
+    }
+
+    public static float getTicksPerSecond() {
+        return MCTournament.SERVER.getTickManager().getTickRate();
     }
 }
