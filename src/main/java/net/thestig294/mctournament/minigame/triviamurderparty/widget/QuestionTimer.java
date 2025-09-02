@@ -9,7 +9,7 @@ import net.minecraft.text.Text;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.util.ModUtilClient;
 
-public class QuestionTimer extends ClickableWidget {
+public class QuestionTimer extends ClickableWidget implements QuestionWidget {
     private static final int MIN_LENGTH = 0;
     private static final int MAX_LENGTH = TriviaMurderParty.Textures.QUESTION_TIMER_HAND_COUNT - 1;
 
@@ -19,7 +19,10 @@ public class QuestionTimer extends ClickableWidget {
     private float totalDelta;
     private float nextDeltaTick;
     private int ticksLeft;
+    private final int originalX;
     private final int originalY;
+    private final int originalWidth;
+    private final int originalHeight;
 
     public QuestionTimer(int x, int y, int width, int height, int length, float tickFrequency, float startDelay) {
         super(x, y, width, height, Text.empty());
@@ -28,7 +31,10 @@ public class QuestionTimer extends ClickableWidget {
         this.tickFrequency = tickFrequency;
         this.startDelay = startDelay;
         this.reset();
+        this.originalX = x;
         this.originalY = y;
+        this.originalWidth = width;
+        this.originalHeight = height;
     }
 
     @Override
@@ -75,11 +81,31 @@ public class QuestionTimer extends ClickableWidget {
 
     }
 
+    @Override
+    public int getOriginalX() {
+        return this.originalX;
+    }
+
     public int getOriginalY() {
         return this.originalY;
     }
 
+    @Override
+    public int getOriginalWidth() {
+        return this.originalWidth;
+    }
+
+    @Override
+    public int getOriginalHeight() {
+        return this.originalHeight;
+    }
+
     public int getTicksLeft() {
         return this.ticksLeft;
+    }
+
+    @Override
+    public float getAlpha() {
+        return this.alpha;
     }
 }

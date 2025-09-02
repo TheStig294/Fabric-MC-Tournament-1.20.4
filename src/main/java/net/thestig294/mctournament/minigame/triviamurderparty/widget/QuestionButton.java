@@ -24,7 +24,7 @@ import net.thestig294.mctournament.util.ModColors;
 
 import java.util.*;
 
-public class QuestionButton extends PressableWidget {
+public class QuestionButton extends PressableWidget implements QuestionWidget {
     private static final int PLAYER_HEAD_SIZE = 12;
 
     private final QuestionScreen screen;
@@ -177,5 +177,10 @@ public class QuestionButton extends PressableWidget {
 
     public int getOriginalHeight() {
         return this.originalHeight;
+    }
+
+    @Override
+    public float getAlpha() {
+        return this.alpha;
     }
 }

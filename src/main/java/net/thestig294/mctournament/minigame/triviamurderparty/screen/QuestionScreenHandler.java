@@ -9,8 +9,8 @@ import net.thestig294.mctournament.network.ModNetworking;
 import net.thestig294.mctournament.tournament.Tournament;
 import net.thestig294.mctournament.util.ModTimer;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 public class QuestionScreenHandler {
     public static final int CORRECT_ANSWER_POINTS = 1000;
@@ -20,12 +20,12 @@ public class QuestionScreenHandler {
 
     private final TriviaMurderParty minigame;
     private final MinigameScoreboard scoreboard;
-    private final Set<String> answeredCaptains;
+    private final Map<String, Boolean> answeredCaptains;
 
     public QuestionScreenHandler(TriviaMurderParty minigame, MinigameScoreboard scoreboard) {
         this.minigame = minigame;
         this.scoreboard = scoreboard;
-        this.answeredCaptains = new HashSet<>();
+        this.answeredCaptains = new HashMap<>();
 
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, serverReceiveInfo -> {
             PacketByteBuf buffer = serverReceiveInfo.buf();
@@ -41,8 +41,8 @@ public class QuestionScreenHandler {
                     .writeInt(answerPosition)
             );
 
-            if (isCaptain && !this.answeredCaptains.contains(playerName)) {
-                this.answeredCaptains.add(playerName);
+            if (isCaptain && !this.answeredCaptains.containsKey(playerName)) {
+                this.answeredCaptains.put(playerName, isCorrect);
                 if (isCorrect) this.scoreboard.addScore(playerName, CORRECT_ANSWER_POINTS);
 
 //                Ending answering once all captains have answered

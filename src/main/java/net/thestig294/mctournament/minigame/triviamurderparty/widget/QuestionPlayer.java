@@ -13,20 +13,29 @@ import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.tournament.Tournament;
 import net.thestig294.mctournament.util.ModColors;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
-public class QuestionPlayer extends ClickableWidget {
-    private final PlayerEntity player;
-    private final int originalY;
-    private final TextRenderer textRenderer;
-    private final Text playerNameText;
-    private final Text teamCaptainText;
+public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
     private final boolean isCaptain;
+    private final PlayerEntity player;
+    private final int originalX;
+    private final int originalY;
+    private final int originalWidth;
+    private final int originalHeight;
+    private final TextRenderer textRenderer;
+    private Text bottomText;
+    private float bottomTextAlpha;
     private AnswerState answerState;
+    private boolean isPlayerCorrect;
+    private boolean alwaysDrawBottomText;
+    private QuestionImage tickWidget;
+    private QuestionImage crossWidget;
 
     public QuestionPlayer(int x, int y, int width, int height, PlayerEntity player, TextRenderer textRenderer) {
-        super(x, y, width, height, Text.empty());
+        super(x, y, width, height, Text.literal(player.getNameForScoreboard())
+                .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER)));
 
         PlayerEntity clientPlayer = MCTournament.CLIENT.player;
         if (clientPlayer == null) {
@@ -44,13 +53,17 @@ public class QuestionPlayer extends ClickableWidget {
         }
 
         this.player = player;
+        this.originalX = x;
         this.originalY = y;
+        this.originalWidth = width;
+        this.originalHeight = height;
         this.textRenderer = textRenderer;
-        this.playerNameText = Text.literal(player.getNameForScoreboard())
+        this.bottomText = Text.translatable("widget.mctournament.question_player_your_team")
                 .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER));
-        this.teamCaptainText = Text.translatable("widget.mctournament.question_player_team_captain")
-                .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER));
+        this.bottomTextAlpha = 1.0f;
         this.answerState = AnswerState.UNANSWERED;
+        this.isPlayerCorrect = false;
+        this.alwaysDrawBottomText = false;
     }
 
     @Override
@@ -64,12 +77,14 @@ public class QuestionPlayer extends ClickableWidget {
 
         InventoryScreen.drawEntity(context, this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(),
                 30, 0.0625f, mouseX, mouseY, this.player);
-        context.drawCenteredTextWithShadow(this.textRenderer, this.playerNameText,
-                this.getX() + (this.getWidth() / 2), this.getY() + 3, this.getNameColor().getRGB());
+        context.drawCenteredTextWithShadow(this.textRenderer, this.getMessage(),
+                this.getX() + (this.getWidth() / 2), this.getY() + 3, this.getTextColor());
 
-        if (this.isCaptain) {
-            context.drawCenteredTextWithShadow(this.textRenderer, this.teamCaptainText,
-                    this.getX() + (this.getWidth() / 2), this.getY() + this.getHeight() - 5, this.getNameColor().getRGB());
+        if (this.isCaptain || this.alwaysDrawBottomText) {
+            context.setShaderColor(1.0f, 1.0f, 1.0f, this.bottomTextAlpha);
+            context.drawCenteredTextWithShadow(this.textRenderer, this.bottomText,
+                    this.getX() + (this.getWidth() / 2), this.getY() + this.getHeight() - 5, this.getTextColor());
+            context.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
         }
 
         context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -85,25 +100,78 @@ public class QuestionPlayer extends ClickableWidget {
 
     }
 
+    public int getOriginalX() {
+        return this.originalX;
+    }
+
     public int getOriginalY() {
         return this.originalY;
+    }
+
+    @Override
+    public int getOriginalWidth() {
+        return this.originalWidth;
+    }
+
+    @Override
+    public int getOriginalHeight() {
+        return this.originalHeight;
     }
 
     public PlayerEntity getPlayer() {
         return this.player;
     }
 
-    public Color getNameColor() {
-        return switch (this.answerState) {
+    public int getTextColor() {
+        Color color = switch (this.answerState) {
             case UNANSWERED -> ModColors.WHITE;
             case ANSWERED -> ModColors.YELLOW;
             case CORRECT -> ModColors.GREEN;
             case INCORRECT -> ModColors.RED;
         };
+        return color.getRGB();
     }
 
     public void setAnswerState(AnswerState answerState) {
         this.answerState = answerState;
+    }
+
+    public void setPlayerCorrect(boolean isPlayerCorrect) {
+        this.isPlayerCorrect = isPlayerCorrect;
+    }
+
+    public boolean isPlayerCorrect() {
+        return this.isPlayerCorrect;
+    }
+
+    public void setBottomText(String textString) {
+        this.bottomText = Text.literal(textString).styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER));
+        this.alwaysDrawBottomText = true;
+    }
+
+    public void setBottomTextAlpha(float alpha) {
+        this.bottomTextAlpha = alpha;
+    }
+
+    public void setTickWidget(QuestionImage widget) {
+        this.tickWidget = widget;
+    }
+
+    public void setCrossWidget(QuestionImage widget) {
+        this.crossWidget = widget;
+    }
+
+    public @Nullable QuestionImage getTickWidget() {
+        return this.tickWidget;
+    }
+
+    public @Nullable QuestionImage getCrossWidget() {
+        return this.crossWidget;
+    }
+
+    @Override
+    public float getAlpha() {
+        return this.alpha;
     }
 
     public enum AnswerState {

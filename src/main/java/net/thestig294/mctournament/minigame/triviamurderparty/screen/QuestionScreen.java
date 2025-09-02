@@ -1,5 +1,6 @@
 package net.thestig294.mctournament.minigame.triviamurderparty.screen;
 
+import it.unimi.dsi.fastutil.floats.FloatConsumer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.DrawContext;
@@ -24,9 +25,8 @@ import net.thestig294.mctournament.minigame.triviamurderparty.widget.*;
 import net.thestig294.mctournament.util.ModUtilClient;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.function.IntConsumer;
 
 @Environment(EnvType.CLIENT)
 public class QuestionScreen extends Screen {
@@ -46,18 +46,18 @@ public class QuestionScreen extends Screen {
     private static final float ANSWER_ZOOM_TIME = 0.2f;
     private static final int ANSWER_SIZE_MULTIPLIER = 2;
     private static final float ANSWER_HOLD_TIME = 3.0f;
-    private static final float CORRECT_REVEAL_TIME = 3.0f;
-    private static final float INCORRECT_REVEAL_TIME = 3.0f;
-    private static final float KILLING_ROOM_TRANSITION_MOVE_TIME = 2.0f;
-    private static final float KILLING_ROOM_TRANSITION_LIGHTS_TIME = 5.0f;
+    private static final float CORRECT_REVEAL_TIME = 2.0f;
+    private static final float CORRECT_POINTS_TIME = 1.0f;
+    private static final float INCORRECT_REVEAL_TIME = 0.5f;
+    private static final float INCORRECT_CROSSES_TIME = 0.5f;
+    private static final float KILLING_ROOM_TRANSITION_MOVE_TIME = 1.5f;
+    private static final float KILLING_ROOM_TRANSITION_LIGHTS_TIME = 1.5f;
     private static final float ALL_CORRECT_LOOP_BACK_TIME = 1.0f;
 
     private final Screen parent;
     private final Question question;
     private final int questionNumber;
     private final int answeringTimeSeconds;
-    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-    private final Map<String, Boolean> playerAnswers;
     private int answeredCount;
 
     private float uptimeSecs;
@@ -91,7 +91,6 @@ public class QuestionScreen extends Screen {
         this.question = question;
         this.questionNumber = questionNumber;
         this.answeringTimeSeconds = answeringTimeSeconds;
-        this.playerAnswers = new HashMap<>();
         this.answeredCount = 0;
 
         this.uptimeSecs = 0.0f;
@@ -122,14 +121,16 @@ public class QuestionScreen extends Screen {
         this.titleWidgets.add(this.addDrawableChild(new QuestionText(this.width / 2, this.height * 3 / 5, "PARTY",
                 TriviaMurderParty.Fonts.QUESTION_NUMBER, 20, ModColors.LIGHT_BLUE, this.width, this.textRenderer)));
 
-        this.leftBoxWidget = this.addDrawableChild(new QuestionBox(-this.width / 2,0, this.width / 2, this.height, ModColors.BLACK));
-        this.rightBoxWidget = this.addDrawableChild(new QuestionBox(this.width,0, this.width, this.height, ModColors.BLACK));
-
         this.playerWidgets.clear();
         List<PlayerEntity> teamCaptains = Tournament.inst().clientScoreboard().getValidTeamCaptains();
         for (int i = 0; i < teamCaptains.size(); i++) {
-            this.playerWidgets.add(this.addDrawableChild(new QuestionPlayer(i * this.width / 8, 0,
-                    this.width / 8, this.height / 3, teamCaptains.get(i), this.textRenderer)));
+            QuestionPlayer player = new QuestionPlayer(i * this.width / 8, 0,
+                    this.width / 8, this.height / 3, teamCaptains.get(i), this.textRenderer);
+            this.playerWidgets.add(this.addDrawableChild(player));
+            player.setTickWidget(this.addDrawableChild(new QuestionImage(player.getX() + player.getWidth() / 4, player.getY() + player.getHeight(),
+                    player.getWidth() / 2, player.getWidth() / 2, TriviaMurderParty.Textures.QUESTION_TICK)));
+            player.setCrossWidget(this.addDrawableChild(new QuestionImage(player.getX() + player.getWidth() / 4, player.getY(),
+                    player.getWidth() / 2, player.getWidth() / 2, TriviaMurderParty.Textures.QUESTION_CROSS)));
         }
 
         this.questionNumberWidget = this.addDrawableChild(new QuestionText(this.width / 2, this.height / 2,
@@ -168,6 +169,9 @@ public class QuestionScreen extends Screen {
                 ModUtil.getRandomString(4, 2), TriviaMurderParty.Fonts.QUESTION_ANSWER, 10, ModColors.RED,
                 100, this.textRenderer)));
 
+        this.leftBoxWidget = this.addDrawableChild(new QuestionBox(-this.width / 2,0, this.width / 2, this.height, ModColors.BLACK));
+        this.rightBoxWidget = this.addDrawableChild(new QuestionBox(this.width,0, this.width, this.height, ModColors.BLACK));
+
         this.handleRefresh();
     }
 
@@ -186,12 +190,28 @@ public class QuestionScreen extends Screen {
         this.renderState();
     }
 
-    private float animate(float start, float end) {
-        return ModUtil.lerpLinear(start, end, this.stateProgress);
+    private void animate(IntConsumer lambda, int start, int end) {
+        lambda.accept((int) ModUtil.lerpLinear(start, end, this.stateProgress));
     }
 
-    private int animate(int start, int end) {
-        return (int) animate(((float) start), ((float) end));
+    private void animate(FloatConsumer lambda, float start, float end) {
+        lambda.accept(ModUtil.lerpLinear(start, end, this.stateProgress));
+    }
+
+    private void listAnimateAlpha(List<? extends Element> widgets, float start, float end) {
+        for (final var child : widgets) {
+            if (child instanceof ClickableWidget widget) {
+                this.animate(widget::setAlpha, start, end);
+            }
+        }
+    }
+
+    public void setListAlpha(List<? extends Element> widgets, float alpha) {
+        for (final var child : widgets) {
+            if (child instanceof ClickableWidget widget) {
+                widget.setAlpha(alpha);
+            }
+        }
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -203,19 +223,11 @@ public class QuestionScreen extends Screen {
         if (this.firstStateTick) function.run();
     }
 
-    private void setAlpha(List<? extends Element> widgets, float alpha) {
-        for (final var child : widgets) {
-            if (child instanceof ClickableWidget widget) {
-                widget.setAlpha(alpha);
-            }
-        }
-    }
-
     private void renderState() {
         switch (this.state) {
             case TITLE_IN -> {
                 this.ifFirstStateTick(this::resetBoxWidgets);
-                this.setAlpha(this.titleWidgets, this.animate(0.0f, 1.0f));
+                this.listAnimateAlpha(this.titleWidgets, 0.0f, 1.0f);
             }
             case TITLE_HOLD -> this.everyStatePercent(TITLE_SHAKE_FREQUENCY, () -> this.titleWidgets.forEach(widget -> {
                 widget.setX(widget.getOriginalX() + Random.create().nextBetween(-TITLE_SHAKE_MAX, TITLE_SHAKE_MAX));
@@ -227,54 +239,53 @@ public class QuestionScreen extends Screen {
                     widget.setY(widget.getOriginalY());
                 }));
 
-                this.setAlpha(this.titleWidgets, this.animate(1.0f, 0.0f));
+                this.listAnimateAlpha(this.titleWidgets, 1.0f, 0.0f);
             }
             case WELCOME_IN -> {
-                this.ifFirstStateTick(() -> this.questionNumberWidget.setText("WELCOME"));
-                this.questionNumberWidget.setAlpha(this.animate(0.0f, 1.0f));
+                this.ifFirstStateTick(() -> this.questionNumberWidget.setText("screen.mctournament.question_welcome"));
+                this.animate(this.questionWidget::setAlpha, 0.0f, 1.0f);
             }
             case WELCOME_QUIP -> {}
-            case WELCOME_OUT -> this.questionNumberWidget.setAlpha(this.animate(1.0f, 0.0f));
+            case WELCOME_OUT -> this.animate(this.questionWidget::setAlpha, 1.0f, 0.0f);
             case SCREEN_IN -> {
                 this.ifFirstStateTick(this::resetBoxWidgets);
-                this.leftBoxWidget.setX(this.animate(0, this.leftBoxWidget.getOriginalX()));
-                this.rightBoxWidget.setX(this.animate(this.width / 2, this.rightBoxWidget.getOriginalX()));
+                this.animate(this.leftBoxWidget::setX, 0, this.leftBoxWidget.getOriginalX());
+                this.animate(this.rightBoxWidget::setX, this.width / 2, this.rightBoxWidget.getOriginalX());
             }
             case HUD_IN -> {
                 this.playerWidgets.forEach(widget -> {
-                    widget.setY(this.animate(-widget.getOriginalY() - widget.getHeight(), widget.getOriginalY()));
-                    widget.setAlpha(this.animate(0.0f, 1.0f));
+                    this.animate(widget::setY, -widget.getOriginalY() - widget.getHeight(), widget.getOriginalY());
+                    this.animate(widget::setAlpha, 0.0f, 1.0f);
                 });
                 this.answeredCountWidgets.forEach(widget -> {
-                    widget.setY(this.animate(this.height, widget.getOriginalY()));
-                    widget.setAlpha(this.animate(0.0f, 1.0f));
+                    this.animate(widget::setY, this.height, widget.getOriginalY());
+                    this.animate(widget::setAlpha, 0.0f, 1.0f);
                 });
                 this.roomCodeWidgets.forEach(widget -> {
-                    widget.setY(this.animate(this.height, widget.getOriginalY()));
-                    widget.setAlpha(this.animate(0.0f, 1.0f));
+                    this.animate(widget::setY, this.height, widget.getOriginalY());
+                    this.animate(widget::setAlpha, 0.0f, 1.0f);
                 });
             }
             case QUESTION_NUMBER_IN -> {
                 this.ifFirstStateTick(() -> this.questionNumberWidget.setInt(this.questionNumber));
-                this.questionNumberWidget.setAlpha(this.animate(0.0f, 1.0f));
+                this.animate(this.questionNumberWidget::setAlpha, 0.0f, 1.0f);
             }
             case QUESTION_NUMBER_HOLD -> {}
-            case QUESTION_NUMBER_OUT -> this.questionNumberWidget.setAlpha(this.animate(1.0f, 0.0f));
+            case QUESTION_NUMBER_OUT -> this.animate(this.questionNumberWidget::setAlpha, 1.0f, 0.0f);
             case QUESTION_IN -> {
                 this.ifFirstStateTick(() -> this.questionWidget.setPosition(this.width / 2, this.height));
-
-                this.questionWidget.setY(this.animate(this.height, this.questionWidget.getOriginalY()));
-                this.questionWidget.setAlpha(this.animate(0.0f, 1.0f));
+                this.animate(this.questionWidget::setY, this.height, this.questionWidget.getOriginalY());
+                this.animate(this.questionWidget::setAlpha, 0.0f, 1.0f);
             }
             case QUESTION_HOLD -> {}
-            case QUESTION_OUT -> this.questionWidget.setX(this.animate(this.width / 2, this.questionWidget.getOriginalX()));
+            case QUESTION_OUT -> this.animate(this.questionWidget::setX, this.width / 2, this.questionWidget.getOriginalX());
             case TIMER_IN -> {
                 this.answerWidgets.forEach(widget -> {
-                    widget.setX(this.animate(this.width + widget.getWidth(), widget.getOriginalX()));
-                    widget.setAlpha(this.animate(0.0f, 1.0f));
+                    this.animate(widget::setX, this.width + widget.getWidth(), widget.getOriginalX());
+                    this.animate(widget::setAlpha, 0.0f, 1.0f);
                 });
-                this.timerWidget.setY(this.animate(this.height, this.timerWidget.getOriginalY()));
-                this.timerWidget.setAlpha(this.animate(0.0f, 1.0f));
+                this.animate(this.timerWidget::setY, this.height, this.timerWidget.getOriginalY());
+                this.animate(this.timerWidget::setAlpha, 0.0f, 1.0f);
                 this.timerWidget.reset();
             }
             case ANSWERING -> this.timerTicksLeft = this.timerWidget.getTicksLeft();
@@ -283,90 +294,196 @@ public class QuestionScreen extends Screen {
                     this.lockButtons();
                     ModUtilClient.playSound(SoundEvents.BLOCK_BELL_USE);
                 });
-                this.timerWidget.setY(this.animate(this.timerWidget.getOriginalY(), this.height));
-                this.timerWidget.setAlpha(this.animate(1.0f, 0.0f));
+                this.animate(this.timerWidget::setY, this.timerWidget.getOriginalY(), this.height);
+                this.animate(this.timerWidget::setAlpha, 1.0f, 0.0f);
                 this.timerWidget.reset(0.0f, 0);
             }
             case ANSWER_PRE_QUIP -> {}
             case ANSWER_IN -> this.answerWidgets.forEach(widget -> {
                 if (widget.isCorrect()) {
-                    widget.setX(this.animate(widget.getOriginalX(), this.getFinalAnswerX(widget)));
-                    widget.setY(this.animate(widget.getOriginalY(), this.getFinalAnswerY(widget)));
-                    widget.setWidth(this.animate(widget.getOriginalWidth(), widget.getOriginalWidth() * ANSWER_SIZE_MULTIPLIER));
-                    widget.setHeight(this.animate(widget.getOriginalHeight(), widget.getOriginalHeight() * ANSWER_SIZE_MULTIPLIER));
+                    this.animate(widget::setX, widget.getOriginalX(), this.getFinalAnswerX(widget));
+                    this.animate(widget::setY, widget.getOriginalY(), this.getFinalAnswerY(widget));
+                    this.animate(widget::setWidth, widget.getOriginalWidth(), widget.getOriginalWidth() * ANSWER_SIZE_MULTIPLIER);
+                    this.animate(widget::setHeight, widget.getOriginalHeight(), widget.getOriginalHeight() * ANSWER_SIZE_MULTIPLIER);
                 } else {
-                    widget.setAlpha(this.animate(1.0f, 0.0f));
+                    this.animate(widget::setAlpha, 1.0f, 0.0f);
                 }
             });
-            case ANSWER_HOLD -> {}
-            case ANSWER_POST_QUIP -> {}
-            case REVEAL_CORRECT -> {}
-            case REVEAL_INCORRECT -> {}
+            case ANSWER_HOLD, ANSWER_POST_QUIP -> {}
+            case REVEAL_CORRECT -> {
+                this.ifFirstStateTick(() -> this.playerWidgets.forEach(widget -> {
+                    if (!widget.isPlayerCorrect()) return;
+                    widget.setAnswerState(QuestionPlayer.AnswerState.CORRECT);
+                    widget.setBottomTextAlpha(0.0f);
+                }));
+                this.playerWidgets.forEach(widget -> {
+                    if (!widget.isPlayerCorrect()) return;
+                    QuestionImage tickWidget = widget.getTickWidget();
+                    if (tickWidget == null) return;
+                    this.animate(tickWidget::setX, 0, tickWidget.getOriginalX());
+                    this.animate(tickWidget::setY, 0, tickWidget.getOriginalY());
+                    this.animate(tickWidget::setWidth, this.width, tickWidget.getOriginalWidth());
+                    this.animate(tickWidget::setHeight, this.height, tickWidget.getOriginalHeight());
+                    this.animate(tickWidget::setAlpha, 0.0f, 1.0f);
+                });
+            }
+            case REVEAL_CORRECT_POINTS -> this.playerWidgets.forEach(widget -> {
+                if (!widget.isPlayerCorrect()) return;
+                this.animate(widget::setBottomTextAlpha, 0.0f, 1.0f);
+                widget.setBottomText("$" + QuestionScreenHandler.CORRECT_ANSWER_POINTS);
+                QuestionImage tickWidget = widget.getTickWidget();
+                if (tickWidget == null) return;
+                this.animate(tickWidget::setWidth, tickWidget.getOriginalWidth(), 0);
+                this.animate(tickWidget::setHeight, tickWidget.getOriginalHeight(), 0);
+            });
+            case REVEAL_INCORRECT -> this.playerWidgets.forEach(widget -> {
+                if (!widget.isPlayerCorrect()) return;
+                this.animate(widget::setY, widget.getOriginalY(), widget.getOriginalY() + widget.getHeight());
+                this.animate(widget::setBottomTextAlpha, 1.0f, 0.0f);
+            });
+            case REVEAL_INCORRECT_CROSSES -> this.playerWidgets.forEach(widget -> {
+                if (widget.isPlayerCorrect()) return;
+                QuestionImage crossWidget = widget.getCrossWidget();
+                if (crossWidget == null) return;
+                this.animate(crossWidget::setX, 0, crossWidget.getOriginalX());
+                this.animate(crossWidget::setY, 0, crossWidget.getOriginalY());
+                this.animate(crossWidget::setWidth, this.width, crossWidget.getOriginalWidth());
+                this.animate(crossWidget::setHeight, this.height, crossWidget.getOriginalHeight());
+                this.animate(crossWidget::setAlpha, 0.0f, 1.0f);
+            });
             case INCORRECT_QUIP -> {}
-            case KILLING_ROOM_TRANSITION_MOVE -> {}
-            case KILLING_ROOM_TRANSITION_LIGHTS -> {}
-            case ALL_CORRECT_LOOP_BACK -> {}
+            case KILLING_ROOM_TRANSITION_MOVE -> this.children().forEach(child -> {
+                if (child instanceof QuestionBox widget) {
+                    this.animate(widget::setAlpha, 0.0f, 1.0f);
+                    this.animate(widget::setX, this.width / 2, 0);
+                    this.animate(widget::setY, this.height / 2, 0);
+                    this.animate(widget::setWidth, 0, this.width);
+                    this.animate(widget::setHeight, 0, this.height);
+                } else if ((child instanceof QuestionWidget widget) && widget.getAlpha() <= 0.0f) {
+                    this.animate(widget::setAlpha, 1.0f, 0.0f);
+                    this.animate(widget::setX, widget.getOriginalX(), this.width / 2);
+                    this.animate(widget::setY, widget.getOriginalY(), this.height / 2);
+                    this.animate(widget::setWidth, widget.getOriginalWidth(), 0);
+                    this.animate(widget::setHeight, widget.getOriginalHeight(), 0);
+                }
+            });
+            case KILLING_ROOM_TRANSITION_LIGHTS -> this.children().forEach(child -> {
+                if ((child instanceof QuestionWidget widget) && widget.getAlpha() <= 0.0f) {
+                    this.animate(widget::setAlpha, 1.0f, 0.0f);
+                    this.animate(widget::setX, widget.getOriginalX(), this.width / 2);
+                    this.animate(widget::setY, widget.getOriginalY(), this.height / 2);
+                    this.animate(widget::setWidth, widget.getOriginalWidth(), 0);
+                    this.animate(widget::setHeight, widget.getOriginalHeight(), 0);
+                }
+            });
+            case ALL_CORRECT_LOOP_BACK -> {
+                this.playerWidgets.forEach(widget -> {
+                    if (!widget.isPlayerCorrect()) return;
+                    this.animate(widget::setBottomTextAlpha, 1.0f, 0.0f);
+                });
+                this.animate(this.questionWidget::setX, this.questionWidget.getOriginalX(), -this.questionWidget.getWidth());
+                for (final var widget : this.answerWidgets) {
+                    if (widget.isCorrect()) {
+                        this.animate(widget::setX, this.getFinalAnswerX(widget), this.width);
+                        break;
+                    }
+                }
+            }
         }
 
         this.firstStateTick = false;
     }
 
     private void handleRefresh() {
-        this.setAlpha(this.children(), 0.0f);
+        this.setListAlpha(this.children(), 0.0f);
 
         switch (this.state) {
-            case TITLE_IN, TITLE_HOLD -> this.setAlpha(this.titleWidgets, 1.0f);
-            case TITLE_OUT -> {}
+            case TITLE_IN, TITLE_HOLD -> {
+                this.resetBoxWidgets();
+                this.setListAlpha(this.titleWidgets, 1.0f);
+            }
+            case TITLE_OUT -> this.resetBoxWidgets();
             case WELCOME_IN, WELCOME_QUIP -> {
                 this.questionNumberWidget.setAlpha(1.0f);
-                this.questionNumberWidget.setText("WELCOME");
+                this.questionNumberWidget.setText("screen.mctournament.question_welcome");
             }
-            case WELCOME_OUT -> this.questionNumberWidget.setText("WELCOME");
+            case WELCOME_OUT -> this.questionNumberWidget.setText("screen.mctournament.question_welcome");
             case SCREEN_IN -> {}
-            case HUD_IN, QUESTION_NUMBER_IN, QUESTION_NUMBER_HOLD, QUESTION_NUMBER_OUT -> this.resetMainHUD();
-            case QUESTION_IN, QUESTION_HOLD, QUESTION_OUT -> {
+            case HUD_IN, QUESTION_NUMBER_IN, QUESTION_NUMBER_HOLD, QUESTION_NUMBER_OUT -> {
                 this.resetMainHUD();
-                this.questionWidget.setAlpha(1.0f);
+                this.questionWidget.setAlpha(0.0f);
             }
+            case QUESTION_IN, QUESTION_HOLD, QUESTION_OUT -> this.resetMainHUD();
             case TIMER_IN, ANSWERING -> {
                 this.resetMainHUD();
-                this.questionWidget.setAlpha(1.0f);
-                this.setAlpha(this.answerWidgets, 1.0f);
+                this.setListAlpha(this.answerWidgets, 1.0f);
                 this.timerWidget.setAlpha(1.0f);
                 this.timerWidget.reset(0.0f, this.timerTicksLeft);
             }
             case TIMER_OUT, ANSWER_PRE_QUIP -> {
                 this.resetMainHUD();
-                this.questionWidget.setAlpha(1.0f);
-                this.setAlpha(this.answerWidgets, 1.0f);
+                this.setListAlpha(this.answerWidgets, 1.0f);
                 this.lockButtons();
             }
             case ANSWER_IN, ANSWER_HOLD, ANSWER_POST_QUIP -> {
                 this.resetMainHUD();
-                this.questionWidget.setAlpha(1.0f);
-                for (final var widget : this.answerWidgets) {
-                    if (widget.isCorrect()) {
-                        widget.setAlpha(1.0f);
-                        widget.setWidth(widget.getOriginalWidth() * ANSWER_SIZE_MULTIPLIER);
-                        widget.setHeight(widget.getOriginalHeight() * ANSWER_SIZE_MULTIPLIER);
-                        widget.setX(this.getFinalAnswerX(widget));
-                        widget.setY(this.getFinalAnswerY(widget));
-                        break;
-                    }
-                }
-                this.lockButtons();
+                this.resetRevealedAnswer();
             }
-            case REVEAL_CORRECT -> {}
-            case REVEAL_INCORRECT -> {}
-            case INCORRECT_QUIP -> {}
-            case KILLING_ROOM_TRANSITION_MOVE -> {}
-            case KILLING_ROOM_TRANSITION_LIGHTS -> {}
-            case ALL_CORRECT_LOOP_BACK -> {}
+            case REVEAL_CORRECT -> {
+                this.resetMainHUD();
+                this.resetRevealedAnswer();
+                this.playerWidgets.forEach(widget -> {
+                    if (widget.isPlayerCorrect()) {
+                        widget.setAnswerState(QuestionPlayer.AnswerState.CORRECT);
+                        widget.setBottomTextAlpha(0.0f);
+                        QuestionImage tickWidget = widget.getTickWidget();
+                        if (tickWidget == null) return;
+                        tickWidget.setAlpha(1.0f);
+                    } else {
+                        widget.setAnswerState(QuestionPlayer.AnswerState.ANSWERED);
+                    }
+                });
+            }
+            case REVEAL_CORRECT_POINTS -> {
+                this.resetMainHUD();
+                this.resetRevealedAnswer();
+                this.playerWidgets.forEach(widget -> {
+                    if (widget.isPlayerCorrect()) {
+                        widget.setAnswerState(QuestionPlayer.AnswerState.CORRECT);
+                        widget.setBottomText("$" + QuestionScreenHandler.CORRECT_ANSWER_POINTS);
+                    } else {
+                        widget.setAnswerState(QuestionPlayer.AnswerState.ANSWERED);
+                    }
+                });
+            }
+            case REVEAL_INCORRECT -> {
+                this.resetMainHUD();
+                this.resetRevealedAnswer();
+                this.playerWidgets.forEach(widget -> {
+                    if (!widget.isPlayerCorrect()) return;
+                    widget.setY(widget.getOriginalY() - widget.getHeight());
+                });
+            }
+            case REVEAL_INCORRECT_CROSSES, INCORRECT_QUIP -> {
+                this.resetMainHUD();
+                this.resetRevealedAnswer();
+                this.playerWidgets.forEach(widget -> {
+                    if (widget.isPlayerCorrect()) {
+                        widget.setY(widget.getOriginalY() - widget.getHeight());
+                    } else {
+                        QuestionImage crossWidget = widget.getCrossWidget();
+                        if (crossWidget == null) return;
+                        crossWidget.setAlpha(1.0f);
+                    }
+                });
+            }
+            case KILLING_ROOM_TRANSITION_MOVE, KILLING_ROOM_TRANSITION_LIGHTS -> this.resetBoxWidgets();
+            case ALL_CORRECT_LOOP_BACK -> this.resetMainHUD();
         }
     }
 
     private void nextState() {
-        if (!this.firstState) this.state = this.state.next();
+        if (!this.firstState) this.state = this.state.next(this);
         this.firstState = false;
         float lastEndTime = this.stateEndTime;
 
@@ -388,7 +505,9 @@ public class QuestionScreen extends Screen {
             case ANSWER_HOLD -> ANSWER_HOLD_TIME;
             case ANSWER_POST_QUIP -> this.getQuip(QuipType.POST_ANSWER);
             case REVEAL_CORRECT -> CORRECT_REVEAL_TIME;
+            case REVEAL_CORRECT_POINTS -> CORRECT_POINTS_TIME;
             case REVEAL_INCORRECT -> INCORRECT_REVEAL_TIME;
+            case REVEAL_INCORRECT_CROSSES -> INCORRECT_CROSSES_TIME;
             case INCORRECT_QUIP -> this.getQuip(QuipType.INCORRECT);
             case KILLING_ROOM_TRANSITION_MOVE -> KILLING_ROOM_TRANSITION_MOVE_TIME;
             case KILLING_ROOM_TRANSITION_LIGHTS -> KILLING_ROOM_TRANSITION_LIGHTS_TIME;
@@ -397,6 +516,50 @@ public class QuestionScreen extends Screen {
 
         this.stateStartTime = lastEndTime;
         this.firstStateTick = true;
+    }
+
+    public enum State {
+        TITLE_IN, // Entrypoint for a new quiz
+        TITLE_HOLD,
+        TITLE_OUT,
+        WELCOME_IN,
+        WELCOME_QUIP,
+        WELCOME_OUT,
+        SCREEN_IN, // Entrypoint for returning from a killing room
+        HUD_IN,
+        QUESTION_NUMBER_IN, // Entrypoint for a new question after all players answered correctly
+        QUESTION_NUMBER_HOLD,
+        QUESTION_NUMBER_OUT,
+        QUESTION_IN,
+        QUESTION_HOLD,
+        QUESTION_OUT,
+        TIMER_IN,
+        ANSWERING,
+        TIMER_OUT,
+        ANSWER_PRE_QUIP,
+        ANSWER_IN,
+        ANSWER_HOLD,
+        ANSWER_POST_QUIP,
+        REVEAL_CORRECT,
+        REVEAL_CORRECT_POINTS,
+        REVEAL_INCORRECT,
+        REVEAL_INCORRECT_CROSSES,
+        INCORRECT_QUIP,
+        KILLING_ROOM_TRANSITION_MOVE,
+        KILLING_ROOM_TRANSITION_LIGHTS,
+        ALL_CORRECT_LOOP_BACK;
+
+        public State next(QuestionScreen screen) {
+            return switch (this) {
+                case ANSWER_POST_QUIP -> screen.allPlayersIncorrect() ? REVEAL_INCORRECT : REVEAL_CORRECT;
+                case REVEAL_CORRECT_POINTS -> screen.allPlayerCorrect() ? ALL_CORRECT_LOOP_BACK : REVEAL_INCORRECT;
+                case INCORRECT_QUIP -> Random.create().nextBoolean() ? KILLING_ROOM_TRANSITION_MOVE : KILLING_ROOM_TRANSITION_LIGHTS;
+                case KILLING_ROOM_TRANSITION_MOVE -> KILLING_ROOM_TRANSITION_MOVE;
+                case KILLING_ROOM_TRANSITION_LIGHTS -> KILLING_ROOM_TRANSITION_LIGHTS;
+                case ALL_CORRECT_LOOP_BACK -> QUESTION_NUMBER_IN;
+                default -> values()[this.ordinal() + 1];
+            };
+        }
     }
 
     public static void clientInit() {
@@ -425,7 +588,12 @@ public class QuestionScreen extends Screen {
             if (MCTournament.CLIENT.currentScreen instanceof QuestionScreen questionScreen) {
 //                See this: https://stackoverflow.com/questions/27482579/how-is-this-private-variable-accessible
 //                Java be wildin'
-                questionScreen.playerAnswers.put(playerName, isCorrect);
+                for (final var widget : questionScreen.playerWidgets) {
+                    if (widget.getPlayer().getNameForScoreboard().equals(playerName)) {
+                        widget.setPlayerCorrect(isCorrect);
+                        break;
+                    }
+                }
 
                 if (isCaptain) {
                     for (final var playerWidget : questionScreen.playerWidgets) {
@@ -484,9 +652,24 @@ public class QuestionScreen extends Screen {
     }
 
     private void resetMainHUD() {
-        this.setAlpha(this.playerWidgets, 1.0f);
-        this.setAlpha(this.answeredCountWidgets, 1.0f);
-        this.setAlpha(this.roomCodeWidgets, 1.0f);
+        this.setListAlpha(this.playerWidgets, 1.0f);
+        this.setListAlpha(this.answeredCountWidgets, 1.0f);
+        this.setListAlpha(this.roomCodeWidgets, 1.0f);
+        this.questionWidget.setAlpha(1.0f);
+    }
+
+    private void resetRevealedAnswer() {
+        for (final var widget : this.answerWidgets) {
+            if (widget.isCorrect()) {
+                widget.setAlpha(1.0f);
+                widget.setWidth(widget.getOriginalWidth() * ANSWER_SIZE_MULTIPLIER);
+                widget.setHeight(widget.getOriginalHeight() * ANSWER_SIZE_MULTIPLIER);
+                widget.setX(this.getFinalAnswerX(widget));
+                widget.setY(this.getFinalAnswerY(widget));
+                break;
+            }
+        }
+        this.lockButtons();
     }
 
     private int getFinalAnswerX(QuestionButton widget) {
@@ -497,49 +680,18 @@ public class QuestionScreen extends Screen {
         return this.height - widget.getHeight() - 10;
     }
 
-    public enum State {
-        TITLE_IN, // Entrypoint for a new quiz
-        TITLE_HOLD,
-        TITLE_OUT,
-        WELCOME_IN,
-        WELCOME_QUIP,
-        WELCOME_OUT,
-        SCREEN_IN, // Entrypoint for returning from a killing room
-        HUD_IN,
-        QUESTION_NUMBER_IN, // Entrypoint for a new question after all players answered correctly
-        QUESTION_NUMBER_HOLD,
-        QUESTION_NUMBER_OUT,
-        QUESTION_IN,
-        QUESTION_HOLD,
-        QUESTION_OUT,
-        TIMER_IN,
-        ANSWERING,
-        TIMER_OUT,
-        ANSWER_PRE_QUIP,
-        ANSWER_IN,
-        ANSWER_HOLD,
-        ANSWER_POST_QUIP,
-        REVEAL_CORRECT,
-        REVEAL_INCORRECT,
-        INCORRECT_QUIP,
-        KILLING_ROOM_TRANSITION_MOVE,
-        KILLING_ROOM_TRANSITION_LIGHTS,
-        ALL_CORRECT_LOOP_BACK;
-
-        private boolean isPlayerIncorrect() {
-            return true;
+    public boolean allPlayersIncorrect() {
+        for (final var widget : this.playerWidgets) {
+            if (widget.isPlayerCorrect()) return false;
         }
+        return true;
+    }
 
-        public State next() {
-            return switch (this) {
-                case REVEAL_CORRECT -> this.isPlayerIncorrect() ? REVEAL_INCORRECT : ALL_CORRECT_LOOP_BACK;
-                case INCORRECT_QUIP -> Random.create().nextBoolean() ? KILLING_ROOM_TRANSITION_MOVE : KILLING_ROOM_TRANSITION_LIGHTS;
-                case KILLING_ROOM_TRANSITION_MOVE -> KILLING_ROOM_TRANSITION_MOVE;
-                case KILLING_ROOM_TRANSITION_LIGHTS -> KILLING_ROOM_TRANSITION_LIGHTS;
-                case ALL_CORRECT_LOOP_BACK -> QUESTION_NUMBER_IN;
-                default -> values()[this.ordinal() + 1];
-            };
+    public boolean allPlayerCorrect() {
+        for (final var widget : this.playerWidgets) {
+            if (!widget.isPlayerCorrect()) return false;
         }
+        return true;
     }
 
     public enum QuipType {

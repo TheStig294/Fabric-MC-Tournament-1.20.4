@@ -13,5 +13,6 @@
   "tournament.mctournament.end_message": "Tournament over! Thanks for playing!",
 
   "screen.mctournament.question" : "Question Screen",
-  "widget.mctournament.question_player_team_captain" : "Your team"
+  "screen.mctournament.question_welcome" : "WELCOME",
+  "widget.mctournament.question_player_your_team" : "Your team"
 }
