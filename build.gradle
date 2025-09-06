@@ -18,10 +18,36 @@ repositories {
 	// for more information about repositories.
 }
 
-fabricApi {
-	configureDataGeneration {
-		client = true
-	}
+//fabricApi {
+//	configureDataGeneration {
+//		client = true
+//	}
+//}
+
+loom {
+    runs {
+        // This adds a new gradle task that runs the datagen API: "gradlew runDatagen"
+        datagen {
+            inherit server
+            name "Data Generation"
+            vmArg "-Dfabric-api.datagen"
+            vmArg "-Dfabric-api.datagen.output-dir=${file("src/main/generated")}"
+            vmArg "-Dfabric-api.datagen.modid=tutorialmod"
+
+            runDir "build/datagen"
+        }
+    }
+}
+
+// Add the generated resources to the main source set
+sourceSets {
+    main {
+        resources {
+            srcDirs += [
+                    'src/main/generated'
+            ]
+        }
+    }
 }
 
 dependencies {
@@ -57,28 +83,51 @@ java {
 	targetCompatibility = JavaVersion.VERSION_17
 }
 
-jar {
-	inputs.property "archivesName", project.base.archivesName
+//jar {
+//	inputs.property "archivesName", project.base.archivesName
+//
+//	from("LICENSE") {
+//		rename { "${it}_${inputs.properties.archivesName}"}
+//	}
+//}
 
-	from("LICENSE") {
-		rename { "${it}_${inputs.properties.archivesName}"}
-	}
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.archivesBaseName}"}
+    }
 }
+
+//// configure the maven publication
+//publishing {
+//	publications {
+//		create("mavenJava", MavenPublication) {
+//			artifactId = project.archives_base_name
+//			from components.java
+//		}
+//	}
+//
+//	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+//	repositories {
+//		// Add repositories to publish to here.
+//		// Notice: This block does NOT have the same function as the block in the top level.
+//		// The repositories here will be used for publishing your artifact, not for
+//		// retrieving dependencies.
+//	}
+//}
 
 // configure the maven publication
 publishing {
-	publications {
-		create("mavenJava", MavenPublication) {
-			artifactId = project.archives_base_name
-			from components.java
-		}
-	}
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
 
-	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-	repositories {
-		// Add repositories to publish to here.
-		// Notice: This block does NOT have the same function as the block in the top level.
-		// The repositories here will be used for publishing your artifact, not for
-		// retrieving dependencies.
-	}
+    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+    repositories {
+        // Add repositories to publish to here.
+        // Notice: This block does NOT have the same function as the block in the top level.
+        // The repositories here will be used for publishing your artifact, not for
+        // retrieving dependencies.
+    }
 }
