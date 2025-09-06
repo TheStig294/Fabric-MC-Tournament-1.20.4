@@ -25,7 +25,9 @@ import net.thestig294.mctournament.minigame.triviamurderparty.widget.*;
 import net.thestig294.mctournament.util.ModUtilClient;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.IntConsumer;
 
 @Environment(EnvType.CLIENT)
@@ -46,19 +48,22 @@ public class QuestionScreen extends Screen {
     private static final float ANSWER_ZOOM_TIME = 0.2f;
     private static final int ANSWER_SIZE_MULTIPLIER = 2;
     private static final float ANSWER_HOLD_TIME = 3.0f;
-    private static final float CORRECT_REVEAL_TIME = 2.0f;
+    private static final float CORRECT_REVEAL_TIME = 0.5f;
     private static final float CORRECT_POINTS_TIME = 1.0f;
     private static final float INCORRECT_REVEAL_TIME = 0.5f;
     private static final float INCORRECT_CROSSES_TIME = 0.5f;
     private static final float KILLING_ROOM_TRANSITION_MOVE_TIME = 1.5f;
-    private static final float KILLING_ROOM_TRANSITION_LIGHTS_TIME = 1.5f;
+    private static final float KILLING_ROOM_TRANSITION_LIGHTS_TIME = 2.0f;
+    private static final float KILLING_ROOM_TRANSITION_HOLD_TIME = 2.0f;
     private static final float ALL_CORRECT_LOOP_BACK_TIME = 1.0f;
+    private static final float ALL_CORRECT_LOOP_BACK_HOLD_TIME = 3.0f;
 
     private final Screen parent;
     private final Question question;
     private final int questionNumber;
     private final int answeringTimeSeconds;
     private int answeredCount;
+    private final Map<String, Boolean> correctPlayers;
 
     private float uptimeSecs;
     private State state;
@@ -92,6 +97,7 @@ public class QuestionScreen extends Screen {
         this.questionNumber = questionNumber;
         this.answeringTimeSeconds = answeringTimeSeconds;
         this.answeredCount = 0;
+        this.correctPlayers = new HashMap<>();
 
         this.uptimeSecs = 0.0f;
         this.state = startingState;
@@ -121,21 +127,24 @@ public class QuestionScreen extends Screen {
         this.titleWidgets.add(this.addDrawableChild(new QuestionText(this.width / 2, this.height * 3 / 5, "PARTY",
                 TriviaMurderParty.Fonts.QUESTION_NUMBER, 20, ModColors.LIGHT_BLUE, this.width, this.textRenderer)));
 
+        this.questionNumberWidget = this.addDrawableChild(new QuestionText(this.width / 2, this.height / 2,
+                Integer.toString(this.questionNumber), TriviaMurderParty.Fonts.QUESTION_NUMBER, 20, ModColors.YELLOW,
+                this.width / 2, this.textRenderer));
+
+        this.leftBoxWidget = this.addDrawableChild(new QuestionBox(-this.width / 2,0, this.width / 2, this.height, ModColors.BLACK));
+        this.rightBoxWidget = this.addDrawableChild(new QuestionBox(this.width,0, this.width, this.height, ModColors.BLACK));
+
         this.playerWidgets.clear();
         List<PlayerEntity> teamCaptains = Tournament.inst().clientScoreboard().getValidTeamCaptains();
         for (int i = 0; i < teamCaptains.size(); i++) {
             QuestionPlayer player = new QuestionPlayer(i * this.width / 8, 0,
                     this.width / 8, this.height / 3, teamCaptains.get(i), this.textRenderer);
-            this.playerWidgets.add(this.addDrawableChild(player));
-            player.setTickWidget(this.addDrawableChild(new QuestionImage(player.getX() + player.getWidth() / 4, player.getY() + player.getHeight(),
+            player.setTickWidget(this.addDrawableChild(new QuestionImage(player.getX() + player.getWidth() / 4, player.getY() + player.getHeight() * 2/3,
                     player.getWidth() / 2, player.getWidth() / 2, TriviaMurderParty.Textures.QUESTION_TICK)));
             player.setCrossWidget(this.addDrawableChild(new QuestionImage(player.getX() + player.getWidth() / 4, player.getY(),
                     player.getWidth() / 2, player.getWidth() / 2, TriviaMurderParty.Textures.QUESTION_CROSS)));
+            this.playerWidgets.add(this.addDrawableChild(player));
         }
-
-        this.questionNumberWidget = this.addDrawableChild(new QuestionText(this.width / 2, this.height / 2,
-                Integer.toString(this.questionNumber), TriviaMurderParty.Fonts.QUESTION_NUMBER, 20, ModColors.YELLOW,
-                this.width / 2, this.textRenderer));
 
         this.questionWidget = this.addDrawableChild(new QuestionText(this.width / 3, this.height / 2,
                 this.question.question(), TriviaMurderParty.Fonts.QUESTION,25, ModColors.WHITE, this.width * 3 / 5,
@@ -168,9 +177,6 @@ public class QuestionScreen extends Screen {
         this.roomCodeWidgets.add(this.addDrawableChild(new QuestionText( this.width - 20, this.height,
                 ModUtil.getRandomString(4, 2), TriviaMurderParty.Fonts.QUESTION_ANSWER, 10, ModColors.RED,
                 100, this.textRenderer)));
-
-        this.leftBoxWidget = this.addDrawableChild(new QuestionBox(-this.width / 2,0, this.width / 2, this.height, ModColors.BLACK));
-        this.rightBoxWidget = this.addDrawableChild(new QuestionBox(this.width,0, this.width, this.height, ModColors.BLACK));
 
         this.handleRefresh();
     }
@@ -312,45 +318,48 @@ public class QuestionScreen extends Screen {
             case ANSWER_HOLD, ANSWER_POST_QUIP -> {}
             case REVEAL_CORRECT -> {
                 this.ifFirstStateTick(() -> this.playerWidgets.forEach(widget -> {
-                    if (!widget.isPlayerCorrect()) return;
+                    if (!this.isPlayerCorrect(widget)) return;
                     widget.setAnswerState(QuestionPlayer.AnswerState.CORRECT);
+                    widget.setBottomText("$" + QuestionScreenHandler.CORRECT_ANSWER_POINTS);
                     widget.setBottomTextAlpha(0.0f);
                 }));
                 this.playerWidgets.forEach(widget -> {
-                    if (!widget.isPlayerCorrect()) return;
-                    QuestionImage tickWidget = widget.getTickWidget();
-                    if (tickWidget == null) return;
-                    this.animate(tickWidget::setX, 0, tickWidget.getOriginalX());
-                    this.animate(tickWidget::setY, 0, tickWidget.getOriginalY());
-                    this.animate(tickWidget::setWidth, this.width, tickWidget.getOriginalWidth());
-                    this.animate(tickWidget::setHeight, this.height, tickWidget.getOriginalHeight());
-                    this.animate(tickWidget::setAlpha, 0.0f, 1.0f);
+                    if (!this.isPlayerCorrect(widget)) return;
+                    this.animate(widget::setBottomTextAlpha, 0.0f, 1.0f);
+                    QuestionImage tick = widget.getTickWidget();
+                    if (tick == null) return;
+                    this.animate(tick::setX, tick.getOriginalX() - (tick.getOriginalWidth() / 2), tick.getOriginalX());
+                    this.animate(tick::setY, tick.getOriginalY() - (tick.getOriginalHeight() / 2), tick.getOriginalY());
+                    this.animate(tick::setWidth, tick.getOriginalWidth() * 2, tick.getOriginalWidth());
+                    this.animate(tick::setHeight, tick.getOriginalHeight() * 2, tick.getOriginalHeight());
+                    this.animate(tick::setAlpha, 0.0f, 1.0f);
                 });
             }
             case REVEAL_CORRECT_POINTS -> this.playerWidgets.forEach(widget -> {
-                if (!widget.isPlayerCorrect()) return;
-                this.animate(widget::setBottomTextAlpha, 0.0f, 1.0f);
-                widget.setBottomText("$" + QuestionScreenHandler.CORRECT_ANSWER_POINTS);
-                QuestionImage tickWidget = widget.getTickWidget();
-                if (tickWidget == null) return;
-                this.animate(tickWidget::setWidth, tickWidget.getOriginalWidth(), 0);
-                this.animate(tickWidget::setHeight, tickWidget.getOriginalHeight(), 0);
+                if (!this.isPlayerCorrect(widget)) return;
+                QuestionImage tick = widget.getTickWidget();
+                if (tick == null) return;
+                this.animate(tick::setAlpha, 1.0f, 0.0f);
             });
             case REVEAL_INCORRECT -> this.playerWidgets.forEach(widget -> {
-                if (!widget.isPlayerCorrect()) return;
+                if (!this.isPlayerCorrect(widget)) return;
                 this.animate(widget::setY, widget.getOriginalY(), widget.getOriginalY() + widget.getHeight());
                 this.animate(widget::setBottomTextAlpha, 1.0f, 0.0f);
             });
-            case REVEAL_INCORRECT_CROSSES -> this.playerWidgets.forEach(widget -> {
-                if (widget.isPlayerCorrect()) return;
-                QuestionImage crossWidget = widget.getCrossWidget();
-                if (crossWidget == null) return;
-                this.animate(crossWidget::setX, 0, crossWidget.getOriginalX());
-                this.animate(crossWidget::setY, 0, crossWidget.getOriginalY());
-                this.animate(crossWidget::setWidth, this.width, crossWidget.getOriginalWidth());
-                this.animate(crossWidget::setHeight, this.height, crossWidget.getOriginalHeight());
-                this.animate(crossWidget::setAlpha, 0.0f, 1.0f);
-            });
+            case REVEAL_INCORRECT_CROSSES -> {
+                this.ifFirstStateTick(() -> this.playerWidgets.forEach(widget ->
+                        widget.setAnswerState(QuestionPlayer.AnswerState.INCORRECT)));
+                this.playerWidgets.forEach(widget -> {
+                    if (this.isPlayerCorrect(widget)) return;
+                    QuestionImage cross = widget.getCrossWidget();
+                    if (cross == null) return;
+                    this.animate(cross::setX, cross.getOriginalX() - (cross.getOriginalWidth() / 2), cross.getOriginalX());
+                    this.animate(cross::setY, cross.getOriginalY() - (cross.getOriginalHeight() / 2), cross.getOriginalY());
+                    this.animate(cross::setWidth, cross.getOriginalWidth() * 2, cross.getOriginalWidth());
+                    this.animate(cross::setHeight, cross.getOriginalHeight() * 2, cross.getOriginalHeight());
+                    this.animate(cross::setAlpha, 0.0f, 1.0f);
+                });
+            }
             case INCORRECT_QUIP -> {}
             case KILLING_ROOM_TRANSITION_MOVE -> this.children().forEach(child -> {
                 if (child instanceof QuestionBox widget) {
@@ -359,36 +368,36 @@ public class QuestionScreen extends Screen {
                     this.animate(widget::setY, this.height / 2, 0);
                     this.animate(widget::setWidth, 0, this.width);
                     this.animate(widget::setHeight, 0, this.height);
-                } else if ((child instanceof QuestionWidget widget) && widget.getAlpha() <= 0.0f) {
+                } else if ((child instanceof QuestionWidget widget) && widget.getAlpha() > 0.0f) {
                     this.animate(widget::setAlpha, 1.0f, 0.0f);
-                    this.animate(widget::setX, widget.getOriginalX(), this.width / 2);
-                    this.animate(widget::setY, widget.getOriginalY(), this.height / 2);
-                    this.animate(widget::setWidth, widget.getOriginalWidth(), 0);
-                    this.animate(widget::setHeight, widget.getOriginalHeight(), 0);
                 }
             });
-            case KILLING_ROOM_TRANSITION_LIGHTS -> this.children().forEach(child -> {
-                if ((child instanceof QuestionWidget widget) && widget.getAlpha() <= 0.0f) {
-                    this.animate(widget::setAlpha, 1.0f, 0.0f);
-                    this.animate(widget::setX, widget.getOriginalX(), this.width / 2);
-                    this.animate(widget::setY, widget.getOriginalY(), this.height / 2);
-                    this.animate(widget::setWidth, widget.getOriginalWidth(), 0);
-                    this.animate(widget::setHeight, widget.getOriginalHeight(), 0);
-                }
-            });
-            case ALL_CORRECT_LOOP_BACK -> {
-                this.playerWidgets.forEach(widget -> {
-                    if (!widget.isPlayerCorrect()) return;
-                    this.animate(widget::setBottomTextAlpha, 1.0f, 0.0f);
+            case KILLING_ROOM_TRANSITION_LIGHTS -> {
+                this.ifFirstStateTick(() -> {
+                    this.resetBoxWidgets();
+                    this.leftBoxWidget.setAlpha(0.0f);
+                    this.rightBoxWidget.setAlpha(0.0f);
                 });
+                this.children().forEach(child -> {
+                    if (child instanceof QuestionBox widget) {
+                        this.animate(widget::setAlpha, 0.0f, 1.0f);
+                    } else if ((child instanceof QuestionWidget widget) && widget.getAlpha() > 0.0f) {
+                        this.animate(widget::setAlpha, 1.0f, 0.0f);
+                    }
+                });
+            }
+            case KILLING_ROOM_TRANSITION_HOLD -> {}
+            case ALL_CORRECT_LOOP_BACK -> {
                 this.animate(this.questionWidget::setX, this.questionWidget.getOriginalX(), -this.questionWidget.getWidth());
                 for (final var widget : this.answerWidgets) {
                     if (widget.isCorrect()) {
-                        this.animate(widget::setX, this.getFinalAnswerX(widget), this.width);
+                        this.animate(widget::setX, this.getFinalAnswerX(widget), this.width + (widget.getWidth() / 4));
                         break;
                     }
                 }
             }
+            case ALL_CORRECT_LOOP_BACK_HOLD -> {}
+            case CLOSING_SCREEN -> {}
         }
 
         this.firstStateTick = false;
@@ -433,7 +442,7 @@ public class QuestionScreen extends Screen {
                 this.resetMainHUD();
                 this.resetRevealedAnswer();
                 this.playerWidgets.forEach(widget -> {
-                    if (widget.isPlayerCorrect()) {
+                    if (this.isPlayerCorrect(widget)) {
                         widget.setAnswerState(QuestionPlayer.AnswerState.CORRECT);
                         widget.setBottomTextAlpha(0.0f);
                         QuestionImage tickWidget = widget.getTickWidget();
@@ -448,7 +457,7 @@ public class QuestionScreen extends Screen {
                 this.resetMainHUD();
                 this.resetRevealedAnswer();
                 this.playerWidgets.forEach(widget -> {
-                    if (widget.isPlayerCorrect()) {
+                    if (this.isPlayerCorrect(widget)) {
                         widget.setAnswerState(QuestionPlayer.AnswerState.CORRECT);
                         widget.setBottomText("$" + QuestionScreenHandler.CORRECT_ANSWER_POINTS);
                     } else {
@@ -460,30 +469,48 @@ public class QuestionScreen extends Screen {
                 this.resetMainHUD();
                 this.resetRevealedAnswer();
                 this.playerWidgets.forEach(widget -> {
-                    if (!widget.isPlayerCorrect()) return;
-                    widget.setY(widget.getOriginalY() - widget.getHeight());
+                    if (this.isPlayerCorrect(widget)) {
+                        widget.setY(widget.getOriginalY() - widget.getHeight());
+                    } else {
+                        widget.setAnswerState(QuestionPlayer.AnswerState.ANSWERED);
+                    }
                 });
             }
             case REVEAL_INCORRECT_CROSSES, INCORRECT_QUIP -> {
                 this.resetMainHUD();
                 this.resetRevealedAnswer();
                 this.playerWidgets.forEach(widget -> {
-                    if (widget.isPlayerCorrect()) {
+                    if (this.isPlayerCorrect(widget)) {
                         widget.setY(widget.getOriginalY() - widget.getHeight());
                     } else {
+                        widget.setAnswerState(QuestionPlayer.AnswerState.INCORRECT);
                         QuestionImage crossWidget = widget.getCrossWidget();
                         if (crossWidget == null) return;
                         crossWidget.setAlpha(1.0f);
                     }
                 });
             }
-            case KILLING_ROOM_TRANSITION_MOVE, KILLING_ROOM_TRANSITION_LIGHTS -> this.resetBoxWidgets();
-            case ALL_CORRECT_LOOP_BACK -> this.resetMainHUD();
+            case KILLING_ROOM_TRANSITION_MOVE, KILLING_ROOM_TRANSITION_LIGHTS, KILLING_ROOM_TRANSITION_HOLD -> this.resetBoxWidgets();
+            case ALL_CORRECT_LOOP_BACK, ALL_CORRECT_LOOP_BACK_HOLD -> {
+                this.resetMainHUD();
+                this.playerWidgets.forEach(widget -> {
+                    if (this.isPlayerCorrect(widget)) {
+                        widget.setAnswerState(QuestionPlayer.AnswerState.CORRECT);
+                        widget.setBottomText("$" + QuestionScreenHandler.CORRECT_ANSWER_POINTS);
+                    } else {
+                        widget.setAnswerState(QuestionPlayer.AnswerState.ANSWERED);
+                    }
+                });
+            }
         }
     }
 
     private void nextState() {
         if (!this.firstState) this.state = this.state.next(this);
+        if (this.state == State.CLOSING_SCREEN) {
+            this.close();
+            return;
+        }
         this.firstState = false;
         float lastEndTime = this.stateEndTime;
 
@@ -511,7 +538,11 @@ public class QuestionScreen extends Screen {
             case INCORRECT_QUIP -> this.getQuip(QuipType.INCORRECT);
             case KILLING_ROOM_TRANSITION_MOVE -> KILLING_ROOM_TRANSITION_MOVE_TIME;
             case KILLING_ROOM_TRANSITION_LIGHTS -> KILLING_ROOM_TRANSITION_LIGHTS_TIME;
+            case KILLING_ROOM_TRANSITION_HOLD -> KILLING_ROOM_TRANSITION_HOLD_TIME;
             case ALL_CORRECT_LOOP_BACK -> ALL_CORRECT_LOOP_BACK_TIME;
+            case ALL_CORRECT_LOOP_BACK_HOLD -> ALL_CORRECT_LOOP_BACK_HOLD_TIME;
+            //noinspection DataFlowIssue
+            case CLOSING_SCREEN -> 0.0f;
         };
 
         this.stateStartTime = lastEndTime;
@@ -547,16 +578,18 @@ public class QuestionScreen extends Screen {
         INCORRECT_QUIP,
         KILLING_ROOM_TRANSITION_MOVE,
         KILLING_ROOM_TRANSITION_LIGHTS,
-        ALL_CORRECT_LOOP_BACK;
+        KILLING_ROOM_TRANSITION_HOLD,
+        ALL_CORRECT_LOOP_BACK,
+        ALL_CORRECT_LOOP_BACK_HOLD,
+        CLOSING_SCREEN;
 
         public State next(QuestionScreen screen) {
             return switch (this) {
                 case ANSWER_POST_QUIP -> screen.allPlayersIncorrect() ? REVEAL_INCORRECT : REVEAL_CORRECT;
                 case REVEAL_CORRECT_POINTS -> screen.allPlayerCorrect() ? ALL_CORRECT_LOOP_BACK : REVEAL_INCORRECT;
                 case INCORRECT_QUIP -> Random.create().nextBoolean() ? KILLING_ROOM_TRANSITION_MOVE : KILLING_ROOM_TRANSITION_LIGHTS;
-                case KILLING_ROOM_TRANSITION_MOVE -> KILLING_ROOM_TRANSITION_MOVE;
-                case KILLING_ROOM_TRANSITION_LIGHTS -> KILLING_ROOM_TRANSITION_LIGHTS;
-                case ALL_CORRECT_LOOP_BACK -> QUESTION_NUMBER_IN;
+                case KILLING_ROOM_TRANSITION_MOVE -> KILLING_ROOM_TRANSITION_HOLD;
+                case KILLING_ROOM_TRANSITION_HOLD, ALL_CORRECT_LOOP_BACK_HOLD, CLOSING_SCREEN -> CLOSING_SCREEN;
                 default -> values()[this.ordinal() + 1];
             };
         }
@@ -590,7 +623,7 @@ public class QuestionScreen extends Screen {
 //                Java be wildin'
                 for (final var widget : questionScreen.playerWidgets) {
                     if (widget.getPlayer().getNameForScoreboard().equals(playerName)) {
-                        widget.setPlayerCorrect(isCorrect);
+                        questionScreen.correctPlayers.put(playerName, isCorrect);
                         break;
                     }
                 }
@@ -682,16 +715,20 @@ public class QuestionScreen extends Screen {
 
     public boolean allPlayersIncorrect() {
         for (final var widget : this.playerWidgets) {
-            if (widget.isPlayerCorrect()) return false;
+            if (this.isPlayerCorrect(widget)) return false;
         }
         return true;
     }
 
     public boolean allPlayerCorrect() {
         for (final var widget : this.playerWidgets) {
-            if (!widget.isPlayerCorrect()) return false;
+            if (!this.isPlayerCorrect(widget)) return false;
         }
         return true;
+    }
+
+    public boolean isPlayerCorrect(QuestionPlayer playerWidget) {
+        return this.correctPlayers.get(playerWidget.getPlayerName());
     }
 
     public enum QuipType {

@@ -83,8 +83,8 @@ public class TriviaMurderParty extends Minigame {
         public static final Identifier QUESTION_TIMER_BACK = registerTexture("textures/gui/question_timer/question_timer_back.png");
         public static final Identifier[] QUESTION_TIMER_HANDS = registerHand();
         public static final int QUESTION_TIMER_HAND_COUNT = 31;
-        public static final Identifier QUESTION_CROSS = registerTexture("textures/gui/question_cross");
-        public static final Identifier QUESTION_TICK = registerTexture("textures/gui/question_tick");
+        public static final Identifier QUESTION_CROSS = registerTexture("textures/gui/question_cross.png");
+        public static final Identifier QUESTION_TICK = registerTexture("textures/gui/question_tick.png");
 
         private static Identifier[] registerHand() {
             Identifier[] handList = new Identifier[QUESTION_TIMER_HAND_COUNT];

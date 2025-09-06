@@ -42,6 +42,10 @@ public class ModUtil {
         return Math.min(max, Math.max(value, min));
     }
 
+    public static float clampFloat(float value, float min, float max) {
+        return Math.min(max, Math.max(value, min));
+    }
+
     /**
      * Returns how close a float is from the start, to the end value, as a percentage
      * @param start starting value

@@ -25,10 +25,10 @@ public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
     private final int originalWidth;
     private final int originalHeight;
     private final TextRenderer textRenderer;
+    private Color textColor;
     private Text bottomText;
     private float bottomTextAlpha;
     private AnswerState answerState;
-    private boolean isPlayerCorrect;
     private boolean alwaysDrawBottomText;
     private QuestionImage tickWidget;
     private QuestionImage crossWidget;
@@ -58,11 +58,11 @@ public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
         this.originalWidth = width;
         this.originalHeight = height;
         this.textRenderer = textRenderer;
+        this.textColor = ModColors.WHITE;
         this.bottomText = Text.translatable("widget.mctournament.question_player_your_team")
                 .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER));
         this.bottomTextAlpha = 1.0f;
         this.answerState = AnswerState.UNANSWERED;
-        this.isPlayerCorrect = false;
         this.alwaysDrawBottomText = false;
     }
 
@@ -81,10 +81,8 @@ public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
                 this.getX() + (this.getWidth() / 2), this.getY() + 3, this.getTextColor());
 
         if (this.isCaptain || this.alwaysDrawBottomText) {
-            context.setShaderColor(1.0f, 1.0f, 1.0f, this.bottomTextAlpha);
             context.drawCenteredTextWithShadow(this.textRenderer, this.bottomText,
                     this.getX() + (this.getWidth() / 2), this.getY() + this.getHeight() - 5, this.getTextColor());
-            context.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
         }
 
         context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -122,26 +120,17 @@ public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
         return this.player;
     }
 
+    public String getPlayerName() {
+        return this.player.getNameForScoreboard();
+    }
+
     public int getTextColor() {
-        Color color = switch (this.answerState) {
-            case UNANSWERED -> ModColors.WHITE;
-            case ANSWERED -> ModColors.YELLOW;
-            case CORRECT -> ModColors.GREEN;
-            case INCORRECT -> ModColors.RED;
-        };
-        return color.getRGB();
+        return this.textColor.getRGB();
     }
 
     public void setAnswerState(AnswerState answerState) {
         this.answerState = answerState;
-    }
-
-    public void setPlayerCorrect(boolean isPlayerCorrect) {
-        this.isPlayerCorrect = isPlayerCorrect;
-    }
-
-    public boolean isPlayerCorrect() {
-        return this.isPlayerCorrect;
+        this.updateTextColor();
     }
 
     public void setBottomText(String textString) {
@@ -151,6 +140,16 @@ public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
 
     public void setBottomTextAlpha(float alpha) {
         this.bottomTextAlpha = alpha;
+        this.updateTextColor();
+    }
+
+    private void updateTextColor() {
+        this.textColor = switch (this.answerState) {
+            case UNANSWERED -> ModColors.withAlpha(ModColors.WHITE, this.bottomTextAlpha);
+            case ANSWERED -> ModColors.withAlpha(ModColors.YELLOW, this.bottomTextAlpha);
+            case CORRECT -> ModColors.withAlpha(ModColors.GREEN, this.bottomTextAlpha);
+            case INCORRECT -> ModColors.withAlpha(ModColors.RED, this.bottomTextAlpha);
+        };
     }
 
     public void setTickWidget(QuestionImage widget) {

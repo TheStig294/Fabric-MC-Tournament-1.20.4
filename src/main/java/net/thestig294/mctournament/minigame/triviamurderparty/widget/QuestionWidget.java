@@ -12,12 +12,4 @@ public interface QuestionWidget {
     int getOriginalWidth();
 
     int getOriginalHeight();
-
-    void setX(int x);
-
-    void setY(int y);
-
-    void setWidth(int width);
-
-    void setHeight(int height);
 }

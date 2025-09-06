@@ -12,4 +12,12 @@ public class ModColors {
     public static final Color RED = new Color(255, 0, 0);
     public static final Color LIGHT_BLUE = new Color(0, 255, 255);
     public static final Color GREEN = new Color(0, 255, 0);
+
+    public static Color withAlpha(Color color, float alpha) {
+        return new Color(
+                (float) (color.getRed() / 255),
+                (float) (color.getGreen() / 255),
+                (float) (color.getBlue() / 255),
+                ModUtil.clampFloat(alpha, 0.0f, 1.0f));
+    }
 }
