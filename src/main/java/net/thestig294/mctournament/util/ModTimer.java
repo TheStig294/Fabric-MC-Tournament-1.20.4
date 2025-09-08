@@ -61,7 +61,11 @@ public class ModTimer {
         getQueue(isClient).add(new QueuedFunction(getTime(isClient, secsDelay), function));
     }
 
-    public static void create(boolean isClient, String id, float secsDelay, int repeatCount, Runnable function) {
+    public static void create(boolean isClient, float secsDelay, String id, Runnable function) {
+        create(isClient, secsDelay, 0, id, function);
+    }
+
+    public static void create(boolean isClient, float secsDelay, int repeatCount, String id, Runnable function) {
         getQueue(isClient).add(new QueuedFunction(getTime(isClient, secsDelay), function, id, secsDelay, repeatCount));
     }
 

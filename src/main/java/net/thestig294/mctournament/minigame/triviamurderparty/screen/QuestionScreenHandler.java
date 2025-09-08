@@ -33,8 +33,8 @@ public class QuestionScreenHandler {
             if (!this.state.equals(State.PRE_ANSWERING)) return;
             this.state = State.ANSWERING;
 //            Ending answering time once time runs out, and the forgiveness buffer runs out too
-            ModTimer.create(false, "QuestionScreenAnsweringTimeUp",
-                    ANSWERING_TIME_SECONDS + ANSWERING_TIME_FORGIVENESS, 0, this::broadcastAnsweringEnd);
+            ModTimer.create(false, ANSWERING_TIME_SECONDS + ANSWERING_TIME_FORGIVENESS,
+                    "QuestionScreenAnsweringTimeUp", this::broadcastAnsweringEnd);
         });
 
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, serverReceiveInfo -> {
