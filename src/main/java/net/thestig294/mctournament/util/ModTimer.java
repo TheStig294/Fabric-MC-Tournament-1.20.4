@@ -2,6 +2,7 @@ package net.thestig294.mctournament.util;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.PriorityQueue;
@@ -31,6 +32,10 @@ public class ModTimer {
 
         if (front != null && front.time <= totalTicks) {
             front.function.run();
+            QueuedFunction repeat = front.getRepeat(totalTicks);
+            if (repeat != null) {
+                queue.add(repeat);
+            }
             queue.remove();
         }
 
@@ -41,13 +46,38 @@ public class ModTimer {
         }
     }
 
-    public static void simple(boolean isClient, float secsDelay, Runnable function) {
+    private static PriorityQueue<QueuedFunction> getQueue(boolean isClient) {
+        return isClient ? CLIENT_QUEUE : SERVER_QUEUE;
+    }
+
+    private static long getTime(boolean isClient, float secsDelay) {
         long time = isClient ? CLIENT_TICKS : SERVER_TICKS;
         float ticksPerSecond = isClient ? ModUtilClient.getTicksPerSecond() : ModUtil.getTicksPerSecond();
         time += (long) (secsDelay * ticksPerSecond);
-        PriorityQueue<QueuedFunction> queue = isClient ? CLIENT_QUEUE : SERVER_QUEUE;
-        queue.add(new QueuedFunction(time, function));
+        return time;
     }
 
-    private record QueuedFunction(long time, Runnable function){}
+    public static void simple(boolean isClient, float secsDelay, Runnable function) {
+        getQueue(isClient).add(new QueuedFunction(getTime(isClient, secsDelay), function));
+    }
+
+    public static void create(boolean isClient, String id, float secsDelay, int repeatCount, Runnable function) {
+        getQueue(isClient).add(new QueuedFunction(getTime(isClient, secsDelay), function, id, secsDelay, repeatCount));
+    }
+
+    public static void remove(boolean isClient, String id) {
+        getQueue(isClient).removeIf(queuedFunction -> queuedFunction.id.equals(id));
+    }
+
+    private record QueuedFunction(long time, Runnable function, String id, float delay, int repeats){
+        public QueuedFunction(long time, Runnable function) {
+            this(time, function, "", 0.0f, 0);
+        }
+
+        public @Nullable QueuedFunction getRepeat(long currTicks) {
+            return this.repeats > 0 ?
+                    new QueuedFunction((long) (currTicks + this.delay), this.function, this.id, this.delay, this.repeats - 1)
+                    : null;
+        }
+    }
 }

@@ -11,11 +11,11 @@ public class Questions {
     private static final List<Question> QUESTION_LIST_BY_ID = new ArrayList<>();
     private static int NEXT_QUESTION_ID = 0;
 
-    public static void register(String q, String a1, String a2, String a3, String a4, int answer, float holdTime,
+    public static void register(String q, String a0, String a1, String a2, String a3, int answer, float holdTime,
                                 String... categories) {
         if (categories.length == 0) categories = new String[]{MinigameVariants.DEFAULT};
 
-        Question question = new Question(q, a1, a2, a3, a4, answer, holdTime, NEXT_QUESTION_ID);
+        Question question = new Question(q, a0, a1, a2, a3, answer, holdTime, NEXT_QUESTION_ID);
         QUESTION_LIST_BY_ID.add(question);
 
         for (final var category : categories) {
@@ -60,30 +60,30 @@ public class Questions {
                 "In the Name of the Father",
                 "My Beautiful Laundrette",
                 "The Last of the Mohicans",
-                4, 8.0f);
+                3, 8.0f);
         register("How long does it take a freshly laid egg to hatch into a baby chicken?",
                 "10 days",
                 "3 weeks",
                 "2 months",
                 "Half a year",
-                2, 3.5f);
+                1, 3.5f);
         register("Which of these is Indian?",
                 "Rooibos tea",
                 "Zavarka tea",
                 "Pu’erh tea",
                 "Masala chai",
-                4, 1.5f);
+                3, 1.5f);
         register("Which country straddles two continents?",
                 "Turkey",
                 "Romania",
                 "Yemen",
                 "India",
-                1, 2.0f);
+                0, 2.0f);
         register("Which of these movies stars somebody in prison for a crime they did NOT commit?",
                 "The Shawshank Redemption",
                 "Cool Hand Luke",
                 "Chicago",
                 "Dead Man Walking",
-                1, 4.0f);
+                0, 4.0f);
     }
 }

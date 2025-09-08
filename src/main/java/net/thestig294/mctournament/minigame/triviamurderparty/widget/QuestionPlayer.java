@@ -133,6 +133,10 @@ public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
         this.updateTextColor();
     }
 
+    public AnswerState getAnswerState() {
+        return this.answerState;
+    }
+
     public void setBottomText(String textString) {
         this.bottomText = Text.literal(textString).styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER));
         this.alwaysDrawBottomText = true;

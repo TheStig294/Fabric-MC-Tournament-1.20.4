@@ -63,7 +63,7 @@ public class QuestionScreen extends Screen {
     private final int questionNumber;
     private final int answeringTimeSeconds;
     private int answeredCount;
-    private final Map<String, Boolean> correctPlayers;
+    private final Map<String, Integer> captainAnswers;
 
     private float uptimeSecs;
     private State state;
@@ -97,7 +97,7 @@ public class QuestionScreen extends Screen {
         this.questionNumber = questionNumber;
         this.answeringTimeSeconds = answeringTimeSeconds;
         this.answeredCount = 0;
-        this.correctPlayers = new HashMap<>();
+        this.captainAnswers = new HashMap<>();
 
         this.uptimeSecs = 0.0f;
         this.state = startingState;
@@ -152,13 +152,13 @@ public class QuestionScreen extends Screen {
 
         this.answerWidgets.clear();
         this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
-                this.height / 2 - 30, 140, 20, this.textRenderer, 1, this.question, 0)));
+                this.height / 2 - 30, 140, 20, this.textRenderer, 0, this.question)));
         this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
-                this.height / 2, 140, 20, this.textRenderer, 2, this.question, 1)));
+                this.height / 2, 140, 20, this.textRenderer, 1, this.question)));
         this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
-                this.height / 2 + 30, 140, 20, this.textRenderer, 3, this.question, 2)));
+                this.height / 2 + 30, 140, 20, this.textRenderer, 2, this.question)));
         this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
-                this.height / 2 + 60, 140, 20, this.textRenderer, 4, this.question, 3)));
+                this.height / 2 + 60, 140, 20, this.textRenderer, 3, this.question)));
 
         this.answeredCountWidgets.clear();
         this.answeredCountWidgets.add(this.addDrawableChild(new QuestionText(25, this.height - 45,
@@ -294,10 +294,14 @@ public class QuestionScreen extends Screen {
                 this.animate(this.timerWidget::setAlpha, 0.0f, 1.0f);
                 this.timerWidget.reset();
             }
-            case ANSWERING -> this.timerTicksLeft = this.timerWidget.getTicksLeft();
+            case ANSWERING -> {
+                this.ifFirstStateTick(() -> ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERING_BEGIN));
+                this.timerTicksLeft = this.timerWidget.getTicksLeft();
+            }
             case TIMER_OUT -> {
                 this.ifFirstStateTick(() -> {
                     this.lockButtons();
+                    this.resetAnsweredPlayers();
                     ModUtilClient.playSound(SoundEvents.BLOCK_BELL_USE);
                 });
                 this.animate(this.timerWidget::setY, this.timerWidget.getOriginalY(), this.height);
@@ -343,7 +347,7 @@ public class QuestionScreen extends Screen {
             });
             case REVEAL_INCORRECT -> this.playerWidgets.forEach(widget -> {
                 if (!this.isPlayerCorrect(widget)) return;
-                this.animate(widget::setY, widget.getOriginalY(), widget.getOriginalY() + widget.getHeight());
+                this.animate(widget::setY, widget.getOriginalY(), -widget.getHeight());
                 this.animate(widget::setBottomTextAlpha, 1.0f, 0.0f);
             });
             case REVEAL_INCORRECT_CROSSES -> {
@@ -433,10 +437,12 @@ public class QuestionScreen extends Screen {
                 this.resetMainHUD();
                 this.setListAlpha(this.answerWidgets, 1.0f);
                 this.lockButtons();
+                this.resetAnsweredPlayers();
             }
             case ANSWER_IN, ANSWER_HOLD, ANSWER_POST_QUIP -> {
                 this.resetMainHUD();
                 this.resetRevealedAnswer();
+                this.resetAnsweredPlayers();
             }
             case REVEAL_CORRECT -> {
                 this.resetMainHUD();
@@ -452,6 +458,7 @@ public class QuestionScreen extends Screen {
                         widget.setAnswerState(QuestionPlayer.AnswerState.ANSWERED);
                     }
                 });
+                this.resetAnsweredPlayers();
             }
             case REVEAL_CORRECT_POINTS -> {
                 this.resetMainHUD();
@@ -464,6 +471,7 @@ public class QuestionScreen extends Screen {
                         widget.setAnswerState(QuestionPlayer.AnswerState.ANSWERED);
                     }
                 });
+                this.resetAnsweredPlayers();
             }
             case REVEAL_INCORRECT -> {
                 this.resetMainHUD();
@@ -610,7 +618,6 @@ public class QuestionScreen extends Screen {
         ModNetworking.clientReceive(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, clientReceiveInfo -> {
             PacketByteBuf buffer = clientReceiveInfo.buffer();
             String playerName = buffer.readString();
-            boolean isCorrect = buffer.readBoolean();
             boolean isCaptain = buffer.readBoolean();
             int answerPosition = buffer.readInt();
 
@@ -623,7 +630,7 @@ public class QuestionScreen extends Screen {
 //                Java be wildin'
                 for (final var widget : questionScreen.playerWidgets) {
                     if (widget.getPlayer().getNameForScoreboard().equals(playerName)) {
-                        questionScreen.correctPlayers.put(playerName, isCorrect);
+                        questionScreen.captainAnswers.put(playerName, answerPosition);
                         break;
                     }
                 }
@@ -692,6 +699,11 @@ public class QuestionScreen extends Screen {
     }
 
     private void resetRevealedAnswer() {
+        PlayerEntity player = MCTournament.CLIENT.player;
+        if (player == null) return;
+        PlayerEntity captain = Tournament.inst().clientScoreboard().getTeamCaptain(player);
+        int selectedAnswer = captain == null ? -1 : this.captainAnswers.getOrDefault(captain.getNameForScoreboard(), -1);
+
         for (final var widget : this.answerWidgets) {
             if (widget.isCorrect()) {
                 widget.setAlpha(1.0f);
@@ -699,10 +711,19 @@ public class QuestionScreen extends Screen {
                 widget.setHeight(widget.getOriginalHeight() * ANSWER_SIZE_MULTIPLIER);
                 widget.setX(this.getFinalAnswerX(widget));
                 widget.setY(this.getFinalAnswerY(widget));
+                if (widget.getAnswerPosition() == selectedAnswer) widget.setSelectedAnswer();
                 break;
             }
         }
         this.lockButtons();
+    }
+
+    private void resetAnsweredPlayers() {
+        this.playerWidgets.forEach(widget -> {
+            if (widget.getAnswerState().equals(QuestionPlayer.AnswerState.UNANSWERED)) {
+                widget.setAnswerState(QuestionPlayer.AnswerState.ANSWERED);
+            }
+        });
     }
 
     private int getFinalAnswerX(QuestionButton widget) {
@@ -713,22 +734,22 @@ public class QuestionScreen extends Screen {
         return this.height - widget.getHeight() - 10;
     }
 
-    public boolean allPlayersIncorrect() {
+    private boolean allPlayersIncorrect() {
         for (final var widget : this.playerWidgets) {
             if (this.isPlayerCorrect(widget)) return false;
         }
         return true;
     }
 
-    public boolean allPlayerCorrect() {
+    private boolean allPlayerCorrect() {
         for (final var widget : this.playerWidgets) {
             if (!this.isPlayerCorrect(widget)) return false;
         }
         return true;
     }
 
-    public boolean isPlayerCorrect(QuestionPlayer playerWidget) {
-        return this.correctPlayers.get(playerWidget.getPlayerName());
+    private boolean isPlayerCorrect(QuestionPlayer playerWidget) {
+        return this.question.isCorrect(this.captainAnswers.getOrDefault(playerWidget.getPlayerName(), -1));
     }
 
     public enum QuipType {

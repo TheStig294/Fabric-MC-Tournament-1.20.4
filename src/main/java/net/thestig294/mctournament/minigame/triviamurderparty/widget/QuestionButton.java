@@ -28,33 +28,34 @@ public class QuestionButton extends PressableWidget implements QuestionWidget {
     private static final int PLAYER_HEAD_SIZE = 12;
 
     private final QuestionScreen screen;
-    private final int answerNumber;
+    private final int answerPosition;
     private final TextRenderer textRenderer;
     private final boolean isCorrect;
+    private final Text answerNumberText;
     private final int originalX;
     private final int originalY;
     private final int originalWidth;
     private final int originalHeight;
-    private final int answerPosition;
     private final Map<PlayerEntity, SkinTextures> playerHeads;
     private boolean locked;
     private boolean pressed;
     private boolean selectedAnswer;
 
     public QuestionButton(QuestionScreen screen, int x, int y, int width, int height, TextRenderer textRenderer,
-                          int answerNumber, Question question, int answerPosition) {
-        super(x, y, width, height, Text.literal(question.getAnswer(answerNumber))
+                          int answerPosition, Question question) {
+        super(x, y, width, height, Text.literal(question.getAnswer(answerPosition))
                 .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER)));
 
         this.screen = screen;
         this.textRenderer = textRenderer;
-        this.answerNumber = answerNumber;
-        this.isCorrect = question.isCorrect(answerNumber);
+        this.answerPosition = answerPosition;
+        this.isCorrect = question.isCorrect(answerPosition);
+        this.answerNumberText = Text.literal(Integer.toString(answerPosition + 1))
+                .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_NUMBER));
         this.originalX = x;
         this.originalY = y;
         this.originalWidth = width;
         this.originalHeight = height;
-        this.answerPosition = answerPosition;
         this.playerHeads = new HashMap<>();
         this.locked = false;
         this.pressed = false;
@@ -71,9 +72,9 @@ public class QuestionButton extends PressableWidget implements QuestionWidget {
 
         ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, PacketByteBufs.create()
                 .writeString(player.getNameForScoreboard())
-                .writeBoolean(this.isCorrect)
                 .writeBoolean(isCaptain)
                 .writeInt(this.answerPosition)
+                .writeBoolean(this.isCorrect)
         );
 
         if (isCaptain) {
@@ -101,9 +102,7 @@ public class QuestionButton extends PressableWidget implements QuestionWidget {
                 0, this.getColor());
         this.drawMessage(context, this.textRenderer, this.getTextColor());
 
-        ClickableWidget.drawScrollableText(context, this.textRenderer, Text.literal(Integer.toString(this.answerNumber))
-                        .styled(style -> style
-                        .withFont(TriviaMurderParty.Fonts.QUESTION_NUMBER)),
+        ClickableWidget.drawScrollableText(context, this.textRenderer, this.answerNumberText,
                 this.getX() - this.getWidth(), this.getY() - this.getHeight(),
                 this.getX() + this.getWidth(), this.getY() + this.getHeight(), ModColors.YELLOW.getRGB());
 
@@ -169,6 +168,10 @@ public class QuestionButton extends PressableWidget implements QuestionWidget {
 
     public boolean isCorrect() {
         return this.isCorrect;
+    }
+
+    public int getAnswerPosition() {
+        return this.answerPosition;
     }
 
     public int getOriginalWidth() {

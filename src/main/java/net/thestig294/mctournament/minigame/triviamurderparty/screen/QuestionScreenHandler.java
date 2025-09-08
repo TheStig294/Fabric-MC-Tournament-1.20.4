@@ -15,30 +15,40 @@ import java.util.Map;
 public class QuestionScreenHandler {
     public static final int CORRECT_ANSWER_POINTS = 1000;
     public static final int ANSWERING_TIME_SECONDS = 20;
-//    The time in seconds the game secretly lets you answer even though the question timer is visibly up
-    public static final int ANSWERING_TIME_FORGIVENESS = 1;
+//    The time in seconds the game secretly lets you answer even though the question timer is visibly up, for lag compensation
+    public static final int ANSWERING_TIME_FORGIVENESS = 2;
 
     private final TriviaMurderParty minigame;
     private final MinigameScoreboard scoreboard;
     private final Map<String, Boolean> answeredCaptains;
+    private State state;
 
     public QuestionScreenHandler(TriviaMurderParty minigame, MinigameScoreboard scoreboard) {
         this.minigame = minigame;
         this.scoreboard = scoreboard;
         this.answeredCaptains = new HashMap<>();
+        this.state = State.PRE_ANSWERING;
+
+        ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERING_BEGIN, serverReceiveInfo -> {
+            if (!this.state.equals(State.PRE_ANSWERING)) return;
+            this.state = State.ANSWERING;
+//            Ending answering time once time runs out, and the forgiveness buffer runs out too
+            ModTimer.create(false, "QuestionScreenAnsweringTimeUp",
+                    ANSWERING_TIME_SECONDS + ANSWERING_TIME_FORGIVENESS, 0, this::broadcastAnsweringEnd);
+        });
 
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, serverReceiveInfo -> {
             PacketByteBuf buffer = serverReceiveInfo.buf();
             String playerName = buffer.readString();
-            boolean isCorrect = buffer.readBoolean();
             boolean isCaptain = buffer.readBoolean();
             int answerPosition = buffer.readInt();
+            boolean isCorrect = buffer.readBoolean();
 
             ModNetworking.broadcast(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, PacketByteBufs.create()
                     .writeString(playerName)
-                    .writeBoolean(isCorrect)
                     .writeBoolean(isCaptain)
                     .writeInt(answerPosition)
+                    .writeBoolean(isCorrect)
             );
 
             if (isCaptain && !this.answeredCaptains.containsKey(playerName)) {
@@ -63,18 +73,25 @@ public class QuestionScreenHandler {
 
     public void broadcastNextQuestionScreen() {
         this.answeredCaptains.clear();
+        ModTimer.remove(false, "QuestionScreenAnsweringTimeUp");
+        this.state = State.PRE_ANSWERING;
 
         ModNetworking.broadcast(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN, PacketByteBufs.create()
                 .writeInt(Questions.getNext().id())
                 .writeInt(Questions.getQuestionNumber())
                 .writeInt(ANSWERING_TIME_SECONDS)
         );
-
-//        Ending answering time once time runs out, and the forgiveness buffer runs out too
-        ModTimer.simple(false, ANSWERING_TIME_SECONDS + ANSWERING_TIME_FORGIVENESS, this::broadcastAnsweringEnd);
     }
 
     private void broadcastAnsweringEnd() {
+        if (!this.state.equals(State.ANSWERING)) return;
+        this.state = State.POST_ANSWERING;
         ModNetworking.broadcast(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERING_END);
+    }
+
+    enum State {
+        PRE_ANSWERING,
+        ANSWERING,
+        POST_ANSWERING
     }
 }
