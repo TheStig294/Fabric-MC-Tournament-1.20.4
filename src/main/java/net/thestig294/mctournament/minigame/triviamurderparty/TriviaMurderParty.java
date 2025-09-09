@@ -72,6 +72,7 @@ public class TriviaMurderParty extends Minigame {
         public static final Identifier QUESTION_ANSWERED = registerNetworkID("question_answered");
         public static final Identifier QUESTION_ANSWERING_END = registerNetworkID("question_answering_end");
         public static final Identifier QUESTION_ANSWERING_BEGIN = registerNetworkID("question_answering_begin");
+        public static final Identifier QUESTION_ALL_CORRECT_LOOP_BACK = registerNetworkID("question_all_correct_loop_back");
     }
 
     public static class Fonts {

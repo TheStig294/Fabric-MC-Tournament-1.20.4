@@ -23,7 +23,7 @@ import java.util.*;
 import java.util.function.Consumer;
 
 public class TournamentScoreboard {
-    public static final int MAX_TEAMS = 2;
+    public static final int MAX_TEAMS = 8;
     public static final String TEAM_NAME_PREFIX = MCTournament.MOD_ID + '_';
     public static final String OBJECTIVE_NAME = MCTournament.MOD_ID + ":tournamentScore";
 
@@ -193,10 +193,6 @@ public class TournamentScoreboard {
         }
     }
 
-    public boolean isClient() {
-        return this.isClient;
-    }
-
     public @Nullable Scoreboard getScoreboard() {
         return this.scoreboard;
     }
@@ -250,14 +246,16 @@ public class TournamentScoreboard {
         if (captain == null) {
             this.teamCaptainNames.put(teamNumber, null);
         } else {
-//        Whenever a new team captain is chosen, transfer the old captain's main minigame score over to the new captain
-            String oldTeamCaptainName = this.teamCaptainNames.getOrDefault(teamNumber, null);
-            if (oldTeamCaptainName != null) this.transferTeamCaptainScore(oldTeamCaptainName, captain.getNameForScoreboard());
+//            Whenever a new team captain is chosen, transfer the old captain's main minigame score over to the new captain
+            if (!this.isClient) {
+                String oldTeamCaptainName = this.teamCaptainNames.getOrDefault(teamNumber, null);
+                if (oldTeamCaptainName != null) this.transferTeamCaptainScore(oldTeamCaptainName, captain.getNameForScoreboard());
+            }
 
             this.teamCaptainNames.put(teamNumber, captain.getNameForScoreboard());
         }
 
-        if (!this.isClient()) {
+        if (!this.isClient) {
             PacketByteBuf buffer = PacketByteBufs.create();
             int noOfCaptainUpdates = 1;
             buffer.writeInt(noOfCaptainUpdates);

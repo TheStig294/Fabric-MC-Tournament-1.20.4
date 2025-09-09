@@ -15,7 +15,7 @@ import java.util.Map;
 public class QuestionScreenHandler {
     public static final int CORRECT_ANSWER_POINTS = 1000;
     public static final int ANSWERING_TIME_SECONDS = 20;
-//    The time in seconds the game secretly lets you answer even though the question timer is visibly up, for lag compensation
+//    The time in seconds the game secretly lets you answer even though the time is up on the server, for lag compensation
     public static final int ANSWERING_TIME_FORGIVENESS = 2;
 
     private final TriviaMurderParty minigame;
@@ -64,14 +64,22 @@ public class QuestionScreenHandler {
                 }
             }
         });
+
+        ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_ALL_CORRECT_LOOP_BACK, serverReceiveInfo -> {
+            if (this.state != State.POST_ANSWERING) return;
+            for (final var captain : Tournament.inst().scoreboard().getValidTeamCaptains()) {
+                if (!this.answeredCaptains.getOrDefault(captain.getNameForScoreboard(), false)) return;
+            }
+            this.broadcastNextQuestionScreen(QuestionScreen.State.QUESTION_NUMBER_IN);
+        });
     }
 
     public void begin() {
         Questions.shuffleCategory(this.minigame.getVariant());
-        this.broadcastNextQuestionScreen();
+        this.broadcastNextQuestionScreen(QuestionScreen.State.TITLE_IN);
     }
 
-    public void broadcastNextQuestionScreen() {
+    public void broadcastNextQuestionScreen(QuestionScreen.State state) {
         this.answeredCaptains.clear();
         ModTimer.remove(false, "QuestionScreenAnsweringTimeUp");
         this.state = State.PRE_ANSWERING;
@@ -80,6 +88,7 @@ public class QuestionScreenHandler {
                 .writeInt(Questions.getNext().id())
                 .writeInt(Questions.getQuestionNumber())
                 .writeInt(ANSWERING_TIME_SECONDS)
+                .writeEnumConstant(state)
         );
     }
 

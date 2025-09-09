@@ -86,10 +86,6 @@ public class QuestionScreen extends Screen {
     private QuestionTimer timerWidget;
     private final List<QuestionText> roomCodeWidgets;
 
-    public QuestionScreen(Question question, int questionNumber, int answeringTimeSeconds) {
-        this(question, questionNumber, answeringTimeSeconds, State.SCREEN_IN);
-    }
-
     public QuestionScreen(Question question, int questionNumber, int answeringTimeSeconds, State startingState) {
         super(Text.empty());
         this.parent = MCTournament.CLIENT.currentScreen;
@@ -249,10 +245,10 @@ public class QuestionScreen extends Screen {
             }
             case WELCOME_IN -> {
                 this.ifFirstStateTick(() -> this.questionNumberWidget.setText("screen.mctournament.question_welcome"));
-                this.animate(this.questionWidget::setAlpha, 0.0f, 1.0f);
+                this.animate(this.questionNumberWidget::setAlpha, 0.0f, 1.0f);
             }
             case WELCOME_QUIP -> {}
-            case WELCOME_OUT -> this.animate(this.questionWidget::setAlpha, 1.0f, 0.0f);
+            case WELCOME_OUT -> this.animate(this.questionNumberWidget::setAlpha, 1.0f, 0.0f);
             case SCREEN_IN -> {
                 this.ifFirstStateTick(this::resetBoxWidgets);
                 this.animate(this.leftBoxWidget::setX, 0, this.leftBoxWidget.getOriginalX());
@@ -549,8 +545,7 @@ public class QuestionScreen extends Screen {
             case KILLING_ROOM_TRANSITION_HOLD -> KILLING_ROOM_TRANSITION_HOLD_TIME;
             case ALL_CORRECT_LOOP_BACK -> ALL_CORRECT_LOOP_BACK_TIME;
             case ALL_CORRECT_LOOP_BACK_HOLD -> ALL_CORRECT_LOOP_BACK_HOLD_TIME;
-            //noinspection DataFlowIssue
-            case CLOSING_SCREEN -> 0.0f;
+            default -> throw new IllegalStateException("Unexpected value: " + this.state);
         };
 
         this.stateStartTime = lastEndTime;
@@ -594,7 +589,7 @@ public class QuestionScreen extends Screen {
         public State next(QuestionScreen screen) {
             return switch (this) {
                 case ANSWER_POST_QUIP -> screen.allPlayersIncorrect() ? REVEAL_INCORRECT : REVEAL_CORRECT;
-                case REVEAL_CORRECT_POINTS -> screen.allPlayerCorrect() ? ALL_CORRECT_LOOP_BACK : REVEAL_INCORRECT;
+                case REVEAL_CORRECT_POINTS -> screen.allPlayersCorrect() ? ALL_CORRECT_LOOP_BACK : REVEAL_INCORRECT;
                 case INCORRECT_QUIP -> Random.create().nextBoolean() ? KILLING_ROOM_TRANSITION_MOVE : KILLING_ROOM_TRANSITION_LIGHTS;
                 case KILLING_ROOM_TRANSITION_MOVE -> KILLING_ROOM_TRANSITION_HOLD;
                 case KILLING_ROOM_TRANSITION_HOLD, ALL_CORRECT_LOOP_BACK_HOLD, CLOSING_SCREEN -> CLOSING_SCREEN;
@@ -609,10 +604,11 @@ public class QuestionScreen extends Screen {
             int id = buffer.readInt();
             int questionNumber = buffer.readInt();
             int answeringSeconds = buffer.readInt();
+            State state = buffer.readEnumConstant(State.class);
 
             if (MCTournament.CLIENT.currentScreen instanceof QuestionScreen questionScreen) questionScreen.close();
             Question question = Questions.getQuestionByID(id);
-            MCTournament.CLIENT.setScreen(new QuestionScreen(question, questionNumber, answeringSeconds));
+            MCTournament.CLIENT.setScreen(new QuestionScreen(question, questionNumber, answeringSeconds, state));
         });
 
         ModNetworking.clientReceive(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, clientReceiveInfo -> {
@@ -668,6 +664,9 @@ public class QuestionScreen extends Screen {
 
     @Override
     public void close() {
+        if (this.state == State.CLOSING_SCREEN && this.allPlayersCorrect()) {
+            ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_ALL_CORRECT_LOOP_BACK);
+        }
         MCTournament.CLIENT.setScreen(this.parent);
     }
 
@@ -741,7 +740,7 @@ public class QuestionScreen extends Screen {
         return true;
     }
 
-    private boolean allPlayerCorrect() {
+    private boolean allPlayersCorrect() {
         for (final var widget : this.playerWidgets) {
             if (!this.isPlayerCorrect(widget)) return false;
         }

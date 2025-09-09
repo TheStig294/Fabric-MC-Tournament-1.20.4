@@ -10,6 +10,7 @@ public class Questions {
     private static List<Question> QUESTION_LIST = new ArrayList<>();
     private static final List<Question> QUESTION_LIST_BY_ID = new ArrayList<>();
     private static int NEXT_QUESTION_ID = 0;
+    private static int QUESTION_COUNT = 0;
 
     public static void register(String q, String a0, String a1, String a2, String a3, int answer, float holdTime,
                                 String... categories) {
@@ -32,6 +33,7 @@ public class Questions {
         if (!REGISTERED.containsKey(category)) return;
 
         QUESTION_INDEX = 0;
+        QUESTION_COUNT = 0;
         QUESTION_LIST = REGISTERED.get(category);
 
         Collections.shuffle(QUESTION_LIST);
@@ -42,11 +44,12 @@ public class Questions {
 
         Question question = QUESTION_LIST.get(QUESTION_INDEX);
         QUESTION_INDEX++;
+        QUESTION_COUNT++;
         return question;
     }
 
     public static int getQuestionNumber() {
-        return QUESTION_INDEX;
+        return QUESTION_COUNT;
     }
 
     public static Question getQuestionByID(int id) {
