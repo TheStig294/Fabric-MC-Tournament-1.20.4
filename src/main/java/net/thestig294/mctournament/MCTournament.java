@@ -20,8 +20,8 @@ import org.slf4j.LoggerFactory;
 public class MCTournament implements ModInitializer {
 	public static final String MOD_ID = "mctournament";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-	public static MinecraftServer SERVER;
-	public static MinecraftClient CLIENT;
+	private static MinecraftServer SERVER;
+	private static MinecraftClient CLIENT;
 
 	@Override
 	public void onInitialize() {
@@ -44,4 +44,18 @@ public class MCTournament implements ModInitializer {
 
         ModTimer.init(false);
 	}
+
+    public static MinecraftServer server() {
+        if (SERVER == null) LOGGER.error("Server instance null, very likely trying to access the server instance on the client!");
+        return SERVER;
+    }
+
+    public static MinecraftClient client() {
+        if (CLIENT == null) LOGGER.error("Client instance null, very likely trying to access the client instance on the server!");
+        return CLIENT;
+    }
+
+    public static void setClient(MinecraftClient client) {
+        CLIENT = client;
+    }
 }

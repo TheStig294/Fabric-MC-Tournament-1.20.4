@@ -73,13 +73,13 @@ public class ModUtil {
     }
 
     public static @Nullable ServerPlayerEntity getPlayer(String playerName) {
-        if (MCTournament.SERVER == null || MCTournament.SERVER.getPlayerManager() == null) return null;
-        return MCTournament.SERVER.getPlayerManager().getPlayer(playerName);
+        if (MCTournament.server() == null || MCTournament.server().getPlayerManager() == null) return null;
+        return MCTournament.server().getPlayerManager().getPlayer(playerName);
     }
 
     public static List<ServerPlayerEntity> getPlayers() {
-        if (MCTournament.SERVER == null || MCTournament.SERVER.getPlayerManager() == null) return Collections.emptyList();
-        return MCTournament.SERVER.getPlayerManager().getPlayerList();
+        if (MCTournament.server() == null || MCTournament.server().getPlayerManager() == null) return Collections.emptyList();
+        return MCTournament.server().getPlayerManager().getPlayerList();
     }
 
     public static void forAllPlayers(Consumer<ServerPlayerEntity> function) {
@@ -87,6 +87,6 @@ public class ModUtil {
     }
 
     public static float getTicksPerSecond() {
-        return MCTournament.SERVER.getTickManager().getTickRate();
+        return MCTournament.server().getTickManager().getTickRate();
     }
 }

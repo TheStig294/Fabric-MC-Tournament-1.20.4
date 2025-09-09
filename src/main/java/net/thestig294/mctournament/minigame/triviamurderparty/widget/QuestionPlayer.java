@@ -37,7 +37,7 @@ public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
         super(x, y, width, height, Text.literal(player.getNameForScoreboard())
                 .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER)));
 
-        PlayerEntity clientPlayer = MCTournament.CLIENT.player;
+        PlayerEntity clientPlayer = MCTournament.client().player;
         if (clientPlayer == null) {
             this.isCaptain = false;
         } else {

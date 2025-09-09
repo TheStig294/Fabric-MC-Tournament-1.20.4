@@ -32,7 +32,7 @@ public class TournamentEnd extends Minigame {
 
     @Override
     public void serverBegin() {
-        MCTournament.SERVER.getPlayerManager().broadcast(Text.translatable("tournament.mctournament.end_message"), true);
+        MCTournament.server().getPlayerManager().broadcast(Text.translatable("tournament.mctournament.end_message"), true);
     }
 
     @Override

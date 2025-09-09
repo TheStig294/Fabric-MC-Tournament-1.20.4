@@ -41,7 +41,7 @@ public class ModNetworking {
     }
 
     public static void broadcast(Identifier channelName, PacketByteBuf buffer) {
-        for (final var player : PlayerLookup.all(MCTournament.SERVER)) {
+        for (final var player : PlayerLookup.all(MCTournament.server())) {
             ServerPlayNetworking.send(player, channelName, buffer);
         }
     }

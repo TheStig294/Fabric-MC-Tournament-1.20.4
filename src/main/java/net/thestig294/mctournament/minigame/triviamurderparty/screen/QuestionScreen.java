@@ -88,7 +88,7 @@ public class QuestionScreen extends Screen {
 
     public QuestionScreen(Question question, int questionNumber, int answeringTimeSeconds, State startingState) {
         super(Text.empty());
-        this.parent = MCTournament.CLIENT.currentScreen;
+        this.parent = MCTournament.client().currentScreen;
         this.question = question;
         this.questionNumber = questionNumber;
         this.answeringTimeSeconds = answeringTimeSeconds;
@@ -606,9 +606,9 @@ public class QuestionScreen extends Screen {
             int answeringSeconds = buffer.readInt();
             State state = buffer.readEnumConstant(State.class);
 
-            if (MCTournament.CLIENT.currentScreen instanceof QuestionScreen questionScreen) questionScreen.close();
+            if (MCTournament.client().currentScreen instanceof QuestionScreen questionScreen) questionScreen.close();
             Question question = Questions.getQuestionByID(id);
-            MCTournament.CLIENT.setScreen(new QuestionScreen(question, questionNumber, answeringSeconds, state));
+            MCTournament.client().setScreen(new QuestionScreen(question, questionNumber, answeringSeconds, state));
         });
 
         ModNetworking.clientReceive(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, clientReceiveInfo -> {
@@ -617,11 +617,11 @@ public class QuestionScreen extends Screen {
             boolean isCaptain = buffer.readBoolean();
             int answerPosition = buffer.readInt();
 
-            ClientPlayerEntity clientPlayer = MCTournament.CLIENT.player;
+            ClientPlayerEntity clientPlayer = MCTournament.client().player;
             PlayerEntity answeredPlayer = ModUtilClient.getPlayer(playerName);
             if (clientPlayer == null) return;
 
-            if (MCTournament.CLIENT.currentScreen instanceof QuestionScreen questionScreen) {
+            if (MCTournament.client().currentScreen instanceof QuestionScreen questionScreen) {
 //                See this: https://stackoverflow.com/questions/27482579/how-is-this-private-variable-accessible
 //                Java be wildin'
                 for (final var widget : questionScreen.playerWidgets) {
@@ -656,7 +656,7 @@ public class QuestionScreen extends Screen {
         });
 
         ModNetworking.clientReceive(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERING_END, clientReceiveInfo -> {
-            if (MCTournament.CLIENT.currentScreen instanceof QuestionScreen questionScreen && questionScreen.state == State.ANSWERING) {
+            if (MCTournament.client().currentScreen instanceof QuestionScreen questionScreen && questionScreen.state == State.ANSWERING) {
                 questionScreen.forceStateEnd();
             }
         });
@@ -667,7 +667,7 @@ public class QuestionScreen extends Screen {
         if (this.state == State.CLOSING_SCREEN && this.allPlayersCorrect()) {
             ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_ALL_CORRECT_LOOP_BACK);
         }
-        MCTournament.CLIENT.setScreen(this.parent);
+        MCTournament.client().setScreen(this.parent);
     }
 
     @SuppressWarnings("unused")
@@ -698,7 +698,7 @@ public class QuestionScreen extends Screen {
     }
 
     private void resetRevealedAnswer() {
-        PlayerEntity player = MCTournament.CLIENT.player;
+        PlayerEntity player = MCTournament.client().player;
         if (player == null) return;
         PlayerEntity captain = Tournament.inst().clientScoreboard().getTeamCaptain(player);
         int selectedAnswer = captain == null ? -1 : this.captainAnswers.getOrDefault(captain.getNameForScoreboard(), -1);

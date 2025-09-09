@@ -36,7 +36,7 @@ public class RemoteItem extends Item {
 
     public ActionResult onAttackBlock(World world) {
         if (!world.isClient()) {
-            MCTournament.SERVER.getPlayerManager().broadcast(Text.literal("Round ended!"), true);
+            MCTournament.server().getPlayerManager().broadcast(Text.literal("Round ended!"), true);
             Tournament.inst().endCurrentMinigame(false);
         }
 

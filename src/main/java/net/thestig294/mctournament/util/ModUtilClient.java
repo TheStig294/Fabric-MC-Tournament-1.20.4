@@ -16,7 +16,6 @@ import java.util.List;
 @Environment(EnvType.CLIENT)
 public class ModUtilClient {
     public static @Nullable PlayerEntity getPlayer(String playerName) {
-        if (MCTournament.CLIENT == null || MCTournament.CLIENT.world == null) return null;
         for (final var player : getPlayers()) {
             if (player.getNameForScoreboard().equals(playerName)) return player;
         }
@@ -24,8 +23,9 @@ public class ModUtilClient {
     }
 
     public static List<AbstractClientPlayerEntity> getPlayers() {
-        if (MCTournament.CLIENT == null || MCTournament.CLIENT.world == null) return Collections.emptyList();
-        return MCTournament.CLIENT.world.getPlayers();
+        ClientWorld world = MCTournament.client().world;
+        if (world == null) return Collections.emptyList();
+        return world.getPlayers();
     }
 
     public static void playSound(SoundEvent sound) {
@@ -37,11 +37,11 @@ public class ModUtilClient {
     }
 
     public static void playSound(SoundEvent sound, float pitch, float volume) {
-        MCTournament.CLIENT.getSoundManager().play(PositionedSoundInstance.master(sound, pitch, volume));
+        MCTournament.client().getSoundManager().play(PositionedSoundInstance.master(sound, pitch, volume));
     }
 
     public static float getTicksPerSecond() {
-        ClientWorld world = MCTournament.CLIENT.world;
+        ClientWorld world = MCTournament.client().world;
         if (world == null) return 20.0f;
         return world.getTickManager().getTickRate();
     }

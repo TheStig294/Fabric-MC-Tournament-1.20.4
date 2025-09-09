@@ -64,7 +64,7 @@ public class QuestionButton extends PressableWidget implements QuestionWidget {
 
     @Override
     public void onRelease(double mouseX, double mouseY) {
-        ClientPlayerEntity player = MCTournament.CLIENT.player;
+        ClientPlayerEntity player = MCTournament.client().player;
         if (player == null || this.locked) return;
         this.pressed = false;
 
@@ -151,7 +151,7 @@ public class QuestionButton extends PressableWidget implements QuestionWidget {
     }
 
     public void setPlayerHead(PlayerEntity player) {
-        ClientPlayNetworkHandler networkHandler = MCTournament.CLIENT.getNetworkHandler();
+        ClientPlayNetworkHandler networkHandler = MCTournament.client().getNetworkHandler();
         if (networkHandler == null) return;
         PlayerListEntry playerListEntry = networkHandler.getPlayerListEntry(player.getUuid());
         if (playerListEntry == null) return;

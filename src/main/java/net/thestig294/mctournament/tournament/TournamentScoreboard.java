@@ -48,7 +48,7 @@ public class TournamentScoreboard {
      */
     @Environment(EnvType.CLIENT)
     public void clientInit() {
-        World world = MCTournament.CLIENT.world;
+        World world = MCTournament.client().world;
         this.scoreboard = world != null ? world.getScoreboard() : null;
 
         ModNetworking.clientReceive(ModNetworking.SCOREBOARD_UPDATE_TEAMS, clientReceiveInfo -> {
@@ -83,7 +83,7 @@ public class TournamentScoreboard {
      * Called at the beginning of every tournament
      */
     public void serverInit() {
-        this.scoreboard = MCTournament.SERVER.getScoreboard();
+        this.scoreboard = MCTournament.server().getScoreboard();
 
         this.objective = this.scoreboard.getNullableObjective(OBJECTIVE_NAME);
         if (this.objective != null) this.scoreboard.removeObjective(this.objective);

@@ -10,7 +10,7 @@ public class MCTournamentClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         MCTournament.LOGGER.info("=====Hello Client World!=====");
-        MCTournament.CLIENT = MinecraftClient.getInstance();
+        MCTournament.setClient(MinecraftClient.getInstance());
 
         Minigames.registerMinigames(true);
         Tournament.inst().clientInit();
