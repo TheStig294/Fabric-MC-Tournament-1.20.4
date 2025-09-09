@@ -343,7 +343,7 @@ public class QuestionScreen extends Screen {
             });
             case REVEAL_INCORRECT -> this.playerWidgets.forEach(widget -> {
                 if (!this.isPlayerCorrect(widget)) return;
-                this.animate(widget::setY, widget.getOriginalY(), -widget.getHeight());
+                this.animate(widget::setY, widget.getOriginalY(), -widget.getHeight() * 2);
                 this.animate(widget::setBottomTextAlpha, 1.0f, 0.0f);
             });
             case REVEAL_INCORRECT_CROSSES -> {
@@ -474,7 +474,7 @@ public class QuestionScreen extends Screen {
                 this.resetRevealedAnswer();
                 this.playerWidgets.forEach(widget -> {
                     if (this.isPlayerCorrect(widget)) {
-                        widget.setY(widget.getOriginalY() - widget.getHeight());
+                        widget.setY(widget.getOriginalY() - widget.getHeight() * 2);
                     } else {
                         widget.setAnswerState(QuestionPlayer.AnswerState.ANSWERED);
                     }
