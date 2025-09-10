@@ -24,6 +24,7 @@ public class ModItemGroups {
                 .entries((displayContext, entries) -> {
                     entries.add(ModItems.TROPHY);
                     entries.add(ModItems.REMOTE);
+                    entries.add(ModItems.WAND);
                 })
         );
     }

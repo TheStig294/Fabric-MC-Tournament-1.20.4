@@ -1,8 +1,8 @@
 {
   "itemGroup.mctournament" : "MC Tournament",
-  "itemGroup.minigame_trivia_murder_party" : "Minigame - Trivia Murder Party",
   "item.mctournament.trophy" : "Trophy",
   "item.mctournament.remote" : "Remote",
+  "item.mctournament.wand" : "Wand",
 
   "minigame.tournament_begin.name": "Tournament Begin",
   "minigame.tournament_end.name": "Tournament End",
