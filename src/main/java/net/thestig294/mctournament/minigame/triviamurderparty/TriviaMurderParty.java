@@ -8,18 +8,23 @@ import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Questions;
 import net.thestig294.mctournament.minigame.triviamurderparty.screen.QuestionScreen;
 import net.thestig294.mctournament.minigame.triviamurderparty.screen.QuestionScreenHandler;
+import net.thestig294.mctournament.structure.JigsawStartPool;
+import net.thestig294.mctournament.structure.ModStructures;
 
 import static net.thestig294.mctournament.font.ModFonts.registerFont;
 import static net.thestig294.mctournament.minigame.MinigameVariants.registerVariant;
 import static net.thestig294.mctournament.network.ModNetworking.registerNetworkID;
+import static net.thestig294.mctournament.structure.ModStructures.registerJigsawStartPool;
 import static net.thestig294.mctournament.texture.ModTextures.registerTexture;
 
 public class TriviaMurderParty extends Minigame {
+    public static final String ID = "trivia_murder_party";
+
     private QuestionScreenHandler questionScreenHandler;
 
     @Override
     public String getID() {
-        return "trivia_murder_party";
+        return ID;
     }
 
     @Override
@@ -65,6 +70,15 @@ public class TriviaMurderParty extends Minigame {
     @Override
     public void clientEnd() {
 
+    }
+
+    public static class Structures {
+        public static final JigsawStartPool CORRIDOR = register("corridor", 0, 0, 0);
+
+        @SuppressWarnings("SameParameterValue")
+        private static JigsawStartPool register(String id, int xOffset, int yOffset, int zOffset) {
+            return registerJigsawStartPool(ID + id + ModStructures.JIGSAW_START_POOL_NAME, xOffset, yOffset, zOffset);
+        }
     }
 
     public static class NetworkIDs {

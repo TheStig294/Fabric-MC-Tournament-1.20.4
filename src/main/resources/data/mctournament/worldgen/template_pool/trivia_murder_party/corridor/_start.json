@@ -1,29 +1,29 @@
 {
-  "name": "mctournament:corridor/piece_1_pool",
+  "name": "mctournament:trivia_murder_party/corridor/_start",
   "fallback": "minecraft:empty",
   "elements": [
     {
-      "weight": 5,
+      "weight": 1,
       "element": {
-        "location": "mctournament:corridor_planks_oak",
+        "location": "mctournament:trivia_murder_party/corridor/_start_0",
         "processors": "minecraft:empty",
         "projection": "rigid",
         "element_type": "minecraft:single_pool_element"
       }
     },
     {
-      "weight": 3,
+      "weight": 1,
       "element": {
-        "location": "mctournament:corridor_planks_dark",
+        "location": "mctournament:trivia_murder_party/corridor/_start_1",
         "processors": "minecraft:empty",
         "projection": "rigid",
         "element_type": "minecraft:single_pool_element"
       }
     },
     {
-      "weight": 2,
+      "weight": 1,
       "element": {
-        "location": "mctournament:corridor_planks_orange",
+        "location": "mctournament:trivia_murder_party/corridor/_start_2",
         "processors": "minecraft:empty",
         "projection": "rigid",
         "element_type": "minecraft:single_pool_element"

@@ -8,6 +8,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
+import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.structure.ModStructures;
 
 public class WandItem extends Item {
@@ -17,16 +18,13 @@ public class WandItem extends Item {
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
-        if (!world.isClient()) {
-            ModStructures.place(ModStructures.CORRIDOR_LOGS, player.getBlockPos(), player.getYaw());
-        }
 
         return super.use(world, player, hand);
     }
 
     public ActionResult onAttackBlock(World world, PlayerEntity player) {
         if (!world.isClient()) {
-            ModStructures.jigsawPlace(ModStructures.CORRIDOR, player.getBlockPos(), player.getYaw());
+            ModStructures.jigsawPlace(TriviaMurderParty.Structures.CORRIDOR, player.getBlockPos(), player.getYaw());
         }
 
         return ActionResult.PASS;

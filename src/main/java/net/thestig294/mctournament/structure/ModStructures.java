@@ -19,13 +19,11 @@ import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.util.ModUtil;
 
 public class ModStructures {
-    public static final Structure CORRIDOR_LOGS = registerStructure("corridor_logs", 1, 1, 2);
-
-    public static final JigsawStartPool CORRIDOR = registerJigsawStartPool("corridor/piece_0_pool", 1, -1, 2);
-
-    public static BlockRotation JIGSAW_ROTATION_OVERRIDE;
+    public static final String JIGSAW_START_POOL_NAME = "_start";
     public static final Identifier MINECRAFT_EMPTY = new Identifier("minecraft", "empty");
+    public static BlockRotation JIGSAW_ROTATION_OVERRIDE;
 
+    @SuppressWarnings("unused")
     public static Structure registerStructure(String id, int xOffset, int yOffset, int zOffset) {
         return new Structure(new Identifier(MCTournament.MOD_ID, id), xOffset, yOffset, zOffset);
     }
@@ -45,6 +43,7 @@ public class ModStructures {
      * @param pos World position to spawn the structure
      * @param yaw Yaw rotation of the structure, clamps to the cardinal directions with a forgiveness of 45 degrees
      */
+    @SuppressWarnings("unused")
     public static void place(Structure structure, BlockPos pos, float yaw) {
         place(structure, pos, yaw, MCTournament.server().getOverworld());
     }
@@ -88,10 +87,10 @@ public class ModStructures {
      * @param world A dimension's world to place the structure in
      */
     public static void place(Structure structure, BlockPos pos, BlockRotation rotation, ServerWorldAccess world) {
-        BlockPos offsetPos = offsetBlockPos(pos, structure.xOffset, structure.yOffset, structure.zOffset, rotation);
+        BlockPos offsetPos = offsetBlockPos(pos, structure.xOffset(), structure.yOffset(), structure.zOffset(), rotation);
         MinecraftServer server = MCTournament.server();
         StructurePlacementData placementData = new StructurePlacementData().setRotation(rotation);
-        server.getStructureTemplateManager().getTemplateOrBlank(structure.id)
+        server.getStructureTemplateManager().getTemplateOrBlank(structure.id())
                 .place(world, offsetPos, offsetPos, placementData, StructureBlockBlockEntity.createRandom(0), Block.NOTIFY_LISTENERS);
     }
 
@@ -131,15 +130,12 @@ public class ModStructures {
      * @param world A dimension's world to place the structure in
      */
     public static void jigsawPlace(JigsawStartPool startPool, BlockPos pos, BlockRotation rotation, ServerWorld world) {
-        BlockPos offsetPos = offsetBlockPos(pos, startPool.xOffset, startPool.yOffset, startPool.zOffset, rotation);
+        BlockPos offsetPos = offsetBlockPos(pos, startPool.xOffset(), startPool.yOffset(), startPool.zOffset(), rotation);
         RegistryKey<Registry<StructurePool>> templatePoolRegistryKey = RegistryKeys.TEMPLATE_POOL;
         Registry<StructurePool> structurePoolRegistry = MCTournament.server().getRegistryManager().get(templatePoolRegistryKey);
-        RegistryEntry<StructurePool> startPoolEntry = structurePoolRegistry.getEntry(structurePoolRegistry.get(startPool.id));
+        RegistryEntry<StructurePool> startPoolEntry = structurePoolRegistry.getEntry(structurePoolRegistry.get(startPool.id()));
         JIGSAW_ROTATION_OVERRIDE = rotation;
         StructurePoolBasedGenerator.generate(world, startPoolEntry, MINECRAFT_EMPTY, 7, offsetPos, false);
         JIGSAW_ROTATION_OVERRIDE = null;
     }
-
-    public record Structure(Identifier id, int xOffset, int yOffset, int zOffset){}
-    public record JigsawStartPool(Identifier id, int xOffset, int yOffset, int zOffset){}
 }
