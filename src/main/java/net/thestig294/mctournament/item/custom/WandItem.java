@@ -18,15 +18,15 @@ public class WandItem extends Item {
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
-
-        return super.use(world, player, hand);
-    }
-
-    public ActionResult onAttackBlock(World world, PlayerEntity player) {
         if (!world.isClient()) {
             ModStructures.jigsawPlace(TriviaMurderParty.Structures.CORRIDOR, player.getBlockPos(), player.getYaw());
         }
 
+        return super.use(world, player, hand);
+    }
+
+    @SuppressWarnings("unused")
+    public ActionResult onAttackBlock(World world, PlayerEntity player) {
         return ActionResult.PASS;
     }
 
