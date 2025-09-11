@@ -8,6 +8,8 @@ import net.minecraft.server.MinecraftServer;
 import net.thestig294.mctournament.font.ModFonts;
 import net.thestig294.mctournament.item.ModItemGroups;
 import net.thestig294.mctournament.item.ModItems;
+import net.thestig294.mctournament.item.custom.RemoteItem;
+import net.thestig294.mctournament.item.custom.WandItem;
 import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.network.ModNetworking;
 import net.thestig294.mctournament.structure.ModStructures;
@@ -33,6 +35,8 @@ public class MCTournament implements ModInitializer {
 
 		ModItems.registerItems();
 		ModItemGroups.registerItemGroups();
+        RemoteItem.init();
+        WandItem.init();
 
 		ModFonts.registerFonts();
 		ModTextures.registerTextures();

@@ -3,7 +3,7 @@
 	"package": "net.thestig294.mctournament.mixin",
 	"compatibilityLevel": "JAVA_17",
 	"mixins": [
-		"ExampleMixin"
+      "JigsawMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

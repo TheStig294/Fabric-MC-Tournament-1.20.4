@@ -1,9 +1,9 @@
 package net.thestig294.mctournament.item.custom;
 
+import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsageContext;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
@@ -16,16 +16,29 @@ public class WandItem extends Item {
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+    public TypedActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
         if (!world.isClient()) {
-            ModStructures.place(ModStructures.CORRIDOR_LOGS, user.getBlockPos(), user.getYaw());
+            ModStructures.place(ModStructures.CORRIDOR_LOGS, player.getBlockPos(), player.getYaw());
         }
 
-        return super.use(world, user, hand);
+        return super.use(world, player, hand);
     }
 
-    @Override
-    public ActionResult useOnBlock(ItemUsageContext context) {
-        return super.useOnBlock(context);
+    public ActionResult onAttackBlock(World world, PlayerEntity player) {
+        if (!world.isClient()) {
+            ModStructures.jigsawPlace(ModStructures.CORRIDOR, player.getBlockPos(), player.getYaw());
+        }
+
+        return ActionResult.PASS;
+    }
+
+    public static void init() {
+        AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> {
+            if (player.getStackInHand(hand).getItem() instanceof WandItem wand){
+                return wand.onAttackBlock(world, player);
+            } else {
+                return ActionResult.PASS;
+            }
+        });
     }
 }

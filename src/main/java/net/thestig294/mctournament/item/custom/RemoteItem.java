@@ -1,9 +1,9 @@
 package net.thestig294.mctournament.item.custom;
 
+import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsageContext;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -34,12 +34,22 @@ public class RemoteItem extends Item {
         return TypedActionResult.success(itemStack);
     }
 
-    @Override
-    public ActionResult useOnBlock(ItemUsageContext context) {
-        if (!context.getWorld().isClient()) {
+    public ActionResult onAttackBlock(World world) {
+        if (!world.isClient()) {
             MCTournament.server().getPlayerManager().broadcast(Text.literal("Round ended!"), true);
             Tournament.inst().endCurrentMinigame(false);
         }
-        return super.useOnBlock(context);
+
+        return ActionResult.PASS;
+    }
+
+    public static void init() {
+        AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> {
+            if (player.getStackInHand(hand).getItem() instanceof RemoteItem remote){
+                return remote.onAttackBlock(world);
+            } else {
+                return ActionResult.PASS;
+            }
+        });
     }
 }
