@@ -2,6 +2,7 @@ package net.thestig294.mctournament.structure;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.StructureBlockBlockEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -41,15 +42,14 @@ public class ModStructures {
     }
 
     /**
-     * Places a structure facing in a direction relative to the given yaw, in the overworld,
+     * Places a structure facing in the direction of a player,
      * it is assumed the structure was built facing north
      * @param structure Structure identifier
-     * @param pos World position to spawn the structure
-     * @param yaw Yaw rotation of the structure, clamps to the cardinal directions with a forgiveness of 45 degrees
+     * @param player Player to spawn the structure around
      */
     @SuppressWarnings("unused")
-    public static void place(Structure structure, BlockPos pos, float yaw) {
-        place(structure, pos, yaw, MCTournament.server().getOverworld());
+    public static void place(Structure structure, PlayerEntity player) {
+        place(structure, player.getBlockPos(), player.getYaw(), (ServerWorldAccess) player.getWorld());
     }
 
     private static BlockRotation yawToRotation(float yaw) {
@@ -99,14 +99,13 @@ public class ModStructures {
     }
 
     /**
-     * Places a jigsaw structure facing in a direction relative to the given yaw, in the overworld,
+     * Places a jigsaw structure around a player, spawning them on top of a jigsaw block named {@code minecraft:empty}
      * it is assumed the structure was built facing north
      * @param startPool Identifier for the start pool of the jigsaw structure
-     * @param pos Position of the first jigsaw structure
-     * @param yaw Yaw rotation of the structure, clamps to the cardinal directions with a forgiveness of 45 degrees
+     * @param player Player to spawn the jigsaw structure around
      */
-    public static void jigsawPlace(JigsawStartPool startPool, BlockPos pos, float yaw) {
-        jigsawPlace(startPool, pos, yaw, MCTournament.server().getOverworld());
+    public static void jigsawPlace(JigsawStartPool startPool, PlayerEntity player) {
+        jigsawPlace(startPool, player.getBlockPos(), player.getYaw(), (ServerWorld) player.getWorld());
     }
 
     /**

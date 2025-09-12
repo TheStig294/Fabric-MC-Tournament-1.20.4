@@ -19,7 +19,7 @@ public class WandItem extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
         if (!world.isClient()) {
-            ModStructures.jigsawPlace(TriviaMurderParty.Structures.CORRIDOR, player.getBlockPos(), player.getYaw());
+            ModStructures.jigsawPlace(TriviaMurderParty.Structures.CORRIDOR, player);
         }
 
         return super.use(world, player, hand);
