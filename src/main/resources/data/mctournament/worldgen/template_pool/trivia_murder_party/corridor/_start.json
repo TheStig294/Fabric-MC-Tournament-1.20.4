@@ -5,7 +5,7 @@
     {
       "weight": 1,
       "element": {
-        "location": "mctournament:trivia_murder_party/corridor/_start_0",
+        "location": "mctournament:trivia_murder_party/corridor/orange_1",
         "processors": "minecraft:empty",
         "projection": "rigid",
         "element_type": "minecraft:single_pool_element"
@@ -14,7 +14,7 @@
     {
       "weight": 1,
       "element": {
-        "location": "mctournament:trivia_murder_party/corridor/_start_1",
+        "location": "mctournament:trivia_murder_party/corridor/red_1",
         "processors": "minecraft:empty",
         "projection": "rigid",
         "element_type": "minecraft:single_pool_element"
@@ -23,7 +23,37 @@
     {
       "weight": 1,
       "element": {
-        "location": "mctournament:trivia_murder_party/corridor/_start_2",
+        "location": "mctournament:trivia_murder_party/corridor/blue_1",
+        "processors": "minecraft:empty",
+        "projection": "rigid",
+        "element_type": "minecraft:single_pool_element"
+      }
+    }
+  ,
+    {
+      "weight": 1,
+      "element": {
+        "location": "mctournament:trivia_murder_party/corridor/yellow_1",
+        "processors": "minecraft:empty",
+        "projection": "rigid",
+        "element_type": "minecraft:single_pool_element"
+      }
+    }
+  ,
+    {
+      "weight": 1,
+      "element": {
+        "location": "mctournament:trivia_murder_party/corridor/purple_1",
+        "processors": "minecraft:empty",
+        "projection": "rigid",
+        "element_type": "minecraft:single_pool_element"
+      }
+    }
+  ,
+    {
+      "weight": 1,
+      "element": {
+        "location": "mctournament:trivia_murder_party/corridor/pink_2",
         "processors": "minecraft:empty",
         "projection": "rigid",
         "element_type": "minecraft:single_pool_element"
