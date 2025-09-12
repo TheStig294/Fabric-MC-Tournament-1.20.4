@@ -9,7 +9,6 @@ import net.thestig294.mctournament.minigame.triviamurderparty.question.Questions
 import net.thestig294.mctournament.minigame.triviamurderparty.screen.QuestionScreen;
 import net.thestig294.mctournament.minigame.triviamurderparty.screen.QuestionScreenHandler;
 import net.thestig294.mctournament.structure.JigsawStartPool;
-import net.thestig294.mctournament.structure.ModStructures;
 
 import static net.thestig294.mctournament.font.ModFonts.registerFont;
 import static net.thestig294.mctournament.minigame.MinigameVariants.registerVariant;
@@ -73,12 +72,7 @@ public class TriviaMurderParty extends Minigame {
     }
 
     public static class Structures {
-        public static final JigsawStartPool CORRIDOR = register("corridor", 0, 0, 0);
-
-        @SuppressWarnings("SameParameterValue")
-        private static JigsawStartPool register(String id, int xOffset, int yOffset, int zOffset) {
-            return registerJigsawStartPool(ID + id + ModStructures.JIGSAW_START_POOL_NAME, xOffset, yOffset, zOffset);
-        }
+        public static final JigsawStartPool CORRIDOR = registerJigsawStartPool(ID, "corridor", 0, 0, 0);
     }
 
     public static class NetworkIDs {

@@ -28,6 +28,10 @@ public class ModStructures {
         return new Structure(new Identifier(MCTournament.MOD_ID, id), xOffset, yOffset, zOffset);
     }
 
+    public static JigsawStartPool registerJigsawStartPool(String minigameID, String id, int xOffset, int yOffset, int zOffset) {
+        return registerJigsawStartPool(minigameID + '/' + id + '/' + JIGSAW_START_POOL_NAME, xOffset, yOffset, zOffset);
+    }
+
     public static JigsawStartPool registerJigsawStartPool(String id, int xOffset, int yOffset, int zOffset) {
         return new JigsawStartPool(new Identifier(MCTournament.MOD_ID, id), xOffset, yOffset, zOffset);
     }
