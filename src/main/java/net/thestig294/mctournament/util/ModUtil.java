@@ -1,5 +1,7 @@
 package net.thestig294.mctournament.util;
 
+import net.minecraft.entity.Entity;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
@@ -91,8 +93,17 @@ public class ModUtil {
         return MCTournament.server().getTickManager().getTickRate();
     }
 
+    @SuppressWarnings("unused")
+    public static void runConsoleCommand(Entity entity, String command, @Nullable Object... args) {
+        runConsoleCommand(entity.getCommandSource(), command, args);
+    }
+
     public static void runConsoleCommand(String command, @Nullable Object... args) {
-        MCTournament.server().getCommandManager().executeWithPrefix(MCTournament.server().getCommandSource(), String.format(command, args));
+        runConsoleCommand(MCTournament.server().getCommandSource(), command, args);
+    }
+
+    public static void runConsoleCommand(ServerCommandSource source, String command, @Nullable Object... args) {
+        MCTournament.server().getCommandManager().executeWithPrefix(source, String.format(command, args));
     }
 
     public static void placeRedstoneBlock(BlockPos pos) {

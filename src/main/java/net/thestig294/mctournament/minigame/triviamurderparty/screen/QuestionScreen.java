@@ -52,11 +52,11 @@ public class QuestionScreen extends Screen {
     private static final float CORRECT_POINTS_TIME = 1.0f;
     private static final float INCORRECT_REVEAL_TIME = 0.5f;
     private static final float INCORRECT_CROSSES_TIME = 0.5f;
-    private static final float KILLING_ROOM_TRANSITION_MOVE_TIME = 0.5f;
-    private static final float KILLING_ROOM_TRANSITION_LIGHTS_TIME = 0.5f;
+    private static final float KILLING_ROOM_TRANSITION_MOVE_TIME = 1.0f;
+    private static final float KILLING_ROOM_TRANSITION_LIGHTS_TIME = 1.0f;
     private static final float KILLING_ROOM_TRANSITION_HOLD_TIME = 3.0f;
     private static final float ALL_CORRECT_LOOP_BACK_TIME = 1.0f;
-    private static final float ALL_CORRECT_LOOP_BACK_HOLD_TIME = 3.0f;
+    private static final float ALL_CORRECT_LOOP_BACK_HOLD_TIME = 1.0f;
 
     private final Screen parent;
     private final Question question;
@@ -362,6 +362,7 @@ public class QuestionScreen extends Screen {
             }
             case INCORRECT_QUIP -> {}
             case KILLING_ROOM_TRANSITION_MOVE -> this.children().forEach(child -> {
+                this.ifFirstStateTick(() -> ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_MOVE_PLAYER));
                 if (child instanceof QuestionBox widget) {
                     this.animate(widget::setAlpha, 0.0f, 1.0f);
                     this.animate(widget::setX, this.width / 2, 0);
@@ -390,7 +391,7 @@ public class QuestionScreen extends Screen {
                     }
                 }
             }
-            case ALL_CORRECT_LOOP_BACK_HOLD -> {}
+            case ALL_CORRECT_LOOP_BACK_HOLD -> this.ifFirstStateTick(() -> ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_MOVE_PLAYER));
             case CLOSING_SCREEN -> this.ifFirstStateTick(() -> ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN_DISABLE));
         }
 
