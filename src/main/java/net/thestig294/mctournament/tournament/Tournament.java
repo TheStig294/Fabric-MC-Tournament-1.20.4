@@ -3,10 +3,14 @@ package net.thestig294.mctournament.tournament;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.Minigame;
 import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.network.ModNetworking;
@@ -158,6 +162,13 @@ public class Tournament {
         ModNetworking.serverReceive(ModNetworking.TOURNAMENT_MID_ROUND_JOIN, serverReceiveInfo -> {
             if (!this.isActive) return;
             ModNetworking.send(ModNetworking.TOURNAMENT_SETUP, serverReceiveInfo.player(), this.getClientInfoBuffer());
+        });
+
+//        Global prevention of breaking barrier or bedrock blocks while a tournament is active, and a player isn't oped
+        PlayerBlockBreakEvents.BEFORE.register((world, playerEntity, blockPos, blockState, blockEntity) -> {
+            if (!this.isActive || MCTournament.server().getPlayerManager().isOperator(playerEntity.getGameProfile())) return true;
+            Block block = blockState.getBlock();
+            return !(block.equals(Blocks.BARRIER) || block.equals(Blocks.BEDROCK));
         });
     }
 
