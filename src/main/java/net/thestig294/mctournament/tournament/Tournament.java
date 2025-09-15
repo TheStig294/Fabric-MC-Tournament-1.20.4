@@ -6,15 +6,18 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 import net.thestig294.mctournament.minigame.Minigame;
 import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.network.ModNetworking;
 import net.thestig294.mctournament.util.ModTimer;
+import net.thestig294.mctournament.util.ModUtil;
 
 import java.util.*;
 
 public class Tournament {
     public static final int MINIGAME_BEGIN_DELAY_SECS = 2;
+    public static final int MINIGAME_POSITION_OFFSET = 1000;
 
     private int round = -1;
     private boolean isActive = false;
@@ -22,15 +25,19 @@ public class Tournament {
     private List<Identifier> minigameIDs = new ArrayList<>();
     private List<Minigame> minigames = new ArrayList<>();
     private List<String> variants = new ArrayList<>();
+    private BlockPos position = BlockPos.ORIGIN;
 
     private TournamentScoreboard scoreboard;
     private TournamentScoreboard clientScoreboard;
 
     public void serverSetup(TournamentSettings settings) {
+        ModUtil.runConsoleCommand("/gamerule sendCommandFeedback false");
+        ModUtil.runConsoleCommand("/gamerule commandBlockOutput false");
         this.round = -1;
         this.isActive = true;
         this.minigameIDs = settings.getMinigames();
         this.variants = settings.getVariants();
+        this.position = settings.getPosition();
         this.scoreboard = this.scoreboard == null ? new TournamentScoreboard(false) : this.scoreboard;
         this.scoreboard.serverInit();
 
@@ -132,6 +139,7 @@ public class Tournament {
 //        from the last minigame's end function, and the initial state update for the TournamentScoreboard
 //        Caching the value of the current minigame so that it is not changed by the time the timer runs...
         Minigame minigame = this.minigame;
+        minigame.setPosition(this.position.east(MINIGAME_POSITION_OFFSET * this.round));
 
         ModTimer.simple(isClient, MINIGAME_BEGIN_DELAY_SECS, () -> {
             if (isClient) {

@@ -28,6 +28,7 @@ public class RemoteItem extends Item {
             Tournament.inst().serverSetup(new TournamentSettings()
                     .minigames(Minigames.TRIVIA_MURDER_PARTY)
                     .variants(MinigameVariants.DEFAULT)
+                    .position(user.getBlockPos())
             );
         }
 

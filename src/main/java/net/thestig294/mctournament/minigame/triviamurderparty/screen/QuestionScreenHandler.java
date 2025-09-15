@@ -1,13 +1,17 @@
 package net.thestig294.mctournament.minigame.triviamurderparty.screen;
 
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.util.math.BlockPos;
 import net.thestig294.mctournament.minigame.MinigameScoreboard;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Questions;
 import net.thestig294.mctournament.network.ModNetworking;
+import net.thestig294.mctournament.structure.ModStructures;
 import net.thestig294.mctournament.tournament.Tournament;
 import net.thestig294.mctournament.util.ModTimer;
+import net.thestig294.mctournament.util.ModUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,20 +21,26 @@ public class QuestionScreenHandler {
     public static final int ANSWERING_TIME_SECONDS = 20;
 //    The time in seconds the game secretly lets you answer even though the time is up on the server, for lag compensation
     public static final int ANSWERING_TIME_FORGIVENESS = 2;
+    public static final BlockPos LIGHTS_OFF_REDSTONE_BLOCK_OFFSET = new BlockPos(-3, -2, -73);
+    public static final BlockPos LIGHTS_ON_REDSTONE_BLOCK_OFFSET = new BlockPos(3, -2, -73);
 
     private final TriviaMurderParty minigame;
     private final MinigameScoreboard scoreboard;
     private final Map<String, Boolean> answeredCaptains;
+    private final Map<PlayerEntity, BlockPos> playerRedstonePositions;
     private State state;
+    private BlockPos position;
 
     public QuestionScreenHandler(TriviaMurderParty minigame, MinigameScoreboard scoreboard) {
         this.minigame = minigame;
         this.scoreboard = scoreboard;
         this.answeredCaptains = new HashMap<>();
+        this.playerRedstonePositions = new HashMap<>();
         this.state = State.PRE_ANSWERING;
+        this.position = BlockPos.ORIGIN;
 
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERING_BEGIN, serverReceiveInfo -> {
-            if (!this.state.equals(State.PRE_ANSWERING)) return;
+            if (this.state != State.PRE_ANSWERING) return;
             this.state = State.ANSWERING;
 //            Ending answering time once time runs out, and the forgiveness buffer runs out too
             ModTimer.create(false, ANSWERING_TIME_SECONDS + ANSWERING_TIME_FORGIVENESS,
@@ -38,6 +48,7 @@ public class QuestionScreenHandler {
         });
 
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, serverReceiveInfo -> {
+            if (this.state != State.ANSWERING) return;
             PacketByteBuf buffer = serverReceiveInfo.buf();
             String playerName = buffer.readString();
             boolean isCaptain = buffer.readBoolean();
@@ -72,9 +83,22 @@ public class QuestionScreenHandler {
             }
             this.broadcastNextQuestionScreen(QuestionScreen.State.QUESTION_NUMBER_IN);
         });
+
+        ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_TRIGGER_LIGHTS_OFF, serverReceiveInfo -> {
+            if (this.state != State.POST_ANSWERING) return;
+            PlayerEntity player = serverReceiveInfo.player();
+            BlockPos pos = this.playerRedstonePositions.getOrDefault(player, player.getBlockPos().add(LIGHTS_OFF_REDSTONE_BLOCK_OFFSET));
+            ModUtil.placeRedstoneBlock(pos);
+        });
+
+        ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN_DISABLE, serverReceiveInfo -> {
+            if (this.state != State.POST_ANSWERING) return;
+            ModTimer.simple(false, ANSWERING_TIME_FORGIVENESS, () -> this.state = State.DISABLED);
+        });
     }
 
-    public void begin() {
+    public void begin(BlockPos pos) {
+        this.position = pos;
         Questions.shuffleCategory(this.minigame.getVariant());
         this.broadcastNextQuestionScreen(QuestionScreen.State.TITLE_IN);
     }
@@ -83,6 +107,18 @@ public class QuestionScreenHandler {
         this.answeredCaptains.clear();
         ModTimer.remove(false, "QuestionScreenAnsweringTimeUp");
         this.state = State.PRE_ANSWERING;
+
+        double xCoord = this.position.getX();
+
+        for (final var player : ModUtil.getPlayers()) {
+//            The "180 0" part of the /tp command forces the player to face north: yaw, pitch
+            ModUtil.runConsoleCommand("/tp %s %s %s %s 180 0", player.getNameForScoreboard(), xCoord, this.position.getY(), this.position.getZ());
+            ModStructures.jigsawPlace(TriviaMurderParty.Structures.CORRIDOR, player);
+            ModUtil.placeRedstoneBlock(this.position.add(LIGHTS_ON_REDSTONE_BLOCK_OFFSET));
+            this.playerRedstonePositions.put(player, this.position.add(LIGHTS_OFF_REDSTONE_BLOCK_OFFSET));
+//            Each player is spawned in their own corridor, this is the width of the structure, plus 3 block of space
+            xCoord += 10;
+        }
 
         ModNetworking.broadcast(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN, PacketByteBufs.create()
                 .writeInt(Questions.getNext().id())
@@ -101,6 +137,7 @@ public class QuestionScreenHandler {
     enum State {
         PRE_ANSWERING,
         ANSWERING,
-        POST_ANSWERING
+        POST_ANSWERING,
+        DISABLED
     }
 }

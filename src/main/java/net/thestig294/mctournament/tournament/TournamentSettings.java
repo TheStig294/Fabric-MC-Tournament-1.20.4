@@ -1,9 +1,9 @@
 package net.thestig294.mctournament.tournament;
 
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.MinigameVariants;
-import net.thestig294.mctournament.minigame.Minigames;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,19 +13,16 @@ import java.util.Objects;
 public class TournamentSettings {
     private List<Identifier> minigameIDs;
     private List<String> variants;
+    private BlockPos position;
 
     public TournamentSettings() {
         this.minigameIDs = new ArrayList<>();
         this.variants = new ArrayList<>();
+        this.position = BlockPos.ORIGIN;
     }
 
     public TournamentSettings minigames(Identifier... minigames) {
         this.minigameIDs = Arrays.asList(minigames);
-        return this;
-    }
-
-    public TournamentSettings minigames(int count) {
-        this.minigameIDs = Minigames.getRandomMinigames(count);
         return this;
     }
 
@@ -50,6 +47,11 @@ public class TournamentSettings {
         return this;
     }
 
+    public TournamentSettings position(BlockPos pos) {
+        this.position = pos;
+        return this;
+    }
+
     public List<Identifier> getMinigames() {
         return this.minigameIDs;
     }
@@ -64,5 +66,9 @@ public class TournamentSettings {
         }
 
         return this.variants;
+    }
+
+    public BlockPos getPosition() {
+        return this.position;
     }
 }

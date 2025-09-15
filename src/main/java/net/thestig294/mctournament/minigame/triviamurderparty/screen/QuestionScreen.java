@@ -52,9 +52,9 @@ public class QuestionScreen extends Screen {
     private static final float CORRECT_POINTS_TIME = 1.0f;
     private static final float INCORRECT_REVEAL_TIME = 0.5f;
     private static final float INCORRECT_CROSSES_TIME = 0.5f;
-    private static final float KILLING_ROOM_TRANSITION_MOVE_TIME = 1.5f;
-    private static final float KILLING_ROOM_TRANSITION_LIGHTS_TIME = 2.0f;
-    private static final float KILLING_ROOM_TRANSITION_HOLD_TIME = 2.0f;
+    private static final float KILLING_ROOM_TRANSITION_MOVE_TIME = 0.5f;
+    private static final float KILLING_ROOM_TRANSITION_LIGHTS_TIME = 0.5f;
+    private static final float KILLING_ROOM_TRANSITION_HOLD_TIME = 3.0f;
     private static final float ALL_CORRECT_LOOP_BACK_TIME = 1.0f;
     private static final float ALL_CORRECT_LOOP_BACK_HOLD_TIME = 3.0f;
 
@@ -373,15 +373,9 @@ public class QuestionScreen extends Screen {
                 }
             });
             case KILLING_ROOM_TRANSITION_LIGHTS -> {
-                this.ifFirstStateTick(() -> {
-                    this.resetBoxWidgets();
-                    this.leftBoxWidget.setAlpha(0.0f);
-                    this.rightBoxWidget.setAlpha(0.0f);
-                });
+                this.ifFirstStateTick(() -> ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_TRIGGER_LIGHTS_OFF));
                 this.children().forEach(child -> {
-                    if (child instanceof QuestionBox widget) {
-                        this.animate(widget::setAlpha, 0.0f, 1.0f);
-                    } else if ((child instanceof QuestionWidget widget) && widget.getAlpha() > 0.0f) {
+                        if ((child instanceof QuestionWidget widget) && widget.getAlpha() > 0.0f) {
                         this.animate(widget::setAlpha, 1.0f, 0.0f);
                     }
                 });
@@ -397,7 +391,7 @@ public class QuestionScreen extends Screen {
                 }
             }
             case ALL_CORRECT_LOOP_BACK_HOLD -> {}
-            case CLOSING_SCREEN -> {}
+            case CLOSING_SCREEN -> this.ifFirstStateTick(() -> ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN_DISABLE));
         }
 
         this.firstStateTick = false;
@@ -494,7 +488,8 @@ public class QuestionScreen extends Screen {
                     }
                 });
             }
-            case KILLING_ROOM_TRANSITION_MOVE, KILLING_ROOM_TRANSITION_LIGHTS, KILLING_ROOM_TRANSITION_HOLD -> this.resetBoxWidgets();
+            case KILLING_ROOM_TRANSITION_LIGHTS -> {}
+            case KILLING_ROOM_TRANSITION_MOVE, KILLING_ROOM_TRANSITION_HOLD -> this.resetBoxWidgets();
             case ALL_CORRECT_LOOP_BACK, ALL_CORRECT_LOOP_BACK_HOLD -> {
                 this.resetMainHUD();
                 this.playerWidgets.forEach(widget -> {
@@ -668,6 +663,11 @@ public class QuestionScreen extends Screen {
             ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_ALL_CORRECT_LOOP_BACK);
         }
         MCTournament.client().setScreen(this.parent);
+    }
+
+    @Override
+    public boolean shouldPause() {
+        return false;
     }
 
     @SuppressWarnings("unused")

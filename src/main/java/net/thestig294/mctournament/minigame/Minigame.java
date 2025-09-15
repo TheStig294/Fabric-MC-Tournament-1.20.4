@@ -3,6 +3,7 @@ package net.thestig294.mctournament.minigame;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.BlockPos;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.tournament.Tournament;
 
@@ -11,6 +12,7 @@ public abstract class Minigame {
     private Boolean variantSet = false;
     private MinigameScoreboard scoreboard;
     private MinigameScoreboard clientScoreboard;
+    private BlockPos position;
 
     public abstract String getID();
 
@@ -102,5 +104,13 @@ public abstract class Minigame {
 
     public void hideNametags() {
         Tournament.inst().scoreboard().setGlobalNametagVisibility(false);
+    }
+
+    public void setPosition(BlockPos pos) {
+        this.position = pos;
+    }
+
+    public BlockPos getPosition() {
+        return this.position;
     }
 }
