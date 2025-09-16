@@ -392,7 +392,7 @@ public class QuestionScreen extends Screen {
                 }
             }
             case ALL_CORRECT_LOOP_BACK_HOLD -> this.ifFirstStateTick(() -> ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_MOVE_PLAYER));
-            case CLOSING_SCREEN -> this.ifFirstStateTick(() -> ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN_DISABLE));
+            case CLOSING_SCREEN -> this.ifFirstStateTick(() -> ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN_START_KILLING_ROOM));
         }
 
         this.firstStateTick = false;

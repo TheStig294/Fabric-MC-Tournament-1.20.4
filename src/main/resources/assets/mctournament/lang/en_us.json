@@ -14,5 +14,9 @@
 
   "screen.mctournament.question" : "Question Screen",
   "screen.mctournament.question_welcome" : "WELCOME",
-  "widget.mctournament.question_player_your_team" : "Your team"
+  "widget.mctournament.question_player_your_team" : "Your team",
+
+  "screen.mctournament.killing_room_tattoos" : "Tattoos",
+  "screen.mctournament.killing_room_tattoos_description_1" : "Build me a new tattoo",
+  "screen.mctournament.killing_room_tattoos_description_2" : "You have 30 seconds..."
 }

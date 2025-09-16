@@ -93,9 +93,12 @@ public class QuestionScreenHandler {
             ModUtil.placeRedstoneBlock(pos);
         });
 
-        ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN_DISABLE, serverReceiveInfo -> {
+        ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN_START_KILLING_ROOM, serverReceiveInfo -> {
             if (this.state != State.POST_ANSWERING) return;
-            ModTimer.simple(false, ANSWERING_TIME_FORGIVENESS, () -> this.state = State.DISABLED);
+            ModTimer.simple(false, ANSWERING_TIME_FORGIVENESS, () -> {
+                this.state = State.DISABLED;
+                this.minigame.startKillingRoom();
+            });
         });
 
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_MOVE_PLAYER, serverReceiveInfo -> {
