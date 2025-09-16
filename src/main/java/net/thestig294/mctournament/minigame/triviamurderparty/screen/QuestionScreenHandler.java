@@ -31,7 +31,7 @@ public class QuestionScreenHandler {
     private final Map<String, Boolean> answeredCaptains;
     private final Map<PlayerEntity, BlockPos> playerRedstonePositions;
     private State state;
-    private BlockPos position;
+    private BlockPos corridorStartingPos;
 
     public QuestionScreenHandler(TriviaMurderParty minigame, MinigameScoreboard scoreboard) {
         this.minigame = minigame;
@@ -39,7 +39,7 @@ public class QuestionScreenHandler {
         this.answeredCaptains = new HashMap<>();
         this.playerRedstonePositions = new HashMap<>();
         this.state = State.PRE_ANSWERING;
-        this.position = BlockPos.ORIGIN;
+        this.corridorStartingPos = BlockPos.ORIGIN;
 
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERING_BEGIN, serverReceiveInfo -> {
             if (this.state != State.PRE_ANSWERING) return;
@@ -108,7 +108,7 @@ public class QuestionScreenHandler {
     }
 
     public void begin(BlockPos pos) {
-        this.position = pos;
+        this.corridorStartingPos = pos;
         Questions.shuffleCategory(this.minigame.getVariant());
         this.broadcastNextQuestionScreen(QuestionScreen.State.TITLE_IN);
     }
@@ -118,16 +118,17 @@ public class QuestionScreenHandler {
         ModTimer.remove(false, "QuestionScreenAnsweringTimeUp");
         this.state = State.PRE_ANSWERING;
 
-        double xCoord = this.position.getX();
+        BlockPos playerPos = this.corridorStartingPos;
 
         for (final var player : ModUtil.getPlayers()) {
 //            The "180 0" part of the /tp command forces the player to face north: yaw, pitch
-            ModUtil.runConsoleCommand("/tp %s %s %s %s 180 0", player.getNameForScoreboard(), xCoord, this.position.getY(), this.position.getZ());
+            ModUtil.runConsoleCommand("/tp %s %s %s %s 180 0", player.getNameForScoreboard(),
+                    playerPos.getX(), playerPos.getY(), playerPos.getZ());
             ModStructures.jigsawPlace(TriviaMurderParty.Structures.CORRIDOR, player);
-            ModUtil.placeRedstoneBlock(this.position.add(LIGHTS_ON_REDSTONE_BLOCK_OFFSET));
-            this.playerRedstonePositions.put(player, this.position.add(LIGHTS_OFF_REDSTONE_BLOCK_OFFSET));
+            ModUtil.placeRedstoneBlock(playerPos.add(LIGHTS_ON_REDSTONE_BLOCK_OFFSET));
+            this.playerRedstonePositions.put(player, playerPos.add(LIGHTS_OFF_REDSTONE_BLOCK_OFFSET));
 //            Each player is spawned in their own corridor, this is the width of the structure, plus 3 block of space
-            xCoord += 10;
+            playerPos = playerPos.east(10);
         }
 
         ModNetworking.broadcast(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN, PacketByteBufs.create()
