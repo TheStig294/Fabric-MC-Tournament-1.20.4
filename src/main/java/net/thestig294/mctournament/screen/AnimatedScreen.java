@@ -26,21 +26,18 @@ public abstract class AnimatedScreen<
         ChildStateClass extends Enum<ChildStateClass> & AnimatedScreen.State<ChildClass>>
         extends Screen {
     private ChildStateClass state;
-    private final Class<ChildClass> childClazz;
 
-//    Clazz? zz? Yeah, it's weird, but it's what Java's Class class names Class objects/instances
-//    to differentiate them from an actual instance/object of the class
-    protected AnimatedScreen(Class<ChildClass> childClazz, ChildStateClass state) {
+    protected AnimatedScreen(ChildStateClass state) {
         super(Text.empty());
         this.state = state;
-        this.childClazz = childClazz;
     }
 
-//    Behold... we have access to the child instance in the parent class!
-//    This is better than just "return (ChildClass) this", since if the cast
-//    fails, we get the error here rather than leaving it unchecked!
+//    Technically, this *is* a checked cast, but in a weird way...
+//    We've checked it via the "ChildClass extends AnimatedScreen<..." template definition,
+//    and the fact that AnimatedScreen is abstract, so any instance of it must be a child class
+    @SuppressWarnings("unchecked")
     private ChildClass toChild() {
-        return this.childClazz.cast(this);
+        return (ChildClass) this;
     }
 
     @Override

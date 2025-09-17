@@ -7,8 +7,8 @@ import net.thestig294.mctournament.util.ModColors;
 public class ExampleScreen extends AnimatedScreen<ExampleScreen, ExampleScreen.State> {
     QuestionWidget someWidget;
 
-    protected ExampleScreen(Class<ExampleScreen> childClazz, State state) {
-        super(childClazz, state);
+    protected ExampleScreen(State state) {
+        super(state);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class ExampleScreen extends AnimatedScreen<ExampleScreen, ExampleScreen.S
             }
 
             @Override
-            public AnimatedScreen.State<ExampleScreen> next(ExampleScreen screen) {
+            public State next(ExampleScreen screen) {
                 return STATE2;
             }
         },
@@ -70,7 +70,7 @@ public class ExampleScreen extends AnimatedScreen<ExampleScreen, ExampleScreen.S
             }
 
             @Override
-            public AnimatedScreen.State<ExampleScreen> next(ExampleScreen screen) {
+            public State next(ExampleScreen screen) {
                 return STATE1;
             }
         }
