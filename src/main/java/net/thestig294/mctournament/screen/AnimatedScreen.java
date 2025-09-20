@@ -186,18 +186,18 @@ public abstract class AnimatedScreen<
         return this.childStateClass.cast(childState);
     }
 
-    public interface State<ChildClass extends AnimatedScreen<ChildClass, ? extends State<ChildClass>>> {
-        void render(ChildClass screen);
+    public interface State<T extends AnimatedScreen<T, ? extends State<T>>> {
+        void render(T screen);
 
-        void refresh(ChildClass screen);
+        void refresh(T screen);
 
-        float duration(ChildClass screen);
+        float duration(T screen);
 
 //        All to avoid having to declare the next state in order in every state that doesn't
 //        have special behaviour. The last state returns null and triggers the screen's .close()
 //        function to eventually be called
 //        (Basically replicating: default -> values()[this.ordinal() + 1];)
-        default State<ChildClass> next(ChildClass screen) {
+        default State<T> next(T screen) {
             if (!(this instanceof Enum<?> child)) {
                 MCTournament.LOGGER.error("Trying to implement AnimatedScreen.State on a non-enum class!");
                 return null;
