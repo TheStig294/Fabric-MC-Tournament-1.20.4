@@ -30,8 +30,6 @@ public abstract class AnimatedScreen<
 
     private static boolean INITIALISED;
 
-    private final Class<T> childClass;
-    private final Class<E> childStateClass;
     private final Screen parent;
 
     private float uptimeSecs;
@@ -43,10 +41,8 @@ public abstract class AnimatedScreen<
     private boolean firstStateTick;
     private boolean firstState;
 
-    public AnimatedScreen(Class<T> childClass, Class<E> childStateClass, E startingState) {
+    public AnimatedScreen(E startingState) {
         super(Text.empty());
-        this.childClass = childClass;
-        this.childStateClass = childStateClass;
         this.parent = MCTournament.client().currentScreen;
 
         this.uptimeSecs = 0.0f;
@@ -64,26 +60,24 @@ public abstract class AnimatedScreen<
         }
     }
 
+    /**
+     * Called on {@link Screen#init()}, this is the place to create all screen widgets inside {@link Screen#addDrawableChild(Element)}. <br>
+     * For handling a screen refresh, see: {@link State#refresh(AnimatedScreen)}
+     */
     protected abstract void createWidgets();
 
-    @Override
-    public abstract boolean shouldPause();
-
-    @Override
-    public abstract boolean shouldCloseOnEsc();
-
+    /**
+     * Called the first time this screen's constructor is called. Intended for declaring client networking callbacks. <br>
+     * You will need to define the networking message that opens this screen outside this function, <br>
+     * as it will not be called until the screen is opened for the first time.
+     */
     protected abstract void networkingInit();
 
+//    Suppress the warning we're not type checking at runtime, because we're doing it at compile time instead!
+//    (The power of CRTP...)
+    @SuppressWarnings("unchecked")
     private T toChild() {
-        if (!this.childClass.isInstance(this)) {
-            MCTournament.LOGGER.error("""
-                    Cannot cast AnimatedScreen!
-                    An AnimatedScreen implementation must be a generic of itself, and its state enum:
-                    E.g. "ExampleScreen extends AnimatedScreen<ExampleScreen, ExampleScreen.State>\"""");
-            return null;
-        }
-
-        return this.childClass.cast(this);
+        return (T) this;
     }
 
     @Override
@@ -100,30 +94,24 @@ public abstract class AnimatedScreen<
 
         if (this.stateEndTime <= this.uptimeSecs) {
             this.switchToNextState();
+            if (this.state == null) return;
         }
 
         this.uptimeSecs += delta / ModUtilClient.getTicksPerSecond();
         this.stateProgress = ModUtil.lerpPercent(this.stateStartTime, this.stateEndTime, this.uptimeSecs);
         this.stateProgressPercent = (int) (this.stateProgress * 100);
 
-        this.state.render(this.toChild());
-        this.firstStateTick = false;
-    }
-
-    private @Nullable E getNextState() {
-        if (this.state == null) return null;
-
-        if (!this.childClass.isInstance(this.state)) {
-            MCTournament.LOGGER.error("""
-                    Cannot cast AnimatedScreen.State!
-                    An AnimatedScreen implementation must be a generic of itself, and its state enum:
-                    E.g. "class ExampleScreen extends AnimatedScreen<ExampleScreen, ExampleScreen.State>"
-                    An AnimatedScreen.State implementation must be an enum generic on its screen:
-                    E.g. "enum State implements AnimatedScreen.State<ExampleScreen>\"""");
-            return null;
+        if (this.firstStateTick) {
+            this.state.begin(this.toChild());
+            this.firstStateTick = false;
         }
 
-        return this.childStateClass.cast(this.state.next(this.toChild()));
+        this.state.render(this.toChild());
+    }
+
+    @SuppressWarnings("unchecked")
+    private @Nullable E getNextState() {
+        return this.state == null ? null : (E) this.state.next(this.toChild());
     }
 
     private void switchToNextState() {
@@ -146,6 +134,12 @@ public abstract class AnimatedScreen<
         MCTournament.client().setScreen(this.parent);
     }
 
+    @Override
+    public boolean shouldPause() {
+        return false;
+    }
+
+    @SuppressWarnings("unused")
     protected void animate(IntConsumer lambda, int start, int end) {
         lambda.accept((int) ModUtil.lerpLinear(start, end, this.stateProgress));
     }
@@ -154,6 +148,7 @@ public abstract class AnimatedScreen<
         lambda.accept(ModUtil.lerpLinear(start, end, this.stateProgress));
     }
 
+    @SuppressWarnings("unused")
     protected void listAnimateAlpha(List<? extends Element> widgets, float start, float end) {
         for (final var child : widgets) {
             if (child instanceof ClickableWidget widget) {
@@ -162,6 +157,7 @@ public abstract class AnimatedScreen<
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     protected void setListAlpha(List<? extends Element> widgets, float alpha) {
         for (final var child : widgets) {
             if (child instanceof ClickableWidget widget) {
@@ -170,42 +166,57 @@ public abstract class AnimatedScreen<
         }
     }
 
+    @SuppressWarnings("unused")
     protected void everyStatePercent(int percent, Runnable function) {
         if (this.stateProgressPercent % percent == 0) function.run();
     }
 
-    protected void ifFirstStateTick(Runnable function) {
-        if (this.firstStateTick) function.run();
-    }
-
+    @SuppressWarnings("unused")
     protected void forceStateEnd() {
         this.stateEndTime = this.uptimeSecs;
     }
 
-    protected State<T> toChildStateClass(Enum<?> childState) {
-        return this.childStateClass.cast(childState);
-    }
-
     public interface State<T extends AnimatedScreen<T, ? extends State<T>>> {
+        /**
+         * Run on the first render tick
+         * @param screen Instance of your screen during this state
+         */
+        default void begin(T screen) {}
+
+        /**
+         * Run on every tick this is state is active
+         * @param screen Instance of your screen during this state
+         */
         void render(T screen);
 
+        /**
+         * Run once every time the Minecraft window is resized or set to full-screen. <br>
+         * By default, all screen elements have their {@link ClickableWidget#setAlpha(float)} function called with a value of {@code 0.0f}
+         * @param screen Instance of your screen during this state
+         */
         void refresh(T screen);
 
+        /**
+         * Defines the length of the state
+         * @param screen Instance of your screen during this state
+         * @return State length as a float
+         */
         float duration(T screen);
 
-//        All to avoid having to declare the next state in order in every state that doesn't
-//        have special behaviour. The last state returns null and triggers the screen's .close()
-//        function to eventually be called
-//        (Basically replicating: default -> values()[this.ordinal() + 1];)
+        /**
+         * Defines the next state after this one (optional). <p>
+         * If not implemented, the next state is the next one defined in the enum,
+         * except for the final state, which has a state of {@code null}. </p>
+         * Returning {@code null} triggers a call to {@link AnimatedScreen#close()}.
+         * @param screen Instance of your screen during this state
+         * @return The screen state after this one
+         */
+        @SuppressWarnings("unchecked")
         default State<T> next(T screen) {
-            if (!(this instanceof Enum<?> child)) {
-                MCTournament.LOGGER.error("Trying to implement AnimatedScreen.State on a non-enum class!");
-                return null;
-            }
-
+            Enum<?> child = (Enum<?>) this;
             Enum<?>[] values = child.getDeclaringClass().getEnumConstants();
             int nextOrdinal = child.ordinal() + 1;
-            return nextOrdinal < values.length ? screen.toChildStateClass(values[nextOrdinal]) : null;
+            return nextOrdinal >= values.length ? null : (State<T>) values[nextOrdinal];
         }
     }
 }

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.IntConsumer;
 
+@SuppressWarnings("unused")
 @Environment(EnvType.CLIENT)
 public class QuestionScreenOld extends Screen {
     private static final float TITLE_FADE_TIME = 0.5f;
@@ -147,14 +148,14 @@ public class QuestionScreenOld extends Screen {
                 this.textRenderer));
 
         this.answerWidgets.clear();
-        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
-                this.height / 2 - 30, 140, 20, this.textRenderer, 0, this.question)));
-        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
-                this.height / 2, 140, 20, this.textRenderer, 1, this.question)));
-        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
-                this.height / 2 + 30, 140, 20, this.textRenderer, 2, this.question)));
-        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
-                this.height / 2 + 60, 140, 20, this.textRenderer, 3, this.question)));
+//        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
+//                this.height / 2 - 30, 140, 20, this.textRenderer, 0, this.question)));
+//        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
+//                this.height / 2, 140, 20, this.textRenderer, 1, this.question)));
+//        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
+//                this.height / 2 + 30, 140, 20, this.textRenderer, 2, this.question)));
+//        this.answerWidgets.add(this.addDrawableChild(new QuestionButton(this, this.width * 2/3,
+//                this.height / 2 + 60, 140, 20, this.textRenderer, 3, this.question)));
 
         this.answeredCountWidgets.clear();
         this.answeredCountWidgets.add(this.addDrawableChild(new QuestionText(25, this.height - 45,
