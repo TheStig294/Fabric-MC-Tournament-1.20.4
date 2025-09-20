@@ -8,8 +8,10 @@ import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.text.Text;
+import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.util.ModUtil;
 import net.thestig294.mctournament.util.ModUtilClient;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.IntConsumer;
@@ -25,23 +27,44 @@ public abstract class AnimatedScreen<
         ChildClass extends AnimatedScreen<ChildClass, ChildStateClass>,
         ChildStateClass extends Enum<ChildStateClass> & AnimatedScreen.State<ChildClass>>
         extends Screen {
+
+    private static boolean INITIALISED;
+
+    private final Class<ChildClass> childClass;
+    private final Class<ChildStateClass> childStateClass;
+    private final Screen parent;
+
+    private float uptimeSecs;
     private ChildStateClass state;
+    private float stateEndTime;
+    private float stateStartTime;
+    private float stateProgress;
+    private int stateProgressPercent;
+    private boolean firstStateTick;
+    private boolean firstState;
 
-    protected AnimatedScreen(ChildStateClass state) {
+    public AnimatedScreen(Class<ChildClass> childClass, Class<ChildStateClass> childStateClass, ChildStateClass startingState) {
         super(Text.empty());
-        this.state = state;
+        this.childClass = childClass;
+        this.childStateClass = childStateClass;
+        this.parent = MCTournament.client().currentScreen;
+
+        this.uptimeSecs = 0.0f;
+        this.state = startingState;
+        this.stateEndTime = 0.0f;
+        this.stateStartTime = 0.0f;
+        this.stateProgress = 0.0f;
+        this.stateProgressPercent = 0;
+        this.firstStateTick = true;
+        this.firstState = true;
+
+        if (!INITIALISED) {
+            this.networkingInit();
+            INITIALISED = true;
+        }
     }
 
-//    Technically, this *is* a checked cast, but in a weird way...
-//    We've checked it via the "ChildClass extends AnimatedScreen<..." template definition,
-//    and the fact that AnimatedScreen is abstract, so any instance of it must be a child class
-    @SuppressWarnings("unchecked")
-    private ChildClass toChild() {
-        return (ChildClass) this;
-    }
-
-    @Override
-    public abstract void init();
+    protected abstract void createWidgets();
 
     @Override
     public abstract boolean shouldPause();
@@ -49,20 +72,78 @@ public abstract class AnimatedScreen<
     @Override
     public abstract boolean shouldCloseOnEsc();
 
+    protected abstract void networkingInit();
+
+    private ChildClass toChild() {
+        if (!this.childClass.isInstance(this)) {
+            MCTournament.LOGGER.error("""
+                    Cannot cast AnimatedScreen!
+                    An AnimatedScreen implementation must be a generic of itself, and its state enum:
+                    E.g. "ExampleScreen extends AnimatedScreen<ExampleScreen, ExampleScreen.State>\"""");
+            return null;
+        }
+
+        return this.childClass.cast(this);
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        this.createWidgets();
+        this.setListAlpha(this.children(), 0.0f);
+        this.state.refresh(this.toChild());
+    }
+
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
 
         if (this.stateEndTime <= this.uptimeSecs) {
-            this.nextState();
+            this.switchToNextState();
         }
 
         this.uptimeSecs += delta / ModUtilClient.getTicksPerSecond();
         this.stateProgress = ModUtil.lerpPercent(this.stateStartTime, this.stateEndTime, this.uptimeSecs);
         this.stateProgressPercent = (int) (this.stateProgress * 100);
 
-        this.renderState();
         this.state.render(this.toChild());
+        this.firstStateTick = false;
+    }
+
+    private @Nullable ChildStateClass getNextState() {
+        if (this.state == null) return null;
+
+        if (!this.childClass.isInstance(this.state)) {
+            MCTournament.LOGGER.error("""
+                    Cannot cast AnimatedScreen.State!
+                    An AnimatedScreen implementation must be a generic of itself, and its state enum:
+                    E.g. "class ExampleScreen extends AnimatedScreen<ExampleScreen, ExampleScreen.State>"
+                    An AnimatedScreen.State implementation must be an enum generic on its screen:
+                    E.g. "enum State implements AnimatedScreen.State<ExampleScreen>\"""");
+            return null;
+        }
+
+        return this.childStateClass.cast(this.state.next(this.toChild()));
+    }
+
+    private void switchToNextState() {
+        if (!this.firstState) this.state = this.getNextState();
+
+        if (this.state == null) {
+            this.close();
+            return;
+        }
+
+        this.firstState = false;
+        float lastEndTime = this.stateEndTime;
+        this.stateEndTime = this.uptimeSecs + this.state.duration(this.toChild());
+        this.stateStartTime = lastEndTime;
+        this.firstStateTick = true;
+    }
+
+    @Override
+    public void close() {
+        MCTournament.client().setScreen(this.parent);
     }
 
     protected void animate(IntConsumer lambda, int start, int end) {
@@ -97,34 +178,34 @@ public abstract class AnimatedScreen<
         if (this.firstStateTick) function.run();
     }
 
-//    protected void renderState(Enum<?> state) {
-//
-//    }
-//
-//    protected void onRefresh(Enum<?> state) {
-//
-//    }
-//
-//    protected float getStateTime() {
-//
-//    }
-//
-//    private void endState(Enum<?> state) {
-//
-//    }
-//
-//    protected Enum<?> getNextState() {
-//        var values = this.state.getClass().getEnumConstants();
-//        return this.state.ordinal() < values.length ? values[this.state.ordinal() + 1] : values[0];
-//    }
+    protected void forceStateEnd() {
+        this.stateEndTime = this.uptimeSecs;
+    }
+
+    protected State<ChildClass> toChildStateClass(Enum<?> childState) {
+        return this.childStateClass.cast(childState);
+    }
 
     public interface State<ChildClass extends AnimatedScreen<ChildClass, ? extends State<ChildClass>>> {
         void render(ChildClass screen);
 
         void refresh(ChildClass screen);
 
-        float getDuration(ChildClass screen);
+        float duration(ChildClass screen);
 
-        State<ChildClass> next(ChildClass screen);
+//        All to avoid having to declare the next state in order in every state that doesn't
+//        have special behaviour. The last state returns null and triggers the screen's .close()
+//        function to eventually be called
+//        (Basically replicating: default -> values()[this.ordinal() + 1];)
+        default State<ChildClass> next(ChildClass screen) {
+            if (!(this instanceof Enum<?> child)) {
+                MCTournament.LOGGER.error("Trying to implement AnimatedScreen.State on a non-enum class!");
+                return null;
+            }
+
+            Enum<?>[] values = child.getDeclaringClass().getEnumConstants();
+            int nextOrdinal = child.ordinal() + 1;
+            return nextOrdinal < values.length ? screen.toChildStateClass(values[nextOrdinal]) : null;
+        }
     }
 }

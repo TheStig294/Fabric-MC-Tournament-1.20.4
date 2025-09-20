@@ -7,14 +7,13 @@ import net.thestig294.mctournament.util.ModColors;
 public class ExampleScreen extends AnimatedScreen<ExampleScreen, ExampleScreen.State> {
     QuestionWidget someWidget;
 
-    protected ExampleScreen(State state) {
-        super(state);
+    public ExampleScreen(State startingState) {
+        super(ExampleScreen.class, State.class, startingState);
     }
 
     @Override
-    public void init() {
+    protected void createWidgets() {
         this.someWidget = this.addDrawableChild(new QuestionBox(1,2,3,4, ModColors.RED));
-        this.setListAlpha(this.children(), 0.0f);
     }
 
     @Override
@@ -25,6 +24,11 @@ public class ExampleScreen extends AnimatedScreen<ExampleScreen, ExampleScreen.S
     @Override
     public boolean shouldCloseOnEsc() {
         return false;
+    }
+
+    @Override
+    protected void networkingInit() {
+
     }
 
     public void exampleClassSpecificMethod() {
@@ -44,13 +48,8 @@ public class ExampleScreen extends AnimatedScreen<ExampleScreen, ExampleScreen.S
             }
 
             @Override
-            public float getDuration(ExampleScreen screen) {
+            public float duration(ExampleScreen screen) {
                 return 2.5f;
-            }
-
-            @Override
-            public State next(ExampleScreen screen) {
-                return STATE2;
             }
         },
         STATE2 {
@@ -65,7 +64,7 @@ public class ExampleScreen extends AnimatedScreen<ExampleScreen, ExampleScreen.S
             }
 
             @Override
-            public float getDuration(ExampleScreen screen) {
+            public float duration(ExampleScreen screen) {
                 return 0;
             }
 
