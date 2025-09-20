@@ -21,11 +21,6 @@ public class ExampleScreen extends AnimatedScreen<ExampleScreen, ExampleScreen.S
                 QuestionBox(this.width / 2,this.height / 2,this.width / 2,this.height / 2, ModColors.WHITE));
     }
 
-    @Override
-    protected void networkingInit() {
-
-    }
-
     public void exampleClassSpecificMethod() {
         Objects.requireNonNull(MCTournament.client().player).sendMessage(Text.literal("State 1 begun!"));
     }

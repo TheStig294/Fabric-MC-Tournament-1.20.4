@@ -28,7 +28,7 @@ public abstract class AnimatedScreen<
         E extends Enum<E> & AnimatedScreen.State<T>>
         extends Screen {
 
-    private static boolean INITIALISED;
+    public static Screen PAUSED_SCREEN = null;
 
     private final Screen parent;
 
@@ -53,11 +53,6 @@ public abstract class AnimatedScreen<
         this.stateProgressPercent = 0;
         this.firstStateTick = true;
         this.firstState = true;
-
-        if (!INITIALISED) {
-            this.networkingInit();
-            INITIALISED = true;
-        }
     }
 
     /**
@@ -65,13 +60,6 @@ public abstract class AnimatedScreen<
      * For handling a screen refresh, see: {@link State#refresh(AnimatedScreen)}
      */
     protected abstract void createWidgets();
-
-    /**
-     * Called the first time this screen's constructor is called. Intended for declaring client networking callbacks. <br>
-     * You will need to define the networking message that opens this screen outside this function, <br>
-     * as it will not be called until the screen is opened for the first time.
-     */
-    protected abstract void networkingInit();
 
 //    Suppress the warning we're not type checking at runtime, because we're doing it at compile time instead!
 //    (The power of CRTP...)
@@ -118,6 +106,7 @@ public abstract class AnimatedScreen<
         if (!this.firstState) this.state = this.getNextState();
 
         if (this.state == null) {
+            this.onNullStateClose();
             this.close();
             return;
         }
@@ -129,6 +118,18 @@ public abstract class AnimatedScreen<
         this.firstStateTick = true;
     }
 
+    /**
+     * Used in {@link net.thestig294.mctournament.mixin.AnimatedScreenMixin} <br>
+     * Allows for {@link AnimatedScreen}s to open the pause menu on pressing the escape key
+     * @return Always {@code false}
+     */
+    @Override
+    public boolean shouldCloseOnEsc() {
+        PAUSED_SCREEN = this;
+        MCTournament.client().openGameMenu(false);
+        return false;
+    }
+
     @Override
     public void close() {
         MCTournament.client().setScreen(this.parent);
@@ -137,6 +138,10 @@ public abstract class AnimatedScreen<
     @Override
     public boolean shouldPause() {
         return false;
+    }
+
+    protected void onNullStateClose() {
+
     }
 
     @SuppressWarnings("unused")

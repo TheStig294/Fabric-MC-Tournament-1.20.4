@@ -1,23 +1,18 @@
 package net.thestig294.mctournament.minigame.triviamurderparty.screen;
 
-import it.unimi.dsi.fastutil.floats.FloatConsumer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.random.Random;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Question;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Questions;
 import net.thestig294.mctournament.network.ModNetworking;
+import net.thestig294.mctournament.screen.AnimatedScreen;
 import net.thestig294.mctournament.tournament.Tournament;
 import net.thestig294.mctournament.util.ModColors;
 import net.thestig294.mctournament.util.ModUtil;
@@ -28,51 +23,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.IntConsumer;
 
 @Environment(EnvType.CLIENT)
-public class QuestionScreen extends Screen {
-    private static final float TITLE_FADE_TIME = 0.5f;
-    private static final float TITLE_HOLD_TIME = 4.0f;
-    private static final int TITLE_SHAKE_MAX = 5;
-    private static final int TITLE_SHAKE_FREQUENCY = 5;
-    private static final float WELCOME_FADE_TIME = 1.0f;
-
-    private static final float SCREEN_IN_TIME = 1.0f;
-    private static final float HUD_IN_TIME = 1.0f;
-
-    private static final float QUESTION_NUMBER_FADE_TIME = 1.0f;
-    private static final float QUESTION_NUMBER_HOLD_TIME = 1.0f;
-    private static final float QUESTION_ZOOM_TIME = 1.0f;
+public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScreen.State> {
+    private static final int TITLE_SHAKE_PIXEL_AMPLITUDE = 5;
+    private static final int TITLE_SHAKE_FREQUENCY_PERCENT = 5;
     private static final float TIMER_MOVE_TIME = 1.0f;
-    private static final float ANSWER_ZOOM_TIME = 0.2f;
     private static final int ANSWER_SIZE_MULTIPLIER = 2;
-    private static final float ANSWER_HOLD_TIME = 3.0f;
-    private static final float CORRECT_REVEAL_TIME = 0.5f;
-    private static final float CORRECT_POINTS_TIME = 1.0f;
-    private static final float INCORRECT_REVEAL_TIME = 0.5f;
-    private static final float INCORRECT_CROSSES_TIME = 0.5f;
-    private static final float KILLING_ROOM_TRANSITION_MOVE_TIME = 1.0f;
-    private static final float KILLING_ROOM_TRANSITION_LIGHTS_TIME = 1.0f;
-    private static final float KILLING_ROOM_TRANSITION_HOLD_TIME = 3.0f;
-    private static final float ALL_CORRECT_LOOP_BACK_TIME = 1.0f;
-    private static final float ALL_CORRECT_LOOP_BACK_HOLD_TIME = 1.0f;
 
-    private final Screen parent;
     private final Question question;
     private final int questionNumber;
     private final int answeringTimeSeconds;
-    private int answeredCount;
     private final Map<String, Integer> captainAnswers;
-
-    private float uptimeSecs;
-    private State state;
-    private float stateEndTime;
-    private float stateStartTime;
-    private float stateProgress;
-    private int stateProgressPercent;
-    private boolean firstStateTick;
-    private boolean firstState;
+    private int answeredCount;
     private int timerTicksLeft;
 
     private final List<QuestionText> titleWidgets;
@@ -87,22 +50,12 @@ public class QuestionScreen extends Screen {
     private final List<QuestionText> roomCodeWidgets;
 
     public QuestionScreen(Question question, int questionNumber, int answeringTimeSeconds, State startingState) {
-        super(Text.empty());
-        this.parent = MCTournament.client().currentScreen;
+        super(startingState);
         this.question = question;
         this.questionNumber = questionNumber;
         this.answeringTimeSeconds = answeringTimeSeconds;
         this.answeredCount = 0;
         this.captainAnswers = new HashMap<>();
-
-        this.uptimeSecs = 0.0f;
-        this.state = startingState;
-        this.stateEndTime = 0.0f;
-        this.stateStartTime = 0.0f;
-        this.stateProgress = 0.0f;
-        this.stateProgressPercent = 0;
-        this.firstStateTick = true;
-        this.firstState = true;
 
         this.titleWidgets = new ArrayList<>();
         this.playerWidgets = new ArrayList<>();
@@ -112,9 +65,7 @@ public class QuestionScreen extends Screen {
     }
 
     @Override
-    protected void init() {
-        super.init();
-
+    protected void createWidgets() {
         this.titleWidgets.clear();
         this.titleWidgets.add(this.addDrawableChild(new QuestionText(this.width / 2, this.height / 5, "TRIVIA",
                 TriviaMurderParty.Fonts.QUESTION_NUMBER, 20, ModColors.YELLOW, this.width, this.textRenderer)));
@@ -173,226 +124,74 @@ public class QuestionScreen extends Screen {
         this.roomCodeWidgets.add(this.addDrawableChild(new QuestionText( this.width - 20, this.height,
                 ModUtil.getRandomString(4, 2), TriviaMurderParty.Fonts.QUESTION_ANSWER, 10, ModColors.RED,
                 100, this.textRenderer)));
-
-        this.handleRefresh();
-    }
-
-    @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
-
-        if (this.stateEndTime <= this.uptimeSecs) {
-            this.nextState();
-        }
-
-        this.uptimeSecs += delta / ModUtilClient.getTicksPerSecond();
-        this.stateProgress = ModUtil.lerpPercent(this.stateStartTime, this.stateEndTime, this.uptimeSecs);
-        this.stateProgressPercent = (int) (this.stateProgress * 100);
-
-        this.renderState();
-    }
-
-    private void animate(IntConsumer lambda, int start, int end) {
-        lambda.accept((int) ModUtil.lerpLinear(start, end, this.stateProgress));
-    }
-
-    private void animate(FloatConsumer lambda, float start, float end) {
-        lambda.accept(ModUtil.lerpLinear(start, end, this.stateProgress));
-    }
-
-    private void listAnimateAlpha(List<? extends Element> widgets, float start, float end) {
-        for (final var child : widgets) {
-            if (child instanceof ClickableWidget widget) {
-                this.animate(widget::setAlpha, start, end);
-            }
-        }
-    }
-
-    public void setListAlpha(List<? extends Element> widgets, float alpha) {
-        for (final var child : widgets) {
-            if (child instanceof ClickableWidget widget) {
-                widget.setAlpha(alpha);
-            }
-        }
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private void everyStatePercent(int percent, Runnable function) {
-        if (this.stateProgressPercent % percent == 0) function.run();
-    }
-
-    private void ifFirstStateTick(Runnable function) {
-        if (this.firstStateTick) function.run();
     }
 
     private void renderState() {
         switch (this.state) {
-            case TITLE_IN -> {
-                this.ifFirstStateTick(this::resetBoxWidgets);
-                this.listAnimateAlpha(this.titleWidgets, 0.0f, 1.0f);
-            }
-            case TITLE_HOLD -> this.everyStatePercent(TITLE_SHAKE_FREQUENCY, () -> this.titleWidgets.forEach(widget -> {
-                widget.setX(widget.getOriginalX() + Random.create().nextBetween(-TITLE_SHAKE_MAX, TITLE_SHAKE_MAX));
-                widget.setY(widget.getOriginalY() + Random.create().nextBetween(-TITLE_SHAKE_MAX, TITLE_SHAKE_MAX));
-            }));
+            case TITLE_IN -> {}
+            case TITLE_HOLD -> {}
             case TITLE_OUT -> {
-                this.ifFirstStateTick(() -> this.titleWidgets.forEach(widget -> {
-                    widget.setX(widget.getOriginalX());
-                    widget.setY(widget.getOriginalY());
-                }));
+                this.ifFirstStateTick(() -> ));
 
-                this.listAnimateAlpha(this.titleWidgets, 1.0f, 0.0f);
+
             }
             case WELCOME_IN -> {
-                this.ifFirstStateTick(() -> this.questionNumberWidget.setText("screen.mctournament.question_welcome"));
-                this.animate(this.questionNumberWidget::setAlpha, 0.0f, 1.0f);
+                this.ifFirstStateTick(() -> );
+
             }
             case WELCOME_QUIP -> {}
-            case WELCOME_OUT -> this.animate(this.questionNumberWidget::setAlpha, 1.0f, 0.0f);
+            case WELCOME_OUT -> 
             case SCREEN_IN -> {
-                this.ifFirstStateTick(this::resetBoxWidgets);
-                this.animate(this.leftBoxWidget::setX, 0, this.leftBoxWidget.getOriginalX());
-                this.animate(this.rightBoxWidget::setX, this.width / 2, this.rightBoxWidget.getOriginalX());
+                
+
             }
-            case HUD_IN -> {
-                this.playerWidgets.forEach(widget -> {
-                    this.animate(widget::setY, -widget.getOriginalY() - widget.getHeight(), widget.getOriginalY());
-                    this.animate(widget::setAlpha, 0.0f, 1.0f);
-                });
-                this.answeredCountWidgets.forEach(widget -> {
-                    this.animate(widget::setY, this.height, widget.getOriginalY());
-                    this.animate(widget::setAlpha, 0.0f, 1.0f);
-                });
-                this.roomCodeWidgets.forEach(widget -> {
-                    this.animate(widget::setY, this.height, widget.getOriginalY());
-                    this.animate(widget::setAlpha, 0.0f, 1.0f);
-                });
-            }
-            case QUESTION_NUMBER_IN -> {
-                this.ifFirstStateTick(() -> this.questionNumberWidget.setInt(this.questionNumber));
-                this.animate(this.questionNumberWidget::setAlpha, 0.0f, 1.0f);
-            }
+            case HUD_IN -> {}
+            case QUESTION_NUMBER_IN -> {}
             case QUESTION_NUMBER_HOLD -> {}
-            case QUESTION_NUMBER_OUT -> this.animate(this.questionNumberWidget::setAlpha, 1.0f, 0.0f);
+            case QUESTION_NUMBER_OUT -> 
             case QUESTION_IN -> {
-                this.ifFirstStateTick(() -> this.questionWidget.setPosition(this.width / 2, this.height));
-                this.animate(this.questionWidget::setY, this.height, this.questionWidget.getOriginalY());
-                this.animate(this.questionWidget::setAlpha, 0.0f, 1.0f);
+               
             }
             case QUESTION_HOLD -> {}
-            case QUESTION_OUT -> this.animate(this.questionWidget::setX, this.width / 2, this.questionWidget.getOriginalX());
+            case QUESTION_OUT ->
             case TIMER_IN -> {
-                this.answerWidgets.forEach(widget -> {
-                    this.animate(widget::setX, this.width + widget.getWidth(), widget.getOriginalX());
-                    this.animate(widget::setAlpha, 0.0f, 1.0f);
-                });
-                this.animate(this.timerWidget::setY, this.height, this.timerWidget.getOriginalY());
-                this.animate(this.timerWidget::setAlpha, 0.0f, 1.0f);
-                this.timerWidget.reset();
+
             }
             case ANSWERING -> {
-                this.ifFirstStateTick(() -> ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERING_BEGIN));
-                this.timerTicksLeft = this.timerWidget.getTicksLeft();
+                this.ifFirstStateTick(() ->
+
             }
             case TIMER_OUT -> {
                 this.ifFirstStateTick(() -> {
-                    this.lockButtons();
-                    this.resetAnsweredPlayers();
-                    ModUtilClient.playSound(SoundEvents.BLOCK_BELL_USE);
+
                 });
-                this.animate(this.timerWidget::setY, this.timerWidget.getOriginalY(), this.height);
-                this.animate(this.timerWidget::setAlpha, 1.0f, 0.0f);
-                this.timerWidget.reset(0.0f, 0);
+
             }
             case ANSWER_PRE_QUIP -> {}
-            case ANSWER_IN -> this.answerWidgets.forEach(widget -> {
-                if (widget.isCorrect()) {
-                    this.animate(widget::setX, widget.getOriginalX(), this.getFinalAnswerX(widget));
-                    this.animate(widget::setY, widget.getOriginalY(), this.getFinalAnswerY(widget));
-                    this.animate(widget::setWidth, widget.getOriginalWidth(), widget.getOriginalWidth() * ANSWER_SIZE_MULTIPLIER);
-                    this.animate(widget::setHeight, widget.getOriginalHeight(), widget.getOriginalHeight() * ANSWER_SIZE_MULTIPLIER);
-                } else {
-                    this.animate(widget::setAlpha, 1.0f, 0.0f);
-                }
-            });
+            case ANSWER_IN ->
             case ANSWER_HOLD, ANSWER_POST_QUIP -> {}
             case REVEAL_CORRECT -> {
-                this.ifFirstStateTick(() -> this.playerWidgets.forEach(widget -> {
-                    if (!this.isPlayerCorrect(widget)) return;
-                    widget.setAnswerState(QuestionPlayer.AnswerState.CORRECT);
-                    widget.setBottomText("$" + QuestionScreenHandler.CORRECT_ANSWER_POINTS);
-                    widget.setBottomTextAlpha(0.0f);
-                }));
-                this.playerWidgets.forEach(widget -> {
-                    if (!this.isPlayerCorrect(widget)) return;
-                    this.animate(widget::setBottomTextAlpha, 0.0f, 1.0f);
-                    QuestionImage tick = widget.getTickWidget();
-                    if (tick == null) return;
-                    this.animate(tick::setX, tick.getOriginalX() - (tick.getOriginalWidth() / 2), tick.getOriginalX());
-                    this.animate(tick::setY, tick.getOriginalY() - (tick.getOriginalHeight() / 2), tick.getOriginalY());
-                    this.animate(tick::setWidth, tick.getOriginalWidth() * 2, tick.getOriginalWidth());
-                    this.animate(tick::setHeight, tick.getOriginalHeight() * 2, tick.getOriginalHeight());
-                    this.animate(tick::setAlpha, 0.0f, 1.0f);
-                });
+                this.ifFirstStateTick(() ->
+
             }
-            case REVEAL_CORRECT_POINTS -> this.playerWidgets.forEach(widget -> {
-                if (!this.isPlayerCorrect(widget)) return;
-                QuestionImage tick = widget.getTickWidget();
-                if (tick == null) return;
-                this.animate(tick::setAlpha, 1.0f, 0.0f);
-            });
-            case REVEAL_INCORRECT -> this.playerWidgets.forEach(widget -> {
-                if (!this.isPlayerCorrect(widget)) return;
-                this.animate(widget::setY, widget.getOriginalY(), -widget.getHeight() * 2);
-                this.animate(widget::setBottomTextAlpha, 1.0f, 0.0f);
-            });
+            case REVEAL_CORRECT_POINTS ->
+            case REVEAL_INCORRECT ->
             case REVEAL_INCORRECT_CROSSES -> {
-                this.ifFirstStateTick(() -> this.playerWidgets.forEach(widget ->
-                        widget.setAnswerState(QuestionPlayer.AnswerState.INCORRECT)));
-                this.playerWidgets.forEach(widget -> {
-                    if (this.isPlayerCorrect(widget)) return;
-                    QuestionImage cross = widget.getCrossWidget();
-                    if (cross == null) return;
-                    this.animate(cross::setX, cross.getOriginalX() - (cross.getOriginalWidth() / 2), cross.getOriginalX());
-                    this.animate(cross::setY, cross.getOriginalY() - (cross.getOriginalHeight() / 2), cross.getOriginalY());
-                    this.animate(cross::setWidth, cross.getOriginalWidth() * 2, cross.getOriginalWidth());
-                    this.animate(cross::setHeight, cross.getOriginalHeight() * 2, cross.getOriginalHeight());
-                    this.animate(cross::setAlpha, 0.0f, 1.0f);
-                });
+                this.ifFirstStateTick(() ->
+
             }
             case INCORRECT_QUIP -> {}
-            case KILLING_ROOM_TRANSITION_MOVE -> this.children().forEach(child -> {
-                this.ifFirstStateTick(() -> ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_MOVE_PLAYER));
-                if (child instanceof QuestionBox widget) {
-                    this.animate(widget::setAlpha, 0.0f, 1.0f);
-                    this.animate(widget::setX, this.width / 2, 0);
-                    this.animate(widget::setY, this.height / 2, 0);
-                    this.animate(widget::setWidth, 0, this.width);
-                    this.animate(widget::setHeight, 0, this.height);
-                } else if ((child instanceof QuestionWidget widget) && widget.getAlpha() > 0.0f) {
-                    this.animate(widget::setAlpha, 1.0f, 0.0f);
-                }
-            });
+            case KILLING_ROOM_TRANSITION_MOVE ->
             case KILLING_ROOM_TRANSITION_LIGHTS -> {
-                this.ifFirstStateTick(() -> ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_TRIGGER_LIGHTS_OFF));
-                this.children().forEach(child -> {
-                        if ((child instanceof QuestionWidget widget) && widget.getAlpha() > 0.0f) {
-                        this.animate(widget::setAlpha, 1.0f, 0.0f);
-                    }
-                });
+                this.ifFirstStateTick(() ->
+
             }
             case KILLING_ROOM_TRANSITION_HOLD -> {}
             case ALL_CORRECT_LOOP_BACK -> {
-                this.animate(this.questionWidget::setX, this.questionWidget.getOriginalX(), -this.questionWidget.getWidth());
-                for (final var widget : this.answerWidgets) {
-                    if (widget.isCorrect()) {
-                        this.animate(widget::setX, this.getFinalAnswerX(widget), this.width + (widget.getWidth() / 4));
-                        break;
-                    }
-                }
+
             }
-            case ALL_CORRECT_LOOP_BACK_HOLD -> this.ifFirstStateTick(() -> ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_MOVE_PLAYER));
-            case CLOSING_SCREEN -> this.ifFirstStateTick(() -> ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN_START_KILLING_ROOM));
+            case ALL_CORRECT_LOOP_BACK_HOLD -> this.ifFirstStateTick(() ->
+            case CLOSING_SCREEN -> this.ifFirstStateTick(() -> );
         }
 
         this.firstStateTick = false;
@@ -505,82 +304,305 @@ public class QuestionScreen extends Screen {
         }
     }
 
-    private void nextState() {
-        if (!this.firstState) this.state = this.state.next(this);
-        if (this.state == State.CLOSING_SCREEN) {
-            this.close();
-            return;
-        }
-        this.firstState = false;
-        float lastEndTime = this.stateEndTime;
-
-        this.stateEndTime = this.uptimeSecs + switch (this.state) {
-            case TITLE_IN, TITLE_OUT -> TITLE_FADE_TIME;
-            case TITLE_HOLD -> TITLE_HOLD_TIME;
-            case WELCOME_IN, WELCOME_OUT -> WELCOME_FADE_TIME;
-            case WELCOME_QUIP -> this.getQuip(QuipType.WELCOME);
-            case SCREEN_IN -> SCREEN_IN_TIME;
-            case HUD_IN -> HUD_IN_TIME;
-            case QUESTION_NUMBER_IN, QUESTION_NUMBER_OUT -> QUESTION_NUMBER_FADE_TIME;
-            case QUESTION_NUMBER_HOLD -> QUESTION_NUMBER_HOLD_TIME;
-            case QUESTION_IN, QUESTION_OUT -> QUESTION_ZOOM_TIME;
-            case QUESTION_HOLD -> this.question.holdTime();
-            case TIMER_IN, TIMER_OUT -> TIMER_MOVE_TIME;
-            case ANSWERING -> this.answeringTimeSeconds;
-            case ANSWER_PRE_QUIP -> this.getQuip(QuipType.PRE_ANSWER);
-            case ANSWER_IN -> ANSWER_ZOOM_TIME;
-            case ANSWER_HOLD -> ANSWER_HOLD_TIME;
-            case ANSWER_POST_QUIP -> this.getQuip(QuipType.POST_ANSWER);
-            case REVEAL_CORRECT -> CORRECT_REVEAL_TIME;
-            case REVEAL_CORRECT_POINTS -> CORRECT_POINTS_TIME;
-            case REVEAL_INCORRECT -> INCORRECT_REVEAL_TIME;
-            case REVEAL_INCORRECT_CROSSES -> INCORRECT_CROSSES_TIME;
-            case INCORRECT_QUIP -> this.getQuip(QuipType.INCORRECT);
-            case KILLING_ROOM_TRANSITION_MOVE -> KILLING_ROOM_TRANSITION_MOVE_TIME;
-            case KILLING_ROOM_TRANSITION_LIGHTS -> KILLING_ROOM_TRANSITION_LIGHTS_TIME;
-            case KILLING_ROOM_TRANSITION_HOLD -> KILLING_ROOM_TRANSITION_HOLD_TIME;
-            case ALL_CORRECT_LOOP_BACK -> ALL_CORRECT_LOOP_BACK_TIME;
-            case ALL_CORRECT_LOOP_BACK_HOLD -> ALL_CORRECT_LOOP_BACK_HOLD_TIME;
-            default -> throw new IllegalStateException("Unexpected value: " + this.state);
-        };
-
-        this.stateStartTime = lastEndTime;
-        this.firstStateTick = true;
+    @Override
+    protected void onNullStateClose() {
+        ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN_START_KILLING_ROOM);
     }
 
-    public enum State {
-        TITLE_IN, // Entrypoint for a new quiz
-        TITLE_HOLD,
-        TITLE_OUT,
-        WELCOME_IN,
-        WELCOME_QUIP,
-        WELCOME_OUT,
-        SCREEN_IN, // Entrypoint for returning from a killing room
-        HUD_IN,
-        QUESTION_NUMBER_IN, // Entrypoint for a new question after all players answered correctly
-        QUESTION_NUMBER_HOLD,
-        QUESTION_NUMBER_OUT,
-        QUESTION_IN,
-        QUESTION_HOLD,
-        QUESTION_OUT,
-        TIMER_IN,
-        ANSWERING,
-        TIMER_OUT,
-        ANSWER_PRE_QUIP,
-        ANSWER_IN,
-        ANSWER_HOLD,
-        ANSWER_POST_QUIP,
-        REVEAL_CORRECT,
-        REVEAL_CORRECT_POINTS,
-        REVEAL_INCORRECT,
-        REVEAL_INCORRECT_CROSSES,
-        INCORRECT_QUIP,
-        KILLING_ROOM_TRANSITION_MOVE,
-        KILLING_ROOM_TRANSITION_LIGHTS,
-        KILLING_ROOM_TRANSITION_HOLD,
-        ALL_CORRECT_LOOP_BACK,
-        ALL_CORRECT_LOOP_BACK_HOLD,
-        CLOSING_SCREEN;
+    public enum State implements AnimatedScreen.State<QuestionScreen> {
+        TITLE_IN { // Entrypoint for a new quiz
+            public void begin(QuestionScreen screen) {screen.resetBoxWidgets();}
+            public void render(QuestionScreen screen) {screen.listAnimateAlpha(screen.titleWidgets, 0.0f, 1.0f);}
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 0.5f;}
+        },
+        TITLE_HOLD {
+            public void render(QuestionScreen screen) {
+                screen.everyStatePercent(TITLE_SHAKE_FREQUENCY_PERCENT, () -> screen.titleWidgets.forEach(widget -> {
+                    widget.setX(widget.getOriginalX() + Random.create().nextBetween(-TITLE_SHAKE_PIXEL_AMPLITUDE, TITLE_SHAKE_PIXEL_AMPLITUDE));
+                    widget.setY(widget.getOriginalY() + Random.create().nextBetween(-TITLE_SHAKE_PIXEL_AMPLITUDE, TITLE_SHAKE_PIXEL_AMPLITUDE));
+                }));
+            }
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 4.0f;}
+        },
+        TITLE_OUT {
+            public void begin(QuestionScreen screen) {
+                screen.titleWidgets.forEach(widget -> {
+                    widget.setX(widget.getOriginalX());
+                    widget.setY(widget.getOriginalY());
+                });
+            }
+            public void render(QuestionScreen screen) {screen.listAnimateAlpha(screen.titleWidgets, 1.0f, 0.0f);}
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 0.5f;}
+        },
+        WELCOME_IN {
+            public void begin(QuestionScreen screen) {screen.questionNumberWidget.setText("screen.mctournament.question_welcome");}
+            public void render(QuestionScreen screen) {screen.animate(screen.questionNumberWidget::setAlpha, 0.0f, 1.0f);}
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 1.0f;}
+        },
+        WELCOME_QUIP {
+            public void render(QuestionScreen screen) {}
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return screen.getQuip(QuipType.WELCOME);}
+        },
+        WELCOME_OUT {
+            public void render(QuestionScreen screen) {screen.animate(screen.questionNumberWidget::setAlpha, 1.0f, 0.0f);}
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 1.0f;}
+        },
+        SCREEN_IN { // Entrypoint for returning from a killing room
+            public void begin(QuestionScreen screen) {screen.resetBoxWidgets();}
+            public void render(QuestionScreen screen) {
+                screen.animate(screen.leftBoxWidget::setX, 0, screen.leftBoxWidget.getOriginalX());
+                screen.animate(screen.rightBoxWidget::setX, screen.width / 2, screen.rightBoxWidget.getOriginalX());
+            }
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 1.0f;}
+        },
+        HUD_IN {
+            public void render(QuestionScreen screen) {
+                screen.playerWidgets.forEach(widget -> {
+                    screen.animate(widget::setY, -widget.getOriginalY() - widget.getHeight(), widget.getOriginalY());
+                    screen.animate(widget::setAlpha, 0.0f, 1.0f);
+                });
+                screen.answeredCountWidgets.forEach(widget -> {
+                    screen.animate(widget::setY, screen.height, widget.getOriginalY());
+                    screen.animate(widget::setAlpha, 0.0f, 1.0f);
+                });
+                screen.roomCodeWidgets.forEach(widget -> {
+                    screen.animate(widget::setY, screen.height, widget.getOriginalY());
+                    screen.animate(widget::setAlpha, 0.0f, 1.0f);
+                });
+            }
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 1.0f;}
+        },
+        QUESTION_NUMBER_IN { // Entrypoint for a new question after all players answered correctly
+            public void begin(QuestionScreen screen) {screen.questionNumberWidget.setInt(screen.questionNumber);}
+            public void render(QuestionScreen screen) {screen.animate(screen.questionNumberWidget::setAlpha, 0.0f, 1.0f);}
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 1.0f;}
+        },
+        QUESTION_NUMBER_HOLD {
+            public void render(QuestionScreen screen) {}
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 1.0f;}
+        },
+        QUESTION_NUMBER_OUT {
+            public void render(QuestionScreen screen) {screen.animate(screen.questionNumberWidget::setAlpha, 1.0f, 0.0f);}
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 1.0f;}
+        },
+        QUESTION_IN {
+            public void begin(QuestionScreen screen) {screen.questionWidget.setPosition(screen.width / 2, screen.height);}
+            public void render(QuestionScreen screen) {
+                screen.animate(screen.questionWidget::setY, screen.height, screen.questionWidget.getOriginalY());
+                screen.animate(screen.questionWidget::setAlpha, 0.0f, 1.0f);
+            }
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 1.0f;}
+        },
+        QUESTION_HOLD {
+            public void render(QuestionScreen screen) {}
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return screen.question.holdTime();}
+        },
+        QUESTION_OUT {
+            public void render(QuestionScreen screen) {screen.animate(screen.questionWidget::setX, screen.width / 2, screen.questionWidget.getOriginalX());}
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 1.0f;}
+        },
+        TIMER_IN {
+            public void render(QuestionScreen screen) {
+                this.answerWidgets.forEach(widget -> {
+                    this.animate(widget::setX, this.width + widget.getWidth(), widget.getOriginalX());
+                    this.animate(widget::setAlpha, 0.0f, 1.0f);
+                });
+                this.animate(this.timerWidget::setY, this.height, this.timerWidget.getOriginalY());
+                this.animate(this.timerWidget::setAlpha, 0.0f, 1.0f);
+                this.timerWidget.reset();
+            }
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return TIMER_MOVE_TIME;}
+        },
+        ANSWERING {
+            public void begin(QuestionScreen screen) {ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERING_BEGIN);}
+            public void render(QuestionScreen screen) {this.timerTicksLeft = this.timerWidget.getTicksLeft();}
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return screen.answeringTimeSeconds;}
+        },
+        TIMER_OUT {
+            public void begin(QuestionScreen screen) {
+                this.lockButtons();
+                this.resetAnsweredPlayers();
+                ModUtilClient.playSound(SoundEvents.BLOCK_BELL_USE);
+            }
+            public void render(QuestionScreen screen) {
+                this.animate(this.timerWidget::setY, this.timerWidget.getOriginalY(), this.height);
+                this.animate(this.timerWidget::setAlpha, 1.0f, 0.0f);
+                this.timerWidget.reset(0.0f, 0);
+            }
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return TIMER_MOVE_TIME;}
+        },
+        ANSWER_PRE_QUIP {
+            public void render(QuestionScreen screen) {}
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return screen.getQuip(QuipType.PRE_ANSWER);}
+        },
+        ANSWER_IN {
+            public void render(QuestionScreen screen) {
+                this.answerWidgets.forEach(widget -> {
+                    if (widget.isCorrect()) {
+                        this.animate(widget::setX, widget.getOriginalX(), this.getFinalAnswerX(widget));
+                        this.animate(widget::setY, widget.getOriginalY(), this.getFinalAnswerY(widget));
+                        this.animate(widget::setWidth, widget.getOriginalWidth(), widget.getOriginalWidth() * ANSWER_SIZE_MULTIPLIER);
+                        this.animate(widget::setHeight, widget.getOriginalHeight(), widget.getOriginalHeight() * ANSWER_SIZE_MULTIPLIER);
+                    } else {
+                        this.animate(widget::setAlpha, 1.0f, 0.0f);
+                    }
+                });
+            }
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 0.2f;}
+        },
+        ANSWER_HOLD {
+            public void render(QuestionScreen screen) {}
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 3.0f;}
+        },
+        ANSWER_POST_QUIP {
+            public void render(QuestionScreen screen) {}
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return screen.getQuip(QuipType.POST_ANSWER);}
+        },
+        REVEAL_CORRECT {
+            public void begin(QuestionScreen screen) {
+                this.playerWidgets.forEach(widget -> {
+                    if (!this.isPlayerCorrect(widget)) return;
+                    widget.setAnswerState(QuestionPlayer.AnswerState.CORRECT);
+                    widget.setBottomText("$" + QuestionScreenHandler.CORRECT_ANSWER_POINTS);
+                    widget.setBottomTextAlpha(0.0f);
+                });
+            }
+            public void render(QuestionScreen screen) {
+                this.playerWidgets.forEach(widget -> {
+                    if (!this.isPlayerCorrect(widget)) return;
+                    this.animate(widget::setBottomTextAlpha, 0.0f, 1.0f);
+                    QuestionImage tick = widget.getTickWidget();
+                    if (tick == null) return;
+                    this.animate(tick::setX, tick.getOriginalX() - (tick.getOriginalWidth() / 2), tick.getOriginalX());
+                    this.animate(tick::setY, tick.getOriginalY() - (tick.getOriginalHeight() / 2), tick.getOriginalY());
+                    this.animate(tick::setWidth, tick.getOriginalWidth() * 2, tick.getOriginalWidth());
+                    this.animate(tick::setHeight, tick.getOriginalHeight() * 2, tick.getOriginalHeight());
+                    this.animate(tick::setAlpha, 0.0f, 1.0f);
+                });
+            }
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 0.5f;}
+        },
+        REVEAL_CORRECT_POINTS {
+            public void render(QuestionScreen screen) {
+                this.playerWidgets.forEach(widget -> {
+                    if (!this.isPlayerCorrect(widget)) return;
+                    QuestionImage tick = widget.getTickWidget();
+                    if (tick == null) return;
+                    this.animate(tick::setAlpha, 1.0f, 0.0f);
+                });
+            }
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 1.0f;}
+        },
+        REVEAL_INCORRECT {
+            public void render(QuestionScreen screen) {
+                this.playerWidgets.forEach(widget -> {
+                    if (!this.isPlayerCorrect(widget)) return;
+                    this.animate(widget::setY, widget.getOriginalY(), -widget.getHeight() * 2);
+                    this.animate(widget::setBottomTextAlpha, 1.0f, 0.0f);
+                });
+            }
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 0.5f;}
+        },
+        REVEAL_INCORRECT_CROSSES {
+            public void begin(QuestionScreen screen) {this.playerWidgets.forEach(widget -> widget.setAnswerState(QuestionPlayer.AnswerState.INCORRECT));}
+            public void render(QuestionScreen screen) {
+                this.playerWidgets.forEach(widget -> {
+                    if (this.isPlayerCorrect(widget)) return;
+                    QuestionImage cross = widget.getCrossWidget();
+                    if (cross == null) return;
+                    this.animate(cross::setX, cross.getOriginalX() - (cross.getOriginalWidth() / 2), cross.getOriginalX());
+                    this.animate(cross::setY, cross.getOriginalY() - (cross.getOriginalHeight() / 2), cross.getOriginalY());
+                    this.animate(cross::setWidth, cross.getOriginalWidth() * 2, cross.getOriginalWidth());
+                    this.animate(cross::setHeight, cross.getOriginalHeight() * 2, cross.getOriginalHeight());
+                    this.animate(cross::setAlpha, 0.0f, 1.0f);
+                });
+            }
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 0.5f;}
+        },
+        INCORRECT_QUIP {
+            public void render(QuestionScreen screen) {}
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return screen.getQuip(QuipType.INCORRECT);}
+        },
+        KILLING_ROOM_TRANSITION_MOVE {
+            public void render(QuestionScreen screen) {
+                this.children().forEach(child -> {
+                    this.ifFirstStateTick(() -> ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_MOVE_PLAYER));
+                    if (child instanceof QuestionBox widget) {
+                        this.animate(widget::setAlpha, 0.0f, 1.0f);
+                        this.animate(widget::setX, this.width / 2, 0);
+                        this.animate(widget::setY, this.height / 2, 0);
+                        this.animate(widget::setWidth, 0, this.width);
+                        this.animate(widget::setHeight, 0, this.height);
+                    } else if ((child instanceof QuestionWidget widget) && widget.getAlpha() > 0.0f) {
+                        this.animate(widget::setAlpha, 1.0f, 0.0f);
+                    }
+                });
+            }
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 1.0f;}
+        },
+        KILLING_ROOM_TRANSITION_LIGHTS {
+            public void begin(QuestionScreen screen) {ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_TRIGGER_LIGHTS_OFF));}
+            public void render(QuestionScreen screen) {
+                this.children().forEach(child -> {
+                    if ((child instanceof QuestionWidget widget) && widget.getAlpha() > 0.0f) {
+                        this.animate(widget::setAlpha, 1.0f, 0.0f);
+                    }
+                });
+            }
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 1.0f;}
+        },
+        KILLING_ROOM_TRANSITION_HOLD {
+            public void render(QuestionScreen screen) {}
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 3.0f;}
+        },
+        ALL_CORRECT_LOOP_BACK {
+            public void render(QuestionScreen screen) {
+                this.animate(this.questionWidget::setX, this.questionWidget.getOriginalX(), -this.questionWidget.getWidth());
+                for (final var widget : this.answerWidgets) {
+                    if (widget.isCorrect()) {
+                        this.animate(widget::setX, this.getFinalAnswerX(widget), this.width + (widget.getWidth() / 4));
+                        break;
+                    }
+                }
+            }
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 1.0f;}
+        },
+        ALL_CORRECT_LOOP_BACK_HOLD {
+            public void begin(QuestionScreen screen) {ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_MOVE_PLAYER);}
+            public void render(QuestionScreen screen) {}
+            public void refresh(QuestionScreen screen) {}
+            public float duration(QuestionScreen screen) {return 1.0f;}
+        };
 
         public State next(QuestionScreen screen) {
             return switch (this) {

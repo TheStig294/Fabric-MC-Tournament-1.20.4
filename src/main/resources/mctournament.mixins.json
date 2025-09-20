@@ -1,14 +1,17 @@
 {
-	"required": true,
-	"package": "net.thestig294.mctournament.mixin",
-	"compatibilityLevel": "JAVA_17",
-	"mixins": [
-      "JigsawMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
-	},
-	"overwrites": {
-		"requireAnnotations": true
-	}
+  "required": true,
+  "package": "net.thestig294.mctournament.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "JigsawMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  },
+  "client": [
+    "AnimatedScreenMixin"
+  ]
 }
