@@ -24,18 +24,18 @@ import java.util.function.IntConsumer;
 // to have access to themselves inside their State enums, e.g.
 // public void render(ExampleScreen screen) {
 public abstract class AnimatedScreen<
-        ChildClass extends AnimatedScreen<ChildClass, ChildStateClass>,
-        ChildStateClass extends Enum<ChildStateClass> & AnimatedScreen.State<ChildClass>>
+        T extends AnimatedScreen<T, E>,
+        E extends Enum<E> & AnimatedScreen.State<T>>
         extends Screen {
 
     private static boolean INITIALISED;
 
-    private final Class<ChildClass> childClass;
-    private final Class<ChildStateClass> childStateClass;
+    private final Class<T> childClass;
+    private final Class<E> childStateClass;
     private final Screen parent;
 
     private float uptimeSecs;
-    private ChildStateClass state;
+    private E state;
     private float stateEndTime;
     private float stateStartTime;
     private float stateProgress;
@@ -43,7 +43,7 @@ public abstract class AnimatedScreen<
     private boolean firstStateTick;
     private boolean firstState;
 
-    public AnimatedScreen(Class<ChildClass> childClass, Class<ChildStateClass> childStateClass, ChildStateClass startingState) {
+    public AnimatedScreen(Class<T> childClass, Class<E> childStateClass, E startingState) {
         super(Text.empty());
         this.childClass = childClass;
         this.childStateClass = childStateClass;
@@ -74,7 +74,7 @@ public abstract class AnimatedScreen<
 
     protected abstract void networkingInit();
 
-    private ChildClass toChild() {
+    private T toChild() {
         if (!this.childClass.isInstance(this)) {
             MCTournament.LOGGER.error("""
                     Cannot cast AnimatedScreen!
@@ -110,7 +110,7 @@ public abstract class AnimatedScreen<
         this.firstStateTick = false;
     }
 
-    private @Nullable ChildStateClass getNextState() {
+    private @Nullable E getNextState() {
         if (this.state == null) return null;
 
         if (!this.childClass.isInstance(this.state)) {
@@ -182,7 +182,7 @@ public abstract class AnimatedScreen<
         this.stateEndTime = this.uptimeSecs;
     }
 
-    protected State<ChildClass> toChildStateClass(Enum<?> childState) {
+    protected State<T> toChildStateClass(Enum<?> childState) {
         return this.childStateClass.cast(childState);
     }
 
