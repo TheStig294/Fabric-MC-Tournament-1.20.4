@@ -23,6 +23,7 @@ import java.util.function.IntConsumer;
 // This is all basically to allow for the screens implementing this class
 // to have access to themselves inside their State enums, e.g.
 // public void render(ExampleScreen screen) {
+// (As a bonus, it also allows for typecast-checking at compile time, rather than at runtime!)
 public abstract class AnimatedScreen<
         T extends AnimatedScreen<T, E>,
         E extends Enum<E> & AnimatedScreen.State<T>>
@@ -32,8 +33,8 @@ public abstract class AnimatedScreen<
 
     private final Screen parent;
 
-    private float uptimeSecs;
     private E state;
+    private float uptimeSecs;
     private float stateEndTime;
     private float stateStartTime;
     private float stateProgress;
@@ -45,8 +46,8 @@ public abstract class AnimatedScreen<
         super(Text.empty());
         this.parent = MCTournament.client().currentScreen;
 
-        this.uptimeSecs = 0.0f;
         this.state = startingState;
+        this.uptimeSecs = 0.0f;
         this.stateEndTime = 0.0f;
         this.stateStartTime = 0.0f;
         this.stateProgress = 0.0f;
@@ -81,6 +82,7 @@ public abstract class AnimatedScreen<
         super.render(context, mouseX, mouseY, delta);
 
         if (this.stateEndTime <= this.uptimeSecs) {
+            this.state.end(this.toChild());
             this.switchToNextState();
             if (this.state == null) return;
         }
@@ -106,7 +108,6 @@ public abstract class AnimatedScreen<
         if (!this.firstState) this.state = this.getNextState();
 
         if (this.state == null) {
-            this.onNullStateClose();
             this.close();
             return;
         }
@@ -140,11 +141,6 @@ public abstract class AnimatedScreen<
         return false;
     }
 
-    protected void onNullStateClose() {
-
-    }
-
-    @SuppressWarnings("unused")
     protected void animate(IntConsumer lambda, int start, int end) {
         lambda.accept((int) ModUtil.lerpLinear(start, end, this.stateProgress));
     }
@@ -153,7 +149,6 @@ public abstract class AnimatedScreen<
         lambda.accept(ModUtil.lerpLinear(start, end, this.stateProgress));
     }
 
-    @SuppressWarnings("unused")
     protected void listAnimateAlpha(List<? extends Element> widgets, float start, float end) {
         for (final var child : widgets) {
             if (child instanceof ClickableWidget widget) {
@@ -162,7 +157,6 @@ public abstract class AnimatedScreen<
         }
     }
 
-    @SuppressWarnings("SameParameterValue")
     protected void setListAlpha(List<? extends Element> widgets, float alpha) {
         for (final var child : widgets) {
             if (child instanceof ClickableWidget widget) {
@@ -171,14 +165,17 @@ public abstract class AnimatedScreen<
         }
     }
 
-    @SuppressWarnings("unused")
     protected void everyStatePercent(int percent, Runnable function) {
         if (this.stateProgressPercent % percent == 0) function.run();
     }
 
-    @SuppressWarnings("unused")
     protected void forceStateEnd() {
         this.stateEndTime = this.uptimeSecs;
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    protected boolean isState(State<T> state) {
+        return this.state.equals(state);
     }
 
     public interface State<T extends AnimatedScreen<T, ? extends State<T>>> {
@@ -193,6 +190,12 @@ public abstract class AnimatedScreen<
          * @param screen Instance of your screen during this state
          */
         void render(T screen);
+
+        /**
+         * Run on the final render tick
+         * @param screen Instance of your screen during this state
+         */
+        default void end(T screen) {}
 
         /**
          * Run once every time the Minecraft window is resized or set to full-screen. <br>
@@ -211,8 +214,8 @@ public abstract class AnimatedScreen<
         /**
          * Defines the next state after this one (optional). <p>
          * If not implemented, the next state is the next one defined in the enum,
-         * except for the final state, which has a state of {@code null}. </p>
-         * Returning {@code null} triggers a call to {@link AnimatedScreen#close()}.
+         * except for the final state, where its next state is {@code null}. </p>
+         * Returning {@code null} closes the screen via {@link AnimatedScreen#close()}
          * @param screen Instance of your screen during this state
          * @return The screen state after this one
          */

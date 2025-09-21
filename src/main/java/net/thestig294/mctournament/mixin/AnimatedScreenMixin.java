@@ -16,10 +16,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class AnimatedScreenMixin {
     @Inject(method = "setScreen", at = @At("RETURN"))
     private void onSetScreen(Screen screen, CallbackInfo ci) {
-        Screen currentScreen = MCTournament.client().currentScreen;
+        if (AnimatedScreen.PAUSED_SCREEN == null) return;
 
-        if (AnimatedScreen.PAUSED_SCREEN != null && currentScreen == null) {
+        if (screen == null) {
+//            If a screen was paused, and the player is going back to the main game, set their screen
             MCTournament.client().setScreen(AnimatedScreen.PAUSED_SCREEN);
+            AnimatedScreen.PAUSED_SCREEN = null;
+        } else if (screen instanceof AnimatedScreen<?,?>) {
+//            If a screen was paused, and a new animated screen is being set,
+//            don't worry about returning to the old screen anymore
             AnimatedScreen.PAUSED_SCREEN = null;
         }
     }
