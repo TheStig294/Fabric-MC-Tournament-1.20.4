@@ -5,13 +5,13 @@
   "mixins": [
     "JigsawMixin"
   ],
+  "client": [
+    "AnimatedScreenMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   },
   "overwrites": {
     "requireAnnotations": true
-  },
-  "client": [
-    "AnimatedScreenMixin"
-  ]
+  }
 }
