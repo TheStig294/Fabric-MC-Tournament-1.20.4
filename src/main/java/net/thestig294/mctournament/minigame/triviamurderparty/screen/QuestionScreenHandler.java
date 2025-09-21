@@ -83,7 +83,7 @@ public class QuestionScreenHandler {
             for (final var captain : Tournament.inst().scoreboard().getValidTeamCaptains()) {
                 if (!this.answeredCaptains.getOrDefault(captain.getNameForScoreboard(), false)) return;
             }
-            this.broadcastNextQuestionScreen(QuestionScreen.State.QUESTION_NUMBER_IN);
+            this.broadcastNextQuestionScreen(Entrypoint.QUESTION_NUMBER_IN);
         });
 
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_TRIGGER_LIGHTS_OFF, serverReceiveInfo -> {
@@ -113,10 +113,10 @@ public class QuestionScreenHandler {
     public void begin(BlockPos pos) {
         this.corridorStartingPos = pos;
         Questions.shuffleCategory(this.minigame.getVariant());
-        this.broadcastNextQuestionScreen(QuestionScreen.State.TITLE_IN);
+        this.broadcastNextQuestionScreen(Entrypoint.TITLE_IN);
     }
 
-    public void broadcastNextQuestionScreen(QuestionScreen.State state) {
+    private void broadcastNextQuestionScreen(Entrypoint entrypoint) {
         this.answeredCaptains.clear();
         ModTimer.remove(false, "QuestionScreenAnsweringTimeUp");
         this.state = State.PRE_ANSWERING;
@@ -138,7 +138,7 @@ public class QuestionScreenHandler {
                 .writeInt(Questions.getNext().id())
                 .writeInt(Questions.getQuestionNumber())
                 .writeInt(ANSWERING_TIME_SECONDS)
-                .writeEnumConstant(state)
+                .writeEnumConstant(entrypoint)
         );
     }
 
@@ -148,10 +148,16 @@ public class QuestionScreenHandler {
         ModNetworking.broadcast(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERING_END);
     }
 
-    enum State {
+    private enum State {
         PRE_ANSWERING,
         ANSWERING,
         POST_ANSWERING,
         DISABLED
+    }
+
+    public enum Entrypoint {
+        TITLE_IN, // New quiz
+        SCREEN_IN, // Returning from a killing room
+        QUESTION_NUMBER_IN // All correct loopback
     }
 }

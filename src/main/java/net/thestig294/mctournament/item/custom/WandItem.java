@@ -8,11 +8,8 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
-import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
-import net.thestig294.mctournament.screen.ExampleScreen;
 import net.thestig294.mctournament.structure.ModStructures;
-import net.thestig294.mctournament.util.ModTimer;
 
 public class WandItem extends Item {
     public WandItem(Settings settings) {
@@ -28,12 +25,8 @@ public class WandItem extends Item {
         return super.use(world, player, hand);
     }
 
+    @SuppressWarnings("unused")
     public ActionResult onAttackBlock(World world) {
-        if (world.isClient()) {
-            ModTimer.simple(true, 1, () ->
-                    MCTournament.client().setScreen(new ExampleScreen(ExampleScreen.State.STATE1)));
-        }
-
         return ActionResult.PASS;
     }
 

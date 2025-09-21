@@ -479,6 +479,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
             public void end(QuestionScreen screen) {ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN_START_KILLING_ROOM);}
             public void refresh(QuestionScreen screen) {KILLING_ROOM_TRANSITION_MOVE.refresh(screen);}
             public float duration(QuestionScreen screen) {return 3.0f;}
+            public State next(QuestionScreen screen) {return null;}
         },
         ALL_CORRECT_LOOP_BACK {
             public void render(QuestionScreen screen) {
@@ -518,7 +519,13 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
             int id = buffer.readInt();
             int questionNumber = buffer.readInt();
             int answeringSeconds = buffer.readInt();
-            State state = buffer.readEnumConstant(State.class);
+
+            QuestionScreenHandler.Entrypoint entrypoint = buffer.readEnumConstant(QuestionScreenHandler.Entrypoint.class);
+            State state = switch (entrypoint) {
+                case TITLE_IN -> State.TITLE_IN;
+                case SCREEN_IN -> State.SCREEN_IN;
+                case QUESTION_NUMBER_IN -> State.QUESTION_NUMBER_IN;
+            };
 
             if (MCTournament.client().currentScreen instanceof QuestionScreen questionScreen) questionScreen.close();
             Question question = Questions.getQuestionByID(id);
@@ -577,7 +584,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
     }
 
     @SuppressWarnings("unused")
-    float getQuip(QuipType quipType) {
+    private float getQuip(QuipType quipType) {
         return 1.0f;
     }
 

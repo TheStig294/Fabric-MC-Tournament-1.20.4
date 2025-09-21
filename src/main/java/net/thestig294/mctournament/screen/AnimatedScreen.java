@@ -14,6 +14,7 @@ import net.thestig294.mctournament.util.ModUtilClient;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.IntConsumer;
 
 
@@ -33,6 +34,7 @@ public abstract class AnimatedScreen<
 
     private final Screen parent;
 
+    @Nullable
     private E state;
     private float uptimeSecs;
     private float stateEndTime;
@@ -42,7 +44,7 @@ public abstract class AnimatedScreen<
     private boolean firstStateTick;
     private boolean firstState;
 
-    public AnimatedScreen(E startingState) {
+    public AnimatedScreen(@Nullable E startingState) {
         super(Text.empty());
         this.parent = MCTournament.client().currentScreen;
 
@@ -74,7 +76,7 @@ public abstract class AnimatedScreen<
         super.init();
         this.createWidgets();
         this.setListAlpha(this.children(), 0.0f);
-        this.state.refresh(this.toChild());
+        if (this.state != null) this.state.refresh(this.toChild());
     }
 
     @Override
@@ -82,7 +84,7 @@ public abstract class AnimatedScreen<
         super.render(context, mouseX, mouseY, delta);
 
         if (this.stateEndTime <= this.uptimeSecs) {
-            this.state.end(this.toChild());
+            if (this.state != null) this.state.end(this.toChild());
             this.switchToNextState();
             if (this.state == null) return;
         }
@@ -92,11 +94,11 @@ public abstract class AnimatedScreen<
         this.stateProgressPercent = (int) (this.stateProgress * 100);
 
         if (this.firstStateTick) {
-            this.state.begin(this.toChild());
+            if (this.state != null) this.state.begin(this.toChild());
             this.firstStateTick = false;
         }
 
-        this.state.render(this.toChild());
+        if (this.state != null) this.state.render(this.toChild());
     }
 
     @SuppressWarnings("unchecked")
@@ -126,6 +128,7 @@ public abstract class AnimatedScreen<
      */
     @Override
     public boolean shouldCloseOnEsc() {
+        MCTournament.client().setScreen(null);
         PAUSED_SCREEN = this;
         MCTournament.client().openGameMenu(false);
         return false;
@@ -175,7 +178,7 @@ public abstract class AnimatedScreen<
 
     @SuppressWarnings("SameParameterValue")
     protected boolean isState(State<T> state) {
-        return this.state.equals(state);
+        return Objects.equals(this.state, state);
     }
 
     public interface State<T extends AnimatedScreen<T, ? extends State<T>>> {
