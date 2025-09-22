@@ -1,6 +1,7 @@
 package net.thestig294.mctournament.util;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
@@ -108,5 +109,11 @@ public class ModUtil {
 
     public static void placeRedstoneBlock(BlockPos pos) {
         runConsoleCommand("/setblock %d %d %d minecraft:redstone_block", pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    public static void teleportFacingNorth(PlayerEntity player, BlockPos pos) {
+//        The "180 0" part of the /tp command forces the player to face north: yaw, pitch
+        runConsoleCommand("/tp %s %s %s %s 180 0", player.getNameForScoreboard(),
+                pos.getX(), pos.getY(), pos.getZ());
     }
 }

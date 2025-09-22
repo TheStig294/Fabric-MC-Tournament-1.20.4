@@ -24,7 +24,6 @@ public class ModStructures {
     public static final Identifier MINECRAFT_EMPTY = new Identifier("minecraft", "empty");
     public static BlockRotation JIGSAW_ROTATION_OVERRIDE;
 
-    @SuppressWarnings("unused")
     public static Structure registerStructure(String id, int xOffset, int yOffset, int zOffset) {
         return new Structure(new Identifier(MCTournament.MOD_ID, id), xOffset, yOffset, zOffset);
     }
@@ -47,7 +46,6 @@ public class ModStructures {
      * @param structure Structure identifier
      * @param player Player to spawn the structure around
      */
-    @SuppressWarnings("unused")
     public static void place(Structure structure, PlayerEntity player) {
         place(structure, player.getBlockPos(), player.getYaw(), (ServerWorldAccess) player.getWorld());
     }
@@ -78,7 +76,16 @@ public class ModStructures {
         place(structure, pos, yawToRotation(yaw), world);
     }
 
-    public static BlockPos offsetBlockPos(BlockPos pos, int xOffset, int yOffset, int zOffset, BlockRotation rotation) {
+    /**
+     * Places a structure facing north in the overworld. It is assumed the structure was built facing north.
+     * @param structure Structure identifier
+     * @param pos World position to spawn the structure
+     */
+    public static void place(Structure structure, BlockPos pos) {
+        place(structure, pos, BlockRotation.NONE, MCTournament.server().getOverworld());
+    }
+
+    private static BlockPos offsetBlockPos(BlockPos pos, int xOffset, int yOffset, int zOffset, BlockRotation rotation) {
         BlockPos offset = new BlockPos.Mutable(-xOffset, -yOffset, -zOffset).rotate(rotation);
         return pos.add(offset);
     }

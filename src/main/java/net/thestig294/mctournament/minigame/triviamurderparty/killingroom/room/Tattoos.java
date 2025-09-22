@@ -8,10 +8,7 @@ public class Tattoos extends KillingRoom {
 
     @Override
     public Properties properties() {
-        return new Properties("tattoos", "screen.mctournament.killing_room_tattoos",
-                new Description("screen.mctournament.killing_room_tattoos_description_1", 3),
-                new Description("screen.mctournament.killing_room_tattoos_description_2", 3)
-        );
+        return new Properties(0,0,0, "tattoos", 30, 3.0f, 3.0f);
     }
 
     @Override

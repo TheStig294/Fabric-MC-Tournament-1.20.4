@@ -33,6 +33,10 @@ public class QuestionText extends MultilineTextWidget implements QuestionWidget 
     private final OptionalInt maxRows;
     private final CachedMapper<QuestionText.CacheKey, MultilineText> cacheKeyToText;
 
+    public QuestionText(int x, int y, Text text, int lineHeight, Color color, int maxWidth, TextRenderer textRenderer){
+        this(x, y, text.getString(), text.getStyle().getFont(), lineHeight, color.getRGB(), maxWidth, textRenderer, 0);
+    }
+
     public QuestionText(int x, int y, String text, Identifier font, int lineHeight, Color color, int maxWidth, TextRenderer textRenderer){
         this(x, y, text, font, lineHeight, color.getRGB(), maxWidth, textRenderer, 0);
     }
@@ -86,6 +90,10 @@ public class QuestionText extends MultilineTextWidget implements QuestionWidget 
 
     public void setText(String translationString) {
         this.setText(translationString, this.updatedColor);
+    }
+
+    public void setText(String translationString, Color color) {
+        this.setText(translationString, color.getRGB());
     }
 
     public void setText(String translationString, int color) {

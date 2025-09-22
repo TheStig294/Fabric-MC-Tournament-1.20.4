@@ -3,6 +3,9 @@ package net.thestig294.mctournament.minigame.triviamurderparty.killingroom;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.scoreboard.Team;
+import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
+import net.thestig294.mctournament.structure.ModStructures;
+import net.thestig294.mctournament.structure.Structure;
 
 public abstract class KillingRoom {
     public abstract Properties properties();
@@ -30,6 +33,12 @@ public abstract class KillingRoom {
 
     }
 
-    public record Description(String description, int displaySecs){}
-    public record Properties(String id, String name, Description... descriptionLines){}
+    public record Properties(Structure structure, String id, int timerSecs, float... descriptionLengths) {
+
+        public Properties(int xOffset, int yOffset, int zOffset, String id, int timerSecs, float... descriptionLengths) {
+
+            this(ModStructures.registerStructure(TriviaMurderParty.ID + "/killing_room/" + id, xOffset, yOffset, zOffset),
+                    id, timerSecs, descriptionLengths);
+        }
+    }
 }

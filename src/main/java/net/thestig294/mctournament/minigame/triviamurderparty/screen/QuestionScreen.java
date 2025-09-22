@@ -527,7 +527,6 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
                 case QUESTION_NUMBER_IN -> State.QUESTION_NUMBER_IN;
             };
 
-            if (MCTournament.client().currentScreen instanceof QuestionScreen questionScreen) questionScreen.close();
             Question question = Questions.getQuestionByID(id);
             MCTournament.client().setScreen(new QuestionScreen(question, questionNumber, answeringSeconds, state));
         });

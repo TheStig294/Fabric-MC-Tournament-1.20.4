@@ -7,6 +7,7 @@ import net.thestig294.mctournament.minigame.Minigame;
 import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.KillingRooms;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Questions;
+import net.thestig294.mctournament.minigame.triviamurderparty.screen.KillingRoomScreen;
 import net.thestig294.mctournament.minigame.triviamurderparty.screen.KillingRoomScreenHandler;
 import net.thestig294.mctournament.minigame.triviamurderparty.screen.QuestionScreen;
 import net.thestig294.mctournament.minigame.triviamurderparty.screen.QuestionScreenHandler;
@@ -44,8 +45,8 @@ public class TriviaMurderParty extends Minigame {
     public void serverInit() {
         Questions.register();
         KillingRooms.init(false);
-        this.questionScreenHandler = new QuestionScreenHandler(this, this.scoreboard());
-        this.killingRoomScreenHandler = new KillingRoomScreenHandler(this, this.scoreboard());
+        this.questionScreenHandler = new QuestionScreenHandler(this);
+        this.killingRoomScreenHandler = new KillingRoomScreenHandler(this);
     }
 
     @Override
@@ -69,6 +70,7 @@ public class TriviaMurderParty extends Minigame {
     public void clientInit() {
         QuestionScreen.clientInit();
         KillingRooms.init(true);
+        KillingRoomScreen.clientInit();
     }
 
     @Environment(EnvType.CLIENT)
@@ -96,6 +98,8 @@ public class TriviaMurderParty extends Minigame {
         public static final Identifier QUESTION_TRIGGER_LIGHTS_OFF = registerNetworkID("question_trigger_lights_off");
         public static final Identifier QUESTION_MOVE_PLAYER = registerNetworkID("question_move_player");
         public static final Identifier QUESTION_SCREEN_START_KILLING_ROOM = registerNetworkID("question_screen_start_killing_room");
+
+        public static final Identifier KILLING_ROOM_SCREEN = registerNetworkID("killing_room_screen");
     }
 
     public static class Fonts {

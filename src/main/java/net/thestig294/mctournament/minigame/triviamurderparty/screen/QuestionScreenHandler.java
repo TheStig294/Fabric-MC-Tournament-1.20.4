@@ -33,9 +33,9 @@ public class QuestionScreenHandler {
     private State state;
     private BlockPos corridorStartingPos;
 
-    public QuestionScreenHandler(TriviaMurderParty minigame, MinigameScoreboard scoreboard) {
+    public QuestionScreenHandler(TriviaMurderParty minigame) {
         this.minigame = minigame;
-        this.scoreboard = scoreboard;
+        this.scoreboard = minigame.scoreboard();
         this.answeredCaptains = new HashMap<>();
         this.playerRedstonePositions = new HashMap<>();
         this.state = State.PRE_ANSWERING;
@@ -124,9 +124,7 @@ public class QuestionScreenHandler {
         BlockPos playerPos = this.corridorStartingPos;
 
         for (final var player : ModUtil.getPlayers()) {
-//            The "180 0" part of the /tp command forces the player to face north: yaw, pitch
-            ModUtil.runConsoleCommand("/tp %s %s %s %s 180 0", player.getNameForScoreboard(),
-                    playerPos.getX(), playerPos.getY(), playerPos.getZ());
+            ModUtil.teleportFacingNorth(player, playerPos);
             ModStructures.jigsawPlace(TriviaMurderParty.Structures.CORRIDOR, player);
             ModUtil.placeRedstoneBlock(playerPos.add(LIGHTS_ON_REDSTONE_BLOCK_OFFSET));
             this.playerRedstonePositions.put(player, playerPos.add(LIGHTS_OFF_REDSTONE_BLOCK_OFFSET));

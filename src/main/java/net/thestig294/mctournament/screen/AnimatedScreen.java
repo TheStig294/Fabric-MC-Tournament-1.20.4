@@ -3,10 +3,13 @@ package net.thestig294.mctournament.screen;
 import it.unimi.dsi.fastutil.floats.FloatConsumer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.util.Window;
 import net.minecraft.text.Text;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.util.ModUtil;
@@ -31,6 +34,8 @@ public abstract class AnimatedScreen<
         extends Screen {
 
     public static Screen PAUSED_SCREEN = null;
+    public static boolean HUD_HOOK_CREATED = false;
+    public static AnimatedScreen<?,?> ACTIVE_HUD_SCREEN = null;
 
     private final Screen parent;
 
@@ -56,6 +61,25 @@ public abstract class AnimatedScreen<
         this.stateProgressPercent = 0;
         this.firstStateTick = true;
         this.firstState = true;
+
+        if (!HUD_HOOK_CREATED) {
+            HudRenderCallback.EVENT.register((context, delta) -> {
+                if (ACTIVE_HUD_SCREEN != null) {
+                    ACTIVE_HUD_SCREEN.render(context, ACTIVE_HUD_SCREEN.width / 2,
+                            ACTIVE_HUD_SCREEN.height / 2, delta);
+                }
+            });
+
+            HUD_HOOK_CREATED = true;
+        }
+
+//        If the first state is to draw on the HUD, then MinecraftClient.setScreen() might not necessarily be called!
+//        So just in case, we initialise the screen's important properties here, like the text renderer and the width/height
+//        This is safe to manually call, as other vanilla screens like the AnvilScreen do this!
+        if (startingState != null && startingState.isHudState(this.toChild())) {
+            MinecraftClient client = MCTournament.client();
+            this.init(client, client.getWindow().getScaledWidth(), client.getWindow().getScaledHeight());
+        }
     }
 
     /**
@@ -101,6 +125,11 @@ public abstract class AnimatedScreen<
         if (this.state != null) this.state.render(this.toChild());
     }
 
+    @Override
+    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
+        if (this.state == null || !this.state.isHudState(this.toChild())) super.renderBackground(context, mouseX, mouseY, delta);
+    }
+
     @SuppressWarnings("unchecked")
     private @Nullable E getNextState() {
         return this.state == null ? null : (E) this.state.next(this.toChild());
@@ -111,12 +140,17 @@ public abstract class AnimatedScreen<
 
         if (this.state == null) {
             this.close();
+            ACTIVE_HUD_SCREEN = null;
             return;
+        } else if (this.state.isHudState(this.toChild())) {
+            ACTIVE_HUD_SCREEN = this.toChild();
+        } else {
+            ACTIVE_HUD_SCREEN = null;
         }
 
         this.firstState = false;
         float lastEndTime = this.stateEndTime;
-        this.stateEndTime = this.uptimeSecs + this.state.duration(this.toChild());
+        if (this.state != null) this.stateEndTime = this.uptimeSecs + this.state.duration(this.toChild());
         this.stateStartTime = lastEndTime;
         this.firstStateTick = true;
     }
@@ -182,6 +216,8 @@ public abstract class AnimatedScreen<
     }
 
     public interface State<T extends AnimatedScreen<T, ? extends State<T>>> {
+        default boolean isHudState(T screen) {return false;}
+
         /**
          * Run on the first render tick
          * @param screen Instance of your screen during this state
