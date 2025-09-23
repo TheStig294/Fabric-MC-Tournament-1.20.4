@@ -94,7 +94,6 @@ public class ModUtil {
         return MCTournament.server().getTickManager().getTickRate();
     }
 
-    @SuppressWarnings("unused")
     public static void runConsoleCommand(Entity entity, String command, @Nullable Object... args) {
         runConsoleCommand(entity.getCommandSource(), command, args);
     }

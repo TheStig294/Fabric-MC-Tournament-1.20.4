@@ -28,7 +28,7 @@ public class MinigameScoreboard {
     }
 
     public String getObjectivePrefix() {
-        return MCTournament.MOD_ID + ':' + this.minigame.getID() + ':';
+        return MCTournament.MOD_ID + ':' + this.minigame.getID() + '_';
     }
 
     public String getMainObjectiveDisplayName() {
@@ -83,6 +83,10 @@ public class MinigameScoreboard {
      */
     public int getScore(String playerName) {
         return this.getScore(playerName, "");
+    }
+
+    public int getScore(PlayerEntity player, String objectiveName) {
+        return this.getScore(player.getNameForScoreboard(), objectiveName);
     }
 
     public int getScore(String playerName, String objectiveName) {

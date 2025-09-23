@@ -1,5 +1,6 @@
 package net.thestig294.mctournament.minigame.triviamurderparty.killingroom;
 
+import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.room.Tattoos;
 
 import java.util.*;
@@ -17,9 +18,12 @@ public class KillingRooms {
         return killingRoom;
     }
 
-    public static void init(boolean isClient) {
+    public static void begin(boolean isClient, TriviaMurderParty minigame) {
         if (isClient) {
-            REGISTERED.forEach(KillingRoom::clientInit);
+            REGISTERED.forEach((killingRoom) -> {
+                killingRoom.setMinigame(minigame);
+                killingRoom.clientInit();
+            });
         } else {
             REGISTERED.forEach(KillingRoom::init);
             shuffle();

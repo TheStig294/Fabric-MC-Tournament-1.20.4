@@ -2,6 +2,7 @@ package net.thestig294.mctournament.minigame.triviamurderparty;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
 import net.thestig294.mctournament.minigame.Minigame;
 import net.thestig294.mctournament.minigame.Minigames;
@@ -14,6 +15,7 @@ import net.thestig294.mctournament.minigame.triviamurderparty.screen.QuestionScr
 import net.thestig294.mctournament.structure.JigsawStartPool;
 
 import static net.thestig294.mctournament.font.ModFonts.registerFont;
+import static net.thestig294.mctournament.minigame.MinigameScoreboard.registerObjective;
 import static net.thestig294.mctournament.minigame.MinigameVariants.registerVariant;
 import static net.thestig294.mctournament.network.ModNetworking.registerNetworkID;
 import static net.thestig294.mctournament.structure.ModStructures.registerJigsawStartPool;
@@ -44,7 +46,6 @@ public class TriviaMurderParty extends Minigame {
     @Override
     public void serverInit() {
         Questions.register();
-        KillingRooms.init(false);
         this.questionScreenHandler = new QuestionScreenHandler(this);
         this.killingRoomScreenHandler = new KillingRoomScreenHandler(this);
     }
@@ -53,11 +54,20 @@ public class TriviaMurderParty extends Minigame {
     public void serverBegin() {
         this.hideNametags();
         this.questionScreenHandler.begin(this.getPosition());
+        KillingRooms.begin(false, this);
         this.killingRoomScreenHandler.begin(this.getPosition().west(KILLING_ROOM_OFFSET));
     }
 
     public void startKillingRoom() {
         this.killingRoomScreenHandler.broadcastNextKillingRoom();
+    }
+
+    public boolean isPlayerIncorrect(PlayerEntity player) {
+
+    }
+
+    public boolean isPlayerDead(PlayerEntity player) {
+        return this.scoreboard().getScore(player, Objectives.IS_DEAD) == 1;
     }
 
     @Override
@@ -69,20 +79,23 @@ public class TriviaMurderParty extends Minigame {
     @Override
     public void clientInit() {
         QuestionScreen.clientInit();
-        KillingRooms.init(true);
         KillingRoomScreen.clientInit();
     }
 
     @Environment(EnvType.CLIENT)
     @Override
     public void clientBegin() {
-
+        KillingRooms.begin(true, this);
     }
 
     @Environment(EnvType.CLIENT)
     @Override
     public void clientEnd() {
 
+    }
+
+    public static class Objectives {
+        public static final String IS_DEAD = "is_dead";
     }
 
     public static class Structures {
@@ -100,6 +113,8 @@ public class TriviaMurderParty extends Minigame {
         public static final Identifier QUESTION_SCREEN_START_KILLING_ROOM = registerNetworkID("question_screen_start_killing_room");
 
         public static final Identifier KILLING_ROOM_SCREEN = registerNetworkID("killing_room_screen");
+        public static final Identifier KILLING_ROOM_BEGIN = registerNetworkID("killing_room_begin");
+        public static final Identifier KILLING_ROOM_TIMER_UP = registerNetworkID("killing_room_timer_up");
     }
 
     public static class Fonts {

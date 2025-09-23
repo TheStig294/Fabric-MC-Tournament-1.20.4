@@ -19,7 +19,8 @@
   "screen.mctournament.killing_room" : "The Killing Room",
 
   "screen.mctournament.killing_room_tattoos" : "Tattoos",
-  "screen.mctournament.killing_room_tattoos_description_1" : "Build me a new tattoo",
-  "screen.mctournament.killing_room_tattoos_description_2" : "You have 30 seconds...",
-  "screen.mctournament.killing_room_tattoos_description_timer" : ""
+  "screen.mctournament.killing_room_tattoos_description_0" : "Build me a new tattoo",
+  "screen.mctournament.killing_room_tattoos_description_1" : "You have 30 seconds...",
+  "screen.mctournament.killing_room_tattoos_description_timer_0" : "Build now!",
+  "screen.mctournament.killing_room_tattoos_description_timer_1" : "Vote for your favourite..."
 }

@@ -216,6 +216,11 @@ public abstract class AnimatedScreen<
     }
 
     public interface State<T extends AnimatedScreen<T, ? extends State<T>>> {
+        /**
+         * Whether this state should be rendered on the HUD and allow for players to interact with the world and move
+         * @param screen Instance of your screen during this state
+         * @return If this state should render on the HUD
+         */
         default boolean isHudState(T screen) {return false;}
 
         /**

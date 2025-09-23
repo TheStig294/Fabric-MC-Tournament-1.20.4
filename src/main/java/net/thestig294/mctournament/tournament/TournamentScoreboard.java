@@ -20,6 +20,7 @@ import net.thestig294.mctournament.util.ModUtilClient;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class TournamentScoreboard {
@@ -345,6 +346,12 @@ public class TournamentScoreboard {
         }
 
         return teamPlayers;
+    }
+
+    public void forAllConnectedTeamPlayers(BiConsumer<Team, ServerPlayerEntity> lambda) {
+        this.forAllTeams((team) ->
+                this.getConnectedTeamMembers(team).forEach((player) ->
+                        lambda.accept(team, player)));
     }
 
     public void updateOverallScores() {
