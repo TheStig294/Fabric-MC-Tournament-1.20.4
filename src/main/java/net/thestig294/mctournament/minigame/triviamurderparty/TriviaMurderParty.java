@@ -15,7 +15,6 @@ import net.thestig294.mctournament.minigame.triviamurderparty.screen.QuestionScr
 import net.thestig294.mctournament.structure.JigsawStartPool;
 
 import static net.thestig294.mctournament.font.ModFonts.registerFont;
-import static net.thestig294.mctournament.minigame.MinigameScoreboard.registerObjective;
 import static net.thestig294.mctournament.minigame.MinigameVariants.registerVariant;
 import static net.thestig294.mctournament.network.ModNetworking.registerNetworkID;
 import static net.thestig294.mctournament.structure.ModStructures.registerJigsawStartPool;
@@ -62,12 +61,20 @@ public class TriviaMurderParty extends Minigame {
         this.killingRoomScreenHandler.broadcastNextKillingRoom();
     }
 
-    public boolean isPlayerIncorrect(PlayerEntity player) {
-
+    public boolean isPlayerCorrect(PlayerEntity player) {
+        return this.scoreboard().getBoolean(player, Objectives.IS_CORRECT);
     }
 
     public boolean isPlayerDead(PlayerEntity player) {
-        return this.scoreboard().getScore(player, Objectives.IS_DEAD) == 1;
+        return this.scoreboard().getBoolean(player, Objectives.IS_DEAD);
+    }
+
+    public void setPlayerCorrect(PlayerEntity player, boolean isCorrect) {
+        this.scoreboard().setBoolean(player, Objectives.IS_CORRECT, isCorrect);
+    }
+
+    public void setPlayerDead(PlayerEntity player, boolean isDead) {
+        this.scoreboard().setBoolean(player, Objectives.IS_DEAD, isDead);
     }
 
     @Override
@@ -95,6 +102,7 @@ public class TriviaMurderParty extends Minigame {
     }
 
     public static class Objectives {
+        public static final String IS_CORRECT = "is_correct";
         public static final String IS_DEAD = "is_dead";
     }
 
@@ -126,14 +134,14 @@ public class TriviaMurderParty extends Minigame {
     public static class Textures {
         public static final Identifier QUESTION_TIMER_BACK = registerTexture("textures/gui/question_timer/question_timer_back.png");
         public static final Identifier[] QUESTION_TIMER_HANDS = registerHand();
-        public static final int QUESTION_TIMER_HAND_COUNT = 31;
+        public static final int QUESTION_TIMER_HAND_COUNT = 60;
         public static final Identifier QUESTION_CROSS = registerTexture("textures/gui/question_cross.png");
         public static final Identifier QUESTION_TICK = registerTexture("textures/gui/question_tick.png");
 
         private static Identifier[] registerHand() {
             Identifier[] handList = new Identifier[QUESTION_TIMER_HAND_COUNT];
 
-            for (int i = 0; i < QUESTION_TIMER_HAND_COUNT; i++) {
+            for (int i = 0; i <= QUESTION_TIMER_HAND_COUNT; i++) {
                 handList[i] = registerTexture("textures/gui/question_timer/question_timer_hand" + i + ".png");
             }
 

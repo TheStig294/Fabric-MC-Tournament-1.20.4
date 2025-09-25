@@ -94,10 +94,6 @@ public class ModUtil {
         return MCTournament.server().getTickManager().getTickRate();
     }
 
-    public static void runConsoleCommand(Entity entity, String command, @Nullable Object... args) {
-        runConsoleCommand(entity.getCommandSource(), command, args);
-    }
-
     public static void runConsoleCommand(String command, @Nullable Object... args) {
         runConsoleCommand(MCTournament.server().getCommandSource(), command, args);
     }

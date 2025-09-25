@@ -3,6 +3,8 @@ package net.thestig294.mctournament.minigame.triviamurderparty.screen;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.scoreboard.Team;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.thestig294.mctournament.minigame.MinigameScoreboard;
@@ -15,6 +17,7 @@ import net.thestig294.mctournament.util.ModTimer;
 import net.thestig294.mctournament.util.ModUtil;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class QuestionScreenHandler {
@@ -95,8 +98,21 @@ public class QuestionScreenHandler {
 
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN_START_KILLING_ROOM, serverReceiveInfo -> {
             if (this.state != State.POST_ANSWERING) return;
+
             ModTimer.simple(false, ANSWERING_TIME_FORGIVENESS, () -> {
                 this.state = State.DISABLED;
+
+                this.answeredCaptains.forEach((captainName, isCorrect) -> {
+                    PlayerEntity captain = ModUtil.getPlayer(captainName);
+                    if (captain == null) return;
+
+                    Team team = captain.getScoreboardTeam();
+                    if (team == null) return;
+                    List<ServerPlayerEntity> teamMembers = Tournament.inst().scoreboard().getConnectedTeamMembers(team);
+
+                    teamMembers.forEach(player -> this.minigame.setPlayerCorrect(player, isCorrect));
+                });
+
                 this.minigame.startKillingRoom();
             });
         });

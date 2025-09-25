@@ -6,6 +6,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.tournament.Tournament;
+import net.thestig294.mctournament.util.ModUtil;
 
 public abstract class Minigame {
     private String variant = MinigameVariants.DEFAULT;
@@ -33,6 +34,7 @@ public abstract class Minigame {
 
     public void serverPreBegin() {
         this.scoreboard.serverBegin();
+        ModUtil.runConsoleCommand("/gamemode adventure @a");
     }
 
     /**

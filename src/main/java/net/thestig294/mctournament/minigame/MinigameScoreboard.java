@@ -73,7 +73,7 @@ public class MinigameScoreboard {
         this.removeObjective(name);
         this.addObjective(name, displayName);
     }
-
+    
     /**
      * Score functions that do not specify a name use the minigame's "main" objective instead,
      * that has a blank name containing only the scoreboard objective prefix. <p>
@@ -83,6 +83,10 @@ public class MinigameScoreboard {
      */
     public int getScore(String playerName) {
         return this.getScore(playerName, "");
+    }
+
+    public boolean getBoolean(PlayerEntity player, String objectiveName) {
+        return this.getScore(player, objectiveName) != 0;
     }
 
     public int getScore(PlayerEntity player, String objectiveName) {
@@ -95,20 +99,28 @@ public class MinigameScoreboard {
     }
 
     public void setScore(String playerName, int score) {
-        this.setScore(playerName, score, "");
+        this.setScore(playerName, "", score);
     }
 
-    public void setScore(String playerName, int score, String objectiveName) {
+    public void setBoolean(PlayerEntity player, String objectiveName, boolean value) {
+        this.setScore(player, objectiveName, value ? 1 : 0);
+    }
+
+    public void setScore(PlayerEntity player, String objectiveName, int score) {
+        this.setScore(player.getNameForScoreboard(), objectiveName, score);
+    }
+
+    public void setScore(String playerName, String objectiveName, int score) {
         ScoreboardObjective objective = this.getOrCreateObjective(objectiveName);
         this.scoreboard.getOrCreateScore(ScoreHolder.fromName(playerName), objective).setScore(score);
     }
 
     public void addScore(String playerName, int score) {
-        this.addScore(playerName, score, "");
+        this.addScore(playerName, "", score);
     }
 
-    public void addScore(String playerName, int score, String objectiveName) {
-        this.setScore(playerName, this.getScore(playerName) + score, objectiveName);
+    public void addScore(String playerName, String objectiveName, int score) {
+        this.setScore(playerName, objectiveName, this.getScore(playerName) + score);
     }
 
     public void clear() {

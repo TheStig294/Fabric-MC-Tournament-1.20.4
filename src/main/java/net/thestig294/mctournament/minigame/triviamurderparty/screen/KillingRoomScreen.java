@@ -21,10 +21,10 @@ import java.util.List;
 public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, KillingRoomScreen.State> {
     private static final float TIMER_MOVE_TIME = 1.0f;
 
-    private final KillingRoom room;
     private final String id;
-    private int descriptionIndex;
+    private final KillingRoom room;
     private final int timerIndex;
+    private int descriptionIndex;
     private final List<Float> descriptionLengths;
     private final Text title;
     private final Text description;
@@ -36,20 +36,20 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
     private QuestionTimer timerWidget;
     private QuestionText timerDescriptionWidget;
 
-    public KillingRoomScreen(KillingRoom room, State startingState, int timerLength, int timerIndex) {
+    public KillingRoomScreen(State startingState, String id, int timerIndex) {
         super(startingState);
-        this.room = room;
-        this.id = room.properties().id();
-        this.descriptionIndex = 0;
+        this.id = id;
+        this.room = KillingRooms.get(id);
         this.timerIndex = timerIndex;
-        this.descriptionLengths = Arrays.asList(room.properties().descriptionLengths());
+        this.descriptionIndex = 0;
+        this.descriptionLengths = room.getDescriptionLengths();
         this.title = Text.translatable("screen.mctournament.killing_room")
                 .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_NUMBER));
         this.description = Text.translatable(this.getDescriptionString())
                 .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION));
         this.timerDescription = Text.translatable(this.getTimerDescriptionString())
                 .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER));
-        this.timerLength = timerLength;
+        this.timerLength = this.room.getTimerLengths().get(timerIndex);
     }
 
     @Override
@@ -186,16 +186,17 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
     public static void clientInit() {
         ModNetworking.clientReceive(TriviaMurderParty.NetworkIDs.KILLING_ROOM_SCREEN, clientReceiveInfo -> {
             PacketByteBuf buffer = clientReceiveInfo.buffer();
-            KillingRoom room = KillingRooms.get(buffer.readString());
-            int timerLength = buffer.readInt();
-            int timerDescriptionIndex = buffer.readInt();
+
             KillingRoomScreenHandler.Entrypoint entrypoint = buffer.readEnumConstant(KillingRoomScreenHandler.Entrypoint.class);
             State startingState = switch (entrypoint) {
                 case TITLE_IN -> State.TITLE_IN;
                 case TIMER_IN -> State.TIMER_IN;
             };
 
-            MCTournament.client().setScreen(new KillingRoomScreen(room, startingState, timerLength, timerDescriptionIndex));
+            String roomID = buffer.readString();
+            int timerIndex = buffer.readInt();
+
+            MCTournament.client().setScreen(new KillingRoomScreen(startingState, roomID, timerIndex));
         });
     }
 

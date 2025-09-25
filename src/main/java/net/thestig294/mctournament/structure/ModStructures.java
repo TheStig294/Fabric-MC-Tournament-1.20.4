@@ -20,9 +20,16 @@ import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.util.ModUtil;
 
 public class ModStructures {
+    /**
+     * All jigsaw structures must name their starting pool "_start"
+     */
     public static final String JIGSAW_START_POOL_NAME = "_start";
     public static final Identifier MINECRAFT_EMPTY = new Identifier("minecraft", "empty");
     public static BlockRotation JIGSAW_ROTATION_OVERRIDE;
+
+    public static Structure registerStructure(String id, BlockPos offset) {
+        return registerStructure(id, offset.getX(), offset.getY(), offset.getZ());
+    }
 
     public static Structure registerStructure(String id, int xOffset, int yOffset, int zOffset) {
         return new Structure(new Identifier(MCTournament.MOD_ID, id), xOffset, yOffset, zOffset);

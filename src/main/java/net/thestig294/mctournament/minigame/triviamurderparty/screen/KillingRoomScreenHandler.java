@@ -1,6 +1,7 @@
 package net.thestig294.mctournament.minigame.triviamurderparty.screen;
 
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.thestig294.mctournament.minigame.MinigameScoreboard;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
@@ -47,43 +48,38 @@ public class KillingRoomScreenHandler {
 
     public void broadcastNextKillingRoom() {
         this.timerIndex = 0;
-
         this.room = KillingRooms.getNext();
         this.room.setScreenHandler(this);
-        this.room.setMinigame
-        ModStructures.place(this.room.properties().structure(), this.roomPos);
+        this.room.setMinigame(this.minigame);
+        ModStructures.place(this.room.getStructure(), this.roomPos);
 
-        ModUtil.forAllPlayers(player -> {
-            ModUtil.teleportFacingNorth(player, this.roomPos);
-        });
+        ModUtil.forAllPlayers(player -> ModUtil.teleportFacingNorth(player, this.roomPos));
 
         if (this.room != null) ModNetworking.broadcast(TriviaMurderParty.NetworkIDs.KILLING_ROOM_SCREEN, PacketByteBufs.create()
-                .writeString(this.room.properties().id())
-                .writeInt(this.room.properties().timerLength())
-                .writeInt(this.timerIndex)
                 .writeEnumConstant(Entrypoint.TITLE_IN)
+                .writeString(this.room.getID())
+                .writeInt(this.timerIndex)
         );
     }
 
     public void broadcastHudTimer() {
         if (this.room == null) return;
-        this.broadcastHudTimer(this.room.properties().timerLength());
-    }
-
-    public void broadcastHudTimer(int timerLength) {
-        if (this.room == null) return;
-        this.timerIndex++;
 
         ModNetworking.broadcast(TriviaMurderParty.NetworkIDs.KILLING_ROOM_SCREEN, PacketByteBufs.create()
-                .writeString(this.room.properties().id())
-                .writeInt(timerLength)
-                .writeInt(this.timerIndex)
                 .writeEnumConstant(Entrypoint.TIMER_IN)
+                .writeString(this.room.getID())
+                .writeInt(this.timerIndex)
         );
+
+        this.timerIndex++;
     }
 
     public BlockPos getRoomPos() {
         return this.roomPos;
+    }
+
+    public boolean isOnTrial(PlayerEntity player) {
+        return !this.minigame.isPlayerCorrect(player) && !this.minigame.isPlayerDead(player);
     }
 
     private enum State {
