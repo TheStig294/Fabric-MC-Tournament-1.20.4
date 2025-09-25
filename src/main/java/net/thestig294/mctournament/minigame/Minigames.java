@@ -16,7 +16,7 @@ public class Minigames {
     private static final Map<Identifier, Minigame> REGISTERED = new HashMap<>();
 
     /**
-     * A special minigames that get automatically played at the beginning and end of every tournament
+     * A special minigames that getKillingRoom automatically played at the beginning and end of every tournament
      */
     public static final Identifier TOURNAMENT_BEGIN = register(new TournamentBegin());
     public static final Identifier TOURNAMENT_END = register(new TournamentEnd());

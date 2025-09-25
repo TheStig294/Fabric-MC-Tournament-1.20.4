@@ -86,7 +86,11 @@ public class MinigameScoreboard {
     }
 
     public boolean getBoolean(PlayerEntity player, String objectiveName) {
-        return this.getScore(player, objectiveName) != 0;
+        return this.getBoolean(player.getNameForScoreboard(), objectiveName);
+    }
+
+    public boolean getBoolean(String playerName, String objectiveName) {
+        return this.getScore(playerName, objectiveName) != 0;
     }
 
     public int getScore(PlayerEntity player, String objectiveName) {
@@ -103,7 +107,11 @@ public class MinigameScoreboard {
     }
 
     public void setBoolean(PlayerEntity player, String objectiveName, boolean value) {
-        this.setScore(player, objectiveName, value ? 1 : 0);
+        this.setBoolean(player.getNameForScoreboard(), objectiveName, value);
+    }
+
+    public void setBoolean(String playerName, String objectiveName, boolean value) {
+        this.setScore(playerName, objectiveName, value ? 1 : 0);
     }
 
     public void setScore(PlayerEntity player, String objectiveName, int score) {

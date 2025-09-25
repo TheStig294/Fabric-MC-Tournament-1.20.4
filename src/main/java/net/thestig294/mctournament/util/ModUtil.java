@@ -1,11 +1,13 @@
 package net.thestig294.mctournament.util;
 
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.world.GameMode;
 import net.thestig294.mctournament.MCTournament;
 import org.jetbrains.annotations.Nullable;
 
@@ -106,9 +108,42 @@ public class ModUtil {
         runConsoleCommand("/setblock %d %d %d minecraft:redstone_block", pos.getX(), pos.getY(), pos.getZ());
     }
 
-    public static void teleportFacingNorth(PlayerEntity player, BlockPos pos) {
-//        The "180 0" part of the /tp command forces the player to face north: yaw, pitch
-        runConsoleCommand("/tp %s %s %s %s 180 0", player.getNameForScoreboard(),
-                pos.getX(), pos.getY(), pos.getZ());
+    public static int directionToYaw(Direction direction) {
+        return switch (direction) {
+            case WEST -> -90;
+            case NORTH -> 180;
+            case EAST -> 90;
+            default -> 0;
+        };
+    }
+
+    public static void teleportFacing(PlayerEntity player, BlockPos pos, Direction direction) {
+        player.requestTeleport(pos.getX(), pos.getY(), pos.getZ());
+        player.setYaw(directionToYaw(direction));
+    }
+
+    public static void setGamemode(ServerPlayerEntity player, GameMode gamemode) {
+        MCTournament.server().getPlayerInteractionManager(player).changeGameMode(gamemode);
+    }
+
+    public static List<ServerPlayerEntity> getPlayersWithinBound(BlockPos start, BlockPos end) {
+        return getPlayers().stream().filter(player -> {
+            BlockPos pos = player.getBlockPos();
+            return start.getX() <= pos.getX() && pos.getX() <= end.getX() &&
+                    start.getY() <= pos.getY() && pos.getY() <= end.getY() &&
+                    start.getZ() <= pos.getZ() && pos.getZ() <= end.getZ();
+        }).toList();
+    }
+
+    public static void chatMessage(String message) {
+        printMessage(message, false);
+    }
+
+    public static void overlayMessage(String message) {
+        printMessage(message, true);
+    }
+
+    public static void printMessage(String message, boolean overlay) {
+        MCTournament.server().getPlayerManager().broadcast(Text.literal(message), overlay);
     }
 }

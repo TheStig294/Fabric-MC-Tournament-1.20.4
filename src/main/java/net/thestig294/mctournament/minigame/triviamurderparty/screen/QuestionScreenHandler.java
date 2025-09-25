@@ -6,6 +6,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.thestig294.mctournament.minigame.MinigameScoreboard;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
@@ -110,10 +111,11 @@ public class QuestionScreenHandler {
                     if (team == null) return;
                     List<ServerPlayerEntity> teamMembers = Tournament.inst().scoreboard().getConnectedTeamMembers(team);
 
-                    teamMembers.forEach(player -> this.minigame.setPlayerCorrect(player, isCorrect));
+                    teamMembers.forEach(player ->
+                            this.scoreboard.setBoolean(player, TriviaMurderParty.Objectives.IS_CORRECT, isCorrect));
                 });
 
-                this.minigame.startKillingRoom();
+                this.minigame.getKillingRoomScreenHandler().broadcastNextKillingRoom();
             });
         });
 
@@ -140,7 +142,7 @@ public class QuestionScreenHandler {
         BlockPos playerPos = this.corridorStartingPos;
 
         for (final var player : ModUtil.getPlayers()) {
-            ModUtil.teleportFacingNorth(player, playerPos);
+            ModUtil.teleportFacing(player, playerPos, Direction.NORTH);
             ModStructures.jigsawPlace(TriviaMurderParty.Structures.CORRIDOR, player);
             ModUtil.placeRedstoneBlock(playerPos.add(LIGHTS_ON_REDSTONE_BLOCK_OFFSET));
             this.playerRedstonePositions.put(player, playerPos.add(LIGHTS_OFF_REDSTONE_BLOCK_OFFSET));

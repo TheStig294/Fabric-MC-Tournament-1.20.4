@@ -4,6 +4,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.GameMode;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.tournament.Tournament;
 import net.thestig294.mctournament.util.ModUtil;
@@ -34,7 +35,7 @@ public abstract class Minigame {
 
     public void serverPreBegin() {
         this.scoreboard.serverBegin();
-        ModUtil.runConsoleCommand("/gamemode adventure @a");
+        ModUtil.forAllPlayers((player) -> ModUtil.setGamemode(player, GameMode.ADVENTURE));
     }
 
     /**

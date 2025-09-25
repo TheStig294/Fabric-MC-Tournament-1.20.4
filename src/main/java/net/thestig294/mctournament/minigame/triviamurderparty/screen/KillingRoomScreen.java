@@ -2,6 +2,7 @@ package net.thestig294.mctournament.minigame.triviamurderparty.screen;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.Text;
 import net.thestig294.mctournament.MCTournament;
@@ -14,7 +15,6 @@ import net.thestig294.mctournament.network.ModNetworking;
 import net.thestig294.mctournament.screen.AnimatedScreen;
 import net.thestig294.mctournament.util.ModColors;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Environment(EnvType.CLIENT)
@@ -39,7 +39,7 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
     public KillingRoomScreen(State startingState, String id, int timerIndex) {
         super(startingState);
         this.id = id;
-        this.room = KillingRooms.get(id);
+        this.room = KillingRooms.getKillingRoom(id);
         this.timerIndex = timerIndex;
         this.descriptionIndex = 0;
         this.descriptionLengths = room.getDescriptionLengths();
@@ -49,7 +49,7 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
                 .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION));
         this.timerDescription = Text.translatable(this.getTimerDescriptionString())
                 .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER));
-        this.timerLength = this.room.getTimerLengths().get(timerIndex);
+        this.timerLength = this.room.getTimers().get(timerIndex).length();
     }
 
     @Override
@@ -177,7 +177,10 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
                 screen.animate(screen.timerDescriptionWidget::setY, screen.timerDescriptionWidget.getOriginalHeight(),
                         -screen.timerDescriptionWidget.getOriginalHeight());
             }
-            public void end(KillingRoomScreen screen) {ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.KILLING_ROOM_TIMER_UP);}
+            public void end(KillingRoomScreen screen) {
+                ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.KILLING_ROOM_TIMER_UP, PacketByteBufs.create()
+                        .writeInt(screen.timerIndex));
+            }
             public void refresh(KillingRoomScreen screen) {}
             public float duration(KillingRoomScreen screen) {return TIMER_MOVE_TIME;}
         }

@@ -12,12 +12,13 @@ import net.thestig294.mctournament.minigame.triviamurderparty.screen.KillingRoom
 import net.thestig294.mctournament.minigame.triviamurderparty.screen.KillingRoomScreenHandler;
 import net.thestig294.mctournament.minigame.triviamurderparty.screen.QuestionScreen;
 import net.thestig294.mctournament.minigame.triviamurderparty.screen.QuestionScreenHandler;
-import net.thestig294.mctournament.structure.JigsawStartPool;
+import net.thestig294.mctournament.structure.Structure;
 
 import static net.thestig294.mctournament.font.ModFonts.registerFont;
 import static net.thestig294.mctournament.minigame.MinigameVariants.registerVariant;
 import static net.thestig294.mctournament.network.ModNetworking.registerNetworkID;
 import static net.thestig294.mctournament.structure.ModStructures.registerJigsawStartPool;
+import static net.thestig294.mctournament.structure.ModStructures.registerStructure;
 import static net.thestig294.mctournament.texture.ModTextures.registerTexture;
 
 public class TriviaMurderParty extends Minigame {
@@ -57,26 +58,6 @@ public class TriviaMurderParty extends Minigame {
         this.killingRoomScreenHandler.begin(this.getPosition().west(KILLING_ROOM_OFFSET));
     }
 
-    public void startKillingRoom() {
-        this.killingRoomScreenHandler.broadcastNextKillingRoom();
-    }
-
-    public boolean isPlayerCorrect(PlayerEntity player) {
-        return this.scoreboard().getBoolean(player, Objectives.IS_CORRECT);
-    }
-
-    public boolean isPlayerDead(PlayerEntity player) {
-        return this.scoreboard().getBoolean(player, Objectives.IS_DEAD);
-    }
-
-    public void setPlayerCorrect(PlayerEntity player, boolean isCorrect) {
-        this.scoreboard().setBoolean(player, Objectives.IS_CORRECT, isCorrect);
-    }
-
-    public void setPlayerDead(PlayerEntity player, boolean isDead) {
-        this.scoreboard().setBoolean(player, Objectives.IS_DEAD, isDead);
-    }
-
     @Override
     public void serverEnd() {
 
@@ -101,13 +82,34 @@ public class TriviaMurderParty extends Minigame {
 
     }
 
+    public KillingRoomScreenHandler getKillingRoomScreenHandler() {
+        return this.killingRoomScreenHandler;
+    }
+
+    public boolean isPlayerCorrect(PlayerEntity player) {
+        return this.scoreboard().getBoolean(player, Objectives.IS_CORRECT);
+    }
+
+    public boolean isPlayerDead(PlayerEntity player) {
+        return this.scoreboard().getBoolean(player, Objectives.IS_DEAD);
+    }
+
+    public void setPlayerCorrect(PlayerEntity player, boolean isCorrect) {
+        this.scoreboard().setBoolean(player, Objectives.IS_CORRECT, isCorrect);
+    }
+
+    public void setPlayerDead(String playerName, boolean isDead) {
+        this.scoreboard().setBoolean(playerName, Objectives.IS_DEAD, isDead);
+    }
+
     public static class Objectives {
         public static final String IS_CORRECT = "is_correct";
         public static final String IS_DEAD = "is_dead";
     }
 
     public static class Structures {
-        public static final JigsawStartPool CORRIDOR = registerJigsawStartPool(ID, "corridor", 0, 0, 0);
+        public static final Identifier CORRIDOR = registerJigsawStartPool(ID, "corridor");
+        public static final Structure DEATH_ROOM = registerStructure(ID, "death_room", 0,0,0);
     }
 
     public static class NetworkIDs {

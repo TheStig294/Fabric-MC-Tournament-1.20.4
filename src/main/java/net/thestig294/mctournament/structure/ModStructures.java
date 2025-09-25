@@ -27,20 +27,20 @@ public class ModStructures {
     public static final Identifier MINECRAFT_EMPTY = new Identifier("minecraft", "empty");
     public static BlockRotation JIGSAW_ROTATION_OVERRIDE;
 
-    public static Structure registerStructure(String id, BlockPos offset) {
-        return registerStructure(id, offset.getX(), offset.getY(), offset.getZ());
+    public static Structure registerStructure(String minigameID, String id, BlockPos offset) {
+        return registerStructure(minigameID, id, offset.getX(), offset.getY(), offset.getZ());
     }
 
-    public static Structure registerStructure(String id, int xOffset, int yOffset, int zOffset) {
-        return new Structure(new Identifier(MCTournament.MOD_ID, id), xOffset, yOffset, zOffset);
+    public static Structure registerStructure(String minigameID, String id, int xOffset, int yOffset, int zOffset) {
+        return new Structure(new Identifier(MCTournament.MOD_ID, minigameID + '/' + id), xOffset, yOffset, zOffset);
     }
 
-    public static JigsawStartPool registerJigsawStartPool(String minigameID, String id, int xOffset, int yOffset, int zOffset) {
-        return registerJigsawStartPool(minigameID + '/' + id + '/' + JIGSAW_START_POOL_NAME, xOffset, yOffset, zOffset);
+    public static Identifier registerJigsawStartPool(String minigameID, String id) {
+        return registerJigsawStartPool(minigameID + '/' + id + '/' + JIGSAW_START_POOL_NAME);
     }
 
-    public static JigsawStartPool registerJigsawStartPool(String id, int xOffset, int yOffset, int zOffset) {
-        return new JigsawStartPool(new Identifier(MCTournament.MOD_ID, id), xOffset, yOffset, zOffset);
+    public static Identifier registerJigsawStartPool(String id) {
+        return new Identifier(MCTournament.MOD_ID, id);
     }
 
     public static void registerStructures() {
@@ -118,7 +118,7 @@ public class ModStructures {
      * @param startPool Identifier for the start pool of the jigsaw structure
      * @param player Player to spawn the jigsaw structure around
      */
-    public static void jigsawPlace(JigsawStartPool startPool, PlayerEntity player) {
+    public static void jigsawPlace(Identifier startPool, PlayerEntity player) {
         jigsawPlace(startPool, player.getBlockPos(), player.getYaw(), (ServerWorld) player.getWorld());
     }
 
@@ -130,7 +130,7 @@ public class ModStructures {
      * @param yaw Yaw rotation of the structure, clamps to the cardinal directions with a forgiveness of 45 degrees
      * @param world A dimension's world to place the structure in
      */
-    public static void jigsawPlace(JigsawStartPool startPool, BlockPos pos, float yaw, ServerWorld world) {
+    public static void jigsawPlace(Identifier startPool, BlockPos pos, float yaw, ServerWorld world) {
         jigsawPlace(startPool, pos, yawToRotation(yaw), world);
     }
 
@@ -146,13 +146,12 @@ public class ModStructures {
      * @param rotation Rotation of the first jigsaw structure piece
      * @param world A dimension's world to place the structure in
      */
-    public static void jigsawPlace(JigsawStartPool startPool, BlockPos pos, BlockRotation rotation, ServerWorld world) {
-        BlockPos offsetPos = offsetBlockPos(pos, startPool.xOffset(), startPool.yOffset(), startPool.zOffset(), rotation);
+    public static void jigsawPlace(Identifier startPool, BlockPos pos, BlockRotation rotation, ServerWorld world) {
         RegistryKey<Registry<StructurePool>> templatePoolRegistryKey = RegistryKeys.TEMPLATE_POOL;
         Registry<StructurePool> structurePoolRegistry = MCTournament.server().getRegistryManager().get(templatePoolRegistryKey);
-        RegistryEntry<StructurePool> startPoolEntry = structurePoolRegistry.getEntry(structurePoolRegistry.get(startPool.id()));
+        RegistryEntry<StructurePool> startPoolEntry = structurePoolRegistry.getEntry(structurePoolRegistry.get(startPool));
         JIGSAW_ROTATION_OVERRIDE = rotation;
-        StructurePoolBasedGenerator.generate(world, startPoolEntry, MINECRAFT_EMPTY, 7, offsetPos, false);
+        StructurePoolBasedGenerator.generate(world, startPoolEntry, MINECRAFT_EMPTY, 7, pos, false);
         JIGSAW_ROTATION_OVERRIDE = null;
     }
 }

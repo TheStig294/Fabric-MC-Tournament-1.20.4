@@ -4,6 +4,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.scoreboard.Team;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.thestig294.mctournament.minigame.MinigameScoreboard;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
@@ -13,22 +14,26 @@ import net.thestig294.mctournament.structure.Structure;
 import net.thestig294.mctournament.tournament.Tournament;
 import net.thestig294.mctournament.tournament.TournamentScoreboard;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 public abstract class KillingRoom {
+    private final List<Team> deadTeams;
     private final Structure structure;
     private KillingRoomScreenHandler screenHandler;
     private TriviaMurderParty minigame;
 
     public KillingRoom() {
-        this.structure = ModStructures.registerStructure(TriviaMurderParty.ID + "/killing_room/" + this.getID(), this.getStructureOffset());
+        this.structure = ModStructures.registerStructure(TriviaMurderParty.ID, "/killing_room/" + this.getID(), this.getStructureOffset());
+        this.deadTeams = new ArrayList<>();
     }
 
     public abstract void init();
 
     public abstract void begin();
 
-    public abstract void timerEnd(int timerIndex);
+    public abstract void timerEnd(String timerName);
 
     @Environment(EnvType.CLIENT)
     public abstract void clientInit();
@@ -40,9 +45,9 @@ public abstract class KillingRoom {
 
     public abstract String getID();
 
-    public abstract List<Integer> getTimerLengths();
+    public abstract List<Timer> getTimers();
 
-    public abstract float getTimerQuipLength();
+    public abstract float getTimerQuipLength(String timerName);
 
     public abstract List<Float> getDescriptionLengths();
 
@@ -75,19 +80,25 @@ public abstract class KillingRoom {
     }
 
     public boolean isOnTrial(PlayerEntity player) {
-        return this.screenHandler.isOnTrial(player);
+        return !this.minigame.isPlayerCorrect(player) && !this.minigame.isPlayerDead(player);
+    }
+
+    public void forAllConnectedTeamPlayers(BiConsumer<Team, ServerPlayerEntity> lambda) {
+        this.tournamentScoreboard().forAllConnectedTeamPlayers(lambda);
     }
 
     public void setTeamDead(Team team) {
-
+        team.getPlayerList().forEach(playerName -> this.minigame.setPlayerDead(playerName, true));
+        this.deadTeams.add(team);
     }
 
-    public void killTeams() {
-
-        this.startScoreScreen();
+    public List<Team> getDeadTeams() {
+        return this.deadTeams;
     }
 
-    private void startScoreScreen() {
-
+    public void clearDeadTeams() {
+        this.deadTeams.clear();
     }
+
+    public record Timer(String name, int length) {}
 }

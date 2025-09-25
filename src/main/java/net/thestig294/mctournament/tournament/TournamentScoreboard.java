@@ -354,6 +354,22 @@ public class TournamentScoreboard {
                         lambda.accept(team, player)));
     }
 
+    public boolean isTeamConnected(@Nullable Team team) {
+        return team != null && !this.getConnectedTeamMembers(team).isEmpty();
+    }
+
+    public void forAllConnectedTeams(Consumer<Team> lambda) {
+        this.forAllTeams((team) -> {
+            if (this.isTeamConnected(team)) lambda.accept(team);
+        });
+    }
+
+    public @Nullable Team getRandomConnectedTeam() {
+        List<Team> teamsCopy = new ArrayList<>(this.teams);
+        Collections.shuffle(teamsCopy);
+        return teamsCopy.stream().filter(this::isTeamConnected).findFirst().orElse(null);
+    }
+
     public void updateOverallScores() {
         MinigameScoreboard minigameScoreboard = Tournament.inst().minigame().scoreboard();
         float multiplier = minigameScoreboard.getScoreMultiplier();
