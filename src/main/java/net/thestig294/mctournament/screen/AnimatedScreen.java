@@ -9,7 +9,6 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.util.Window;
 import net.minecraft.text.Text;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.util.ModUtil;
@@ -72,14 +71,6 @@ public abstract class AnimatedScreen<
 
             HUD_HOOK_CREATED = true;
         }
-
-//        If the first state is to draw on the HUD, then MinecraftClient.setScreen() might not necessarily be called!
-//        So just in case, we initialise the screen's important properties here, like the text renderer and the width/height
-//        This is safe to manually call, as other vanilla screens like the AnvilScreen do this!
-        if (startingState != null && startingState.isHudState(this.toChild())) {
-            MinecraftClient client = MCTournament.client();
-            this.init(client, client.getWindow().getScaledWidth(), client.getWindow().getScaledHeight());
-        }
     }
 
     /**
@@ -113,7 +104,10 @@ public abstract class AnimatedScreen<
             if (this.state == null) return;
         }
 
-        this.uptimeSecs += delta / ModUtilClient.getTicksPerSecond();
+        float tps = ModUtilClient.getTicksPerSecond();
+        if (this.isHudState()) tps /= 2;
+
+        this.uptimeSecs += delta / tps;
         this.stateProgress = ModUtil.lerpPercent(this.stateStartTime, this.stateEndTime, this.uptimeSecs);
         this.stateProgressPercent = (int) (this.stateProgress * 100);
 
@@ -127,7 +121,7 @@ public abstract class AnimatedScreen<
 
     @Override
     public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
-        if (this.state == null || !this.state.isHudState(this.toChild())) super.renderBackground(context, mouseX, mouseY, delta);
+        if (this.state == null || !this.isHudState()) super.renderBackground(context, mouseX, mouseY, delta);
     }
 
     @SuppressWarnings("unchecked")
@@ -136,13 +130,21 @@ public abstract class AnimatedScreen<
     }
 
     private void switchToNextState() {
-        if (!this.firstState) this.state = this.getNextState();
+        if (this.firstState && this.state != null && this.isHudState()) {
+//        If the first state is to draw on the HUD, then MinecraftClient.setScreen() might not necessarily be called!
+//        So just in case, we initialise the screen's important properties here, like the text renderer and the width/height
+//        This is safe to manually call, as other vanilla screens like the AnvilScreen do this!
+            MinecraftClient client = MCTournament.client();
+            this.init(client, client.getWindow().getScaledWidth(), client.getWindow().getScaledHeight());
+        } else {
+            this.state = this.getNextState();
+        }
 
         if (this.state == null) {
             this.close();
             ACTIVE_HUD_SCREEN = null;
             return;
-        } else if (this.state.isHudState(this.toChild())) {
+        } else if (this.isHudState()) {
             ACTIVE_HUD_SCREEN = this.toChild();
         } else {
             ACTIVE_HUD_SCREEN = null;
@@ -213,6 +215,10 @@ public abstract class AnimatedScreen<
     @SuppressWarnings("SameParameterValue")
     protected boolean isState(State<T> state) {
         return Objects.equals(this.state, state);
+    }
+
+    protected boolean isHudState() {
+        return this.state != null && this.state.isHudState(this.toChild());
     }
 
     public interface State<T extends AnimatedScreen<T, ? extends State<T>>> {

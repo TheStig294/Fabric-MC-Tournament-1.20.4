@@ -49,12 +49,22 @@ public class MCTournament implements ModInitializer {
 	}
 
     public static MinecraftServer server() {
-        if (SERVER == null) LOGGER.error("Server instance null, very likely trying to access the server instance on the client!");
+        try {
+            if (SERVER == null) throw new NullPointerException();
+        } catch (NullPointerException error) {
+            LOGGER.error("Server instance null, very likely trying to access the server instance on the client!", error);
+        }
+
         return SERVER;
     }
 
     public static MinecraftClient client() {
-        if (CLIENT == null) LOGGER.error("Client instance null, very likely trying to access the client instance on the server!");
+        try {
+            if (CLIENT == null) throw new NullPointerException();
+        } catch (NullPointerException error) {
+            LOGGER.error("Server instance null, very likely trying to access the client instance on the server!", error);
+        }
+
         return CLIENT;
     }
 

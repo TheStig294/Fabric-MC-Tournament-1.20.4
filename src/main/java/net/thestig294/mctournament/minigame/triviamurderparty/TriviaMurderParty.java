@@ -140,7 +140,7 @@ public class TriviaMurderParty extends Minigame {
         private static Identifier[] registerHand() {
             Identifier[] handList = new Identifier[QUESTION_TIMER_HAND_COUNT];
 
-            for (int i = 0; i <= QUESTION_TIMER_HAND_COUNT; i++) {
+            for (int i = 0; i < QUESTION_TIMER_HAND_COUNT; i++) {
                 handList[i] = registerTexture("textures/gui/question_timer/question_timer_hand" + i + ".png");
             }
 

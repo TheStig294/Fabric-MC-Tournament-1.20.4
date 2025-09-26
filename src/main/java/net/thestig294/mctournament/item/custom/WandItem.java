@@ -7,9 +7,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.structure.ModStructures;
+import net.thestig294.mctournament.util.ModUtil;
 
 public class WandItem extends Item {
     public WandItem(Settings settings) {
@@ -25,15 +27,18 @@ public class WandItem extends Item {
         return super.use(world, player, hand);
     }
 
-    @SuppressWarnings("unused")
-    public ActionResult onAttackBlock(World world) {
+    public ActionResult onAttackBlock(PlayerEntity player, World world) {
+        if (!world.isClient()) {
+            ModUtil.teleportFacing(player, player.getBlockPos().north(), Direction.NORTH);
+        }
+
         return ActionResult.PASS;
     }
 
     public static void init() {
         AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> {
             if (player.getStackInHand(hand).getItem() instanceof WandItem wand){
-                return wand.onAttackBlock(world);
+                return wand.onAttackBlock(player, world);
             } else {
                 return ActionResult.PASS;
             }

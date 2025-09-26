@@ -119,7 +119,7 @@ public class TournamentScoreboard {
         for (int i = 0; i < MAX_TEAMS; i++) {
             buffer.writeInt(i);
 
-            PlayerEntity captain = this.getTeamCaptain(i);
+            PlayerEntity captain = this.getTeamCaptain(false, i);
             boolean isNull = captain == null;
             buffer.writeBoolean(isNull);
 
@@ -196,21 +196,21 @@ public class TournamentScoreboard {
         return this.scoreboard;
     }
 
-    public @Nullable PlayerEntity getTeamCaptain(PlayerEntity player) {
+    public @Nullable PlayerEntity getTeamCaptain(boolean isClient, PlayerEntity player) {
         Team team = player.getScoreboardTeam();
-        return team != null ? this.getTeamCaptain(team) : null;
+        return team != null ? this.getTeamCaptain(isClient, team) : null;
     }
 
-    public @Nullable PlayerEntity getTeamCaptain(Team team) {
-        return this.getTeamCaptain(team.getName());
+    public @Nullable PlayerEntity getTeamCaptain(boolean isClient, Team team) {
+        return this.getTeamCaptain(isClient, team.getName());
     }
 
-    public @Nullable PlayerEntity getTeamCaptain(String teamName) {
-        return this.getTeamCaptain(this.getTeamNumber(teamName));
+    public @Nullable PlayerEntity getTeamCaptain(boolean isClient, String teamName) {
+        return this.getTeamCaptain(isClient, this.getTeamNumber(teamName));
     }
 
-    public @Nullable PlayerEntity getTeamCaptain(int teamNumber) {
-        return ModUtil.getPlayer(this.teamCaptainNames.get(teamNumber));
+    public @Nullable PlayerEntity getTeamCaptain(boolean isClient, int teamNumber) {
+        return ModUtil.getPlayer(isClient, this.teamCaptainNames.get(teamNumber));
     }
 
     /**
@@ -218,7 +218,7 @@ public class TournamentScoreboard {
      * ignoring teams with missing captains
      */
     public List<PlayerEntity> getValidTeamCaptains(boolean isClient) {
-        Function<String, PlayerEntity> getPlayerFunction = isClient ? ModUtilClient::getPlayer : ModUtil::getPlayer;
+        Function<String, PlayerEntity> getPlayerFunction = isClient ? ModUtilClient::getPlayer : ModUtil::getServerPlayer;
 
         return this.teamCaptainNames.values().stream()
                 .map(getPlayerFunction)
@@ -270,7 +270,7 @@ public class TournamentScoreboard {
 
     public void findNewTeamCaptain(Team team) {
         for (final var playerName : team.getPlayerList()) {
-            ServerPlayerEntity captain = ModUtil.getPlayer(playerName);
+            ServerPlayerEntity captain = ModUtil.getServerPlayer(playerName);
 
             if (captain != null) {
                 this.setTeamCaptain(team, captain);
@@ -325,7 +325,7 @@ public class TournamentScoreboard {
         List<ServerPlayerEntity> teamPlayers = new ArrayList<>();
 
         for (final var playerName : team.getPlayerList()) {
-            ServerPlayerEntity player = ModUtil.getPlayer(playerName);
+            ServerPlayerEntity player = ModUtil.getServerPlayer(playerName);
             if ((player != null && !player.isDisconnected())) teamPlayers.add(player);
         }
 

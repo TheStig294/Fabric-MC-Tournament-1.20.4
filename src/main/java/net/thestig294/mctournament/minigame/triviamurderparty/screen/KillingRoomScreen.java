@@ -49,13 +49,14 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
                 .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION));
         this.timerDescription = Text.translatable(this.getTimerDescriptionString())
                 .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER));
-        this.timerLength = this.room.getTimers().get(timerIndex).length();
+        List<KillingRoom.Timer> timers = this.room.getTimers();
+        this.timerLength = timerIndex >= 0 && timerIndex < timers.size() ? timers.get(timerIndex).length() : 0;
     }
 
     @Override
     protected void createWidgets() {
         this.titleWidget = this.addDrawableChild(new QuestionText(this.width / 2, this.height / 2, this.title,
-                20, ModColors.RED, this.width / 2, this.textRenderer));
+                40, ModColors.RED, this.width / 2, this.textRenderer));
 
         this.descriptionWidget = this.addDrawableChild(new QuestionText(this.width / 2, this.height / 2, this.description,
                 20, ModColors.WHITE, this.width / 2, this.textRenderer));
@@ -66,6 +67,7 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
                 20, ModColors.WHITE, this.width, this.textRenderer));
     }
 
+    @SuppressWarnings("unused")
     public enum State implements AnimatedScreen.State<KillingRoomScreen> {
         TITLE_IN {
             public void render(KillingRoomScreen screen) {
@@ -98,7 +100,7 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
         },
         NAME_IN {
             public void begin(KillingRoomScreen screen) {
-                screen.titleWidget.setText("screen.mctournament.killing_room_" + screen.id + "_name", ModColors.GREY);
+                screen.titleWidget.setText("screen.mctournament.killing_room_" + screen.id, ModColors.GREY);
             }
             public void render(KillingRoomScreen screen) {
                 screen.animate(screen.titleWidget::setAlpha, 0.0f, 1.0f);

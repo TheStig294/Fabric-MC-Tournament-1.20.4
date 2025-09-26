@@ -89,7 +89,7 @@ public class ModUtil {
      * @param playerName A string of the player's scoreboard-safe name (See: {@link PlayerEntity#getNameForScoreboard()})
      * @return The {@link ServerPlayerEntity} of the player, or {@code null} if they cannot be found
      */
-    public static @Nullable ServerPlayerEntity getPlayer(String playerName) {
+    public static @Nullable ServerPlayerEntity getServerPlayer(String playerName) {
         ServerPlayerEntity player = CACHED_PLAYERS.get(playerName);
         if (isValid(player)) return player;
 
@@ -97,6 +97,10 @@ public class ModUtil {
         player = MCTournament.server().getPlayerManager().getPlayer(playerName);
         CACHED_PLAYERS.put(playerName, player);
         return player;
+    }
+
+    public static @Nullable PlayerEntity getPlayer(boolean isClient, String playerName) {
+        return isClient ? ModUtilClient.getPlayer(playerName) : getServerPlayer(playerName);
     }
 
     /**
@@ -138,12 +142,12 @@ public class ModUtil {
     }
 
     public static void teleportFacing(PlayerEntity player, BlockPos pos, Direction direction) {
-        player.requestTeleport(pos.getX(), pos.getY(), pos.getZ());
-        player.setYaw(directionToYaw(direction));
+        ModUtil.runConsoleCommand("/tp %s %s %s %s %s 0", player.getNameForScoreboard(),
+                pos.getX(), pos.getY(), pos.getZ(), directionToYaw(direction));
     }
 
     public static void setGamemode(ServerPlayerEntity player, GameMode gamemode) {
-        MCTournament.server().getPlayerInteractionManager(player).changeGameMode(gamemode);
+        ModUtil.runConsoleCommand("/gamemode %s %s", gamemode.getName(), player.getNameForScoreboard());
     }
 
     public static List<ServerPlayerEntity> getPlayersWithinBound(BlockPos start, BlockPos end) {

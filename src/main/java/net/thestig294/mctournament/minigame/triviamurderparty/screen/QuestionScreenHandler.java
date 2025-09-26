@@ -104,7 +104,7 @@ public class QuestionScreenHandler {
                 this.state = State.DISABLED;
 
                 this.answeredCaptains.forEach((captainName, isCorrect) -> {
-                    PlayerEntity captain = ModUtil.getPlayer(captainName);
+                    PlayerEntity captain = ModUtil.getServerPlayer(captainName);
                     if (captain == null) return;
 
                     Team team = captain.getScoreboardTeam();

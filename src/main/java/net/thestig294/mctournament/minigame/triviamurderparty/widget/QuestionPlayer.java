@@ -47,7 +47,7 @@ public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
                 this.isCaptain = false;
             } else {
                 int teamSize = team.getPlayerList().size();
-                PlayerEntity captain = Tournament.inst().clientScoreboard().getTeamCaptain(clientPlayer);
+                PlayerEntity captain = Tournament.inst().clientScoreboard().getTeamCaptain(true, clientPlayer);
 //                Don't show the "Your Team" text if the player is in a "team" of 1!
                 this.isCaptain = teamSize > 1 && captain != null && captain.equals(player);
             }

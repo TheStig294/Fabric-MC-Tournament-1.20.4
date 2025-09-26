@@ -608,7 +608,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
     private void resetRevealedAnswer() {
         PlayerEntity player = MCTournament.client().player;
         if (player == null) return;
-        PlayerEntity captain = Tournament.inst().clientScoreboard().getTeamCaptain(player);
+        PlayerEntity captain = Tournament.inst().clientScoreboard().getTeamCaptain(true, player);
         int selectedAnswer = captain == null ? -1 : this.captainAnswers.getOrDefault(captain.getNameForScoreboard(), -1);
 
         for (final var widget : this.answerWidgets) {
