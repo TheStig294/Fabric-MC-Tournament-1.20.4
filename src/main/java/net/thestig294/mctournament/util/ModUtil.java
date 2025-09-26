@@ -1,5 +1,6 @@
 package net.thestig294.mctournament.util;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -10,12 +11,17 @@ import net.minecraft.util.math.random.Random;
 import net.minecraft.world.GameMode;
 import net.thestig294.mctournament.MCTournament;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class ModUtil {
+    private static final Map<String, ServerPlayerEntity> CACHED_PLAYERS = new HashMap<>();
+
     public static void logRegistration(String type) {
         logRegistration(type, MCTournament.MOD_ID);
     }
@@ -78,12 +84,26 @@ public class ModUtil {
         return start + progress;
     }
 
+    /**
+     * A cached copy of a player's entity from their name, this is safe to use in rapidly repeated calls like tick hooks!
+     * @param playerName A string of the player's scoreboard-safe name (See: {@link PlayerEntity#getNameForScoreboard()})
+     * @return The {@link ServerPlayerEntity} of the player, or {@code null} if they cannot be found
+     */
     public static @Nullable ServerPlayerEntity getPlayer(String playerName) {
+        ServerPlayerEntity player = CACHED_PLAYERS.get(playerName);
+        if (isValid(player)) return player;
+
         if (MCTournament.server() == null || MCTournament.server().getPlayerManager() == null) return null;
-        return MCTournament.server().getPlayerManager().getPlayer(playerName);
+        player = MCTournament.server().getPlayerManager().getPlayer(playerName);
+        CACHED_PLAYERS.put(playerName, player);
+        return player;
     }
 
-    public static List<ServerPlayerEntity> getPlayers() {
+    /**
+     * An unmodifiable list of all players on the server, use {@link List}'s copy constructor if you want to modify.
+     * @return A reference to the internal list of players
+     */
+    public static @Unmodifiable List<ServerPlayerEntity> getPlayers() {
         if (MCTournament.server() == null || MCTournament.server().getPlayerManager() == null) return Collections.emptyList();
         return MCTournament.server().getPlayerManager().getPlayerList();
     }
@@ -139,11 +159,11 @@ public class ModUtil {
         printMessage(message, false);
     }
 
-    public static void overlayMessage(String message) {
-        printMessage(message, true);
-    }
-
     public static void printMessage(String message, boolean overlay) {
         MCTournament.server().getPlayerManager().broadcast(Text.literal(message), overlay);
+    }
+
+    public static boolean isValid(@Nullable Entity entity) {
+        return entity != null && !entity.isRemoved();
     }
 }

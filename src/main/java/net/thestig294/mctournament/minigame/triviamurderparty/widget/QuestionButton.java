@@ -36,7 +36,7 @@ public class QuestionButton extends PressableWidget implements QuestionWidget {
     private final int originalY;
     private final int originalWidth;
     private final int originalHeight;
-    private final Map<PlayerEntity, SkinTextures> playerHeads;
+    private final Map<String, SkinTextures> playerHeads;
     private boolean locked;
     private boolean pressed;
     private boolean selectedAnswer;
@@ -155,11 +155,11 @@ public class QuestionButton extends PressableWidget implements QuestionWidget {
         if (networkHandler == null) return;
         PlayerListEntry playerListEntry = networkHandler.getPlayerListEntry(player.getUuid());
         if (playerListEntry == null) return;
-        this.playerHeads.put(player, playerListEntry.getSkinTextures());
+        this.playerHeads.put(player.getNameForScoreboard(), playerListEntry.getSkinTextures());
     }
 
     public void removePlayerHead(PlayerEntity player) {
-        this.playerHeads.remove(player);
+        this.playerHeads.remove(player.getNameForScoreboard());
     }
 
     public void setSelectedAnswer() {

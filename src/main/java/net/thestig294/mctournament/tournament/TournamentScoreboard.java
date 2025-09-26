@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class TournamentScoreboard {
     public static final int MAX_TEAMS = 8;
@@ -31,7 +32,6 @@ public class TournamentScoreboard {
     private final boolean isClient;
     private boolean hooksAdded;
     private final List<Team> teams;
-    private final SortedMap<Integer, PlayerEntity> teamCaptains;
     private final SortedMap<Integer, String> teamCaptainNames;
     private Scoreboard scoreboard;
     private ScoreboardObjective objective;
@@ -40,7 +40,6 @@ public class TournamentScoreboard {
         this.isClient = isClient;
         this.hooksAdded = false;
         this.teams = new ArrayList<>(MAX_TEAMS);
-        this.teamCaptains = new TreeMap<>();
         this.teamCaptainNames = new TreeMap<>();
     }
 
@@ -100,7 +99,6 @@ public class TournamentScoreboard {
             this.teams.add(this.scoreboard.addTeam(this.getTeamName(i)));
         }
 
-        this.teamCaptains.clear();
         this.teamCaptainNames.clear();
         ModUtil.forAllPlayers(this::addPlayerToTeam);
 
@@ -198,11 +196,6 @@ public class TournamentScoreboard {
         return this.scoreboard;
     }
 
-    @SuppressWarnings("unused")
-    public @Nullable ScoreboardObjective getObjective() {
-        return this.objective;
-    }
-
     public @Nullable PlayerEntity getTeamCaptain(PlayerEntity player) {
         Team team = player.getScoreboardTeam();
         return team != null ? this.getTeamCaptain(team) : null;
@@ -217,20 +210,20 @@ public class TournamentScoreboard {
     }
 
     public @Nullable PlayerEntity getTeamCaptain(int teamNumber) {
-        return this.teamCaptains.get(teamNumber);
-    }
-
-    @SuppressWarnings("unused")
-    public List<PlayerEntity> getTeamCaptains() {
-        return this.teamCaptains.values().stream().toList();
+        return ModUtil.getPlayer(this.teamCaptainNames.get(teamNumber));
     }
 
     /**
      * @return A list of all team captains, in order of team name from 0 to {@code MAX_TEAMS},
      * ignoring teams with missing captains
      */
-    public List<PlayerEntity> getValidTeamCaptains() {
-        return this.teamCaptains.values().stream().filter(Objects::nonNull).toList();
+    public List<PlayerEntity> getValidTeamCaptains(boolean isClient) {
+        Function<String, PlayerEntity> getPlayerFunction = isClient ? ModUtilClient::getPlayer : ModUtil::getPlayer;
+
+        return this.teamCaptainNames.values().stream()
+                .map(getPlayerFunction)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     public void setTeamCaptain(Team team, @Nullable PlayerEntity captain) {
@@ -242,8 +235,6 @@ public class TournamentScoreboard {
     }
 
     public void setTeamCaptain(int teamNumber, @Nullable PlayerEntity captain) {
-        this.teamCaptains.put(teamNumber, captain);
-
         if (captain == null) {
             this.teamCaptainNames.put(teamNumber, null);
         } else {
@@ -273,8 +264,8 @@ public class TournamentScoreboard {
         }
     }
 
-    public boolean isTeamCaptain(PlayerEntity player) {
-        return player != null && this.teamCaptains.containsValue(player);
+    public boolean isTeamCaptain(@Nullable PlayerEntity player) {
+        return player != null && this.teamCaptainNames.containsValue(player.getNameForScoreboard());
     }
 
     public void findNewTeamCaptain(Team team) {
@@ -309,7 +300,6 @@ public class TournamentScoreboard {
      * @param player PlayerEntity
      * @return the player's team number, or -1 if the player doesn't have a team or has an invalid team name
      */
-    @SuppressWarnings("unused")
     public int getTeamNumber(PlayerEntity player) {
         Team team = player.getScoreboardTeam();
         return team == null ? -1 : this.getTeamNumber(team);
@@ -329,12 +319,6 @@ public class TournamentScoreboard {
     public int getTeamNumber(String teamName) {
         Integer teamNumber = Ints.tryParse(teamName.substring(TEAM_NAME_PREFIX.length()));
         return teamNumber == null ? -1 : teamNumber;
-    }
-
-    @SuppressWarnings("unused")
-    public List<ServerPlayerEntity> getConnectedTeamMembers(String teamName) {
-        Team team = this.scoreboard.getTeam(teamName);
-        return team == null ? Collections.emptyList() : getConnectedTeamMembers(team);
     }
 
     public List<ServerPlayerEntity> getConnectedTeamMembers(Team team) {
@@ -358,16 +342,13 @@ public class TournamentScoreboard {
         return team != null && !this.getConnectedTeamMembers(team).isEmpty();
     }
 
-    public void forAllConnectedTeams(Consumer<Team> lambda) {
-        this.forAllTeams((team) -> {
-            if (this.isTeamConnected(team)) lambda.accept(team);
-        });
-    }
-
     public @Nullable Team getRandomConnectedTeam() {
         List<Team> teamsCopy = new ArrayList<>(this.teams);
         Collections.shuffle(teamsCopy);
-        return teamsCopy.stream().filter(this::isTeamConnected).findFirst().orElse(null);
+        return teamsCopy.stream()
+                .filter(this::isTeamConnected)
+                .findFirst()
+                .orElse(null);
     }
 
     public void updateOverallScores() {

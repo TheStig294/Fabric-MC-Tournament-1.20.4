@@ -82,7 +82,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
         this.rightBoxWidget = this.addDrawableChild(new QuestionBox(this.width,0, this.width, this.height, ModColors.BLACK));
 
         this.playerWidgets.clear();
-        List<PlayerEntity> teamCaptains = Tournament.inst().clientScoreboard().getValidTeamCaptains();
+        List<PlayerEntity> teamCaptains = Tournament.inst().clientScoreboard().getValidTeamCaptains(true);
         for (int i = 0; i < teamCaptains.size(); i++) {
             QuestionPlayer player = new QuestionPlayer(i * this.width / 8, 0,
                     this.width / 8, this.height / 3, teamCaptains.get(i), this.textRenderer);
@@ -539,13 +539,13 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
 
             ClientPlayerEntity clientPlayer = MCTournament.client().player;
             PlayerEntity answeredPlayer = ModUtilClient.getPlayer(playerName);
-            if (clientPlayer == null) return;
+            if (clientPlayer == null || answeredPlayer == null) return;
 
             if (MCTournament.client().currentScreen instanceof QuestionScreen questionScreen) {
 //                See this: https://stackoverflow.com/questions/27482579/how-is-this-private-variable-accessible
 //                Java be wildin'
                 for (final var widget : questionScreen.playerWidgets) {
-                    if (widget.getPlayer().getNameForScoreboard().equals(playerName)) {
+                    if (widget.getPlayerName().equals(playerName)) {
                         questionScreen.captainAnswers.put(playerName, answerPosition);
                         break;
                     }
@@ -553,7 +553,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
 
                 if (isCaptain) {
                     for (final var playerWidget : questionScreen.playerWidgets) {
-                        if (playerWidget.getPlayer().getNameForScoreboard().equals(playerName)) {
+                        if (playerWidget.getPlayerName().equals(playerName)) {
                             playerWidget.setAnswerState(QuestionPlayer.AnswerState.ANSWERED);
                             ModUtilClient.playSound(SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK);
                             break;

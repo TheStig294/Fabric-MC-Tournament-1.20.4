@@ -33,7 +33,7 @@ public class QuestionScreenHandler {
     private final TriviaMurderParty minigame;
     private final MinigameScoreboard scoreboard;
     private final Map<String, Boolean> answeredCaptains;
-    private final Map<PlayerEntity, BlockPos> playerRedstonePositions;
+    private final Map<String, BlockPos> playerRedstonePositions;
     private State state;
     private BlockPos corridorStartingPos;
 
@@ -74,7 +74,7 @@ public class QuestionScreenHandler {
 
 //                Ending answering once all captains have answered
                 int answeredPlayers = this.answeredCaptains.size();
-                int playersToAnswer = Tournament.inst().scoreboard().getValidTeamCaptains().size();
+                int playersToAnswer = Tournament.inst().scoreboard().getValidTeamCaptains(false).size();
 
                 if (answeredPlayers >= playersToAnswer) {
                     this.broadcastAnsweringEnd();
@@ -84,7 +84,7 @@ public class QuestionScreenHandler {
 
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_ALL_CORRECT_LOOP_BACK, serverReceiveInfo -> {
             if (this.state != State.POST_ANSWERING) return;
-            for (final var captain : Tournament.inst().scoreboard().getValidTeamCaptains()) {
+            for (final var captain : Tournament.inst().scoreboard().getValidTeamCaptains(false)) {
                 if (!this.answeredCaptains.getOrDefault(captain.getNameForScoreboard(), false)) return;
             }
             this.broadcastNextQuestionScreen(Entrypoint.QUESTION_NUMBER_IN);
@@ -93,7 +93,7 @@ public class QuestionScreenHandler {
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_TRIGGER_LIGHTS_OFF, serverReceiveInfo -> {
             if (this.state != State.POST_ANSWERING) return;
             PlayerEntity player = serverReceiveInfo.player();
-            BlockPos pos = this.playerRedstonePositions.getOrDefault(player, player.getBlockPos().add(LIGHTS_OFF_REDSTONE_BLOCK_OFFSET));
+            BlockPos pos = this.playerRedstonePositions.getOrDefault(player.getNameForScoreboard(), player.getBlockPos().add(LIGHTS_OFF_REDSTONE_BLOCK_OFFSET));
             ModUtil.placeRedstoneBlock(pos);
         });
 
@@ -149,7 +149,7 @@ public class QuestionScreenHandler {
             ModUtil.teleportFacing(player, playerPos, Direction.NORTH);
             ModStructures.jigsawPlace(TriviaMurderParty.Structures.CORRIDOR, player);
             ModUtil.placeRedstoneBlock(playerPos.add(LIGHTS_ON_REDSTONE_BLOCK_OFFSET));
-            this.playerRedstonePositions.put(player, playerPos.add(LIGHTS_OFF_REDSTONE_BLOCK_OFFSET));
+            this.playerRedstonePositions.put(player.getNameForScoreboard(), playerPos.add(LIGHTS_OFF_REDSTONE_BLOCK_OFFSET));
 //            Each player is spawned in their own corridor, this is the width of the structure, plus 3 block of space
             playerPos = playerPos.east(10);
         }

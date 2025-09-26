@@ -13,13 +13,14 @@ import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.tournament.Tournament;
 import net.thestig294.mctournament.util.ModColors;
+import net.thestig294.mctournament.util.ModUtilClient;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
 public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
     private final boolean isCaptain;
-    private final PlayerEntity player;
+    private final String playerName;
     private final int originalX;
     private final int originalY;
     private final int originalWidth;
@@ -52,7 +53,7 @@ public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
             }
         }
 
-        this.player = player;
+        this.playerName = player.getNameForScoreboard();
         this.originalX = x;
         this.originalY = y;
         this.originalWidth = width;
@@ -76,7 +77,7 @@ public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
         }
 
         InventoryScreen.drawEntity(context, this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(),
-                30, 0.0625f, mouseX, mouseY, this.player);
+                30, 0.0625f, mouseX, mouseY, this.getPlayer());
         context.drawCenteredTextWithShadow(this.textRenderer, this.getMessage(),
                 this.getX() + (this.getWidth() / 2), this.getY() + 3, this.getTextColor());
 
@@ -117,11 +118,11 @@ public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
     }
 
     public PlayerEntity getPlayer() {
-        return this.player;
+        return ModUtilClient.getPlayer(this.playerName);
     }
 
     public String getPlayerName() {
-        return this.player.getNameForScoreboard();
+        return this.playerName;
     }
 
     public int getTextColor() {
