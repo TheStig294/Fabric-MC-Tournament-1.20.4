@@ -1,6 +1,5 @@
 package net.thestig294.mctournament.minigame.triviamurderparty.killingroom;
 
-import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.deathroom.Anvil;
 import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.room.Tattoos;
 
@@ -12,37 +11,33 @@ public class KillingRooms {
     private static int KILLING_ROOM_INDEX = 0;
     private static int DEATH_ROOM_INDEX = 0;
     private static final Map<String, KillingRoom> ID_TO_KILLING_ROOM = new HashMap<>();
-    private static final Map<String, DeathRoom> ID_TO_DEATH_ROOM = new HashMap<>();
 
-    public static final Tattoos TATTOOS = (Tattoos) registerKillingRoom(new Tattoos());
-
-    public static final Anvil ANVIL = (Anvil) registerDeathRoom(new Anvil());
-
-    private static KillingRoom registerKillingRoom(KillingRoom killingRoom) {
+    private static void register(KillingRoom killingRoom) {
         KILLING_ROOMS.add(killingRoom);
         ID_TO_KILLING_ROOM.put(killingRoom.getID(), killingRoom);
-        return killingRoom;
     }
 
-    private static DeathRoom registerDeathRoom(DeathRoom deathRoom) {
+    private static void register(DeathRoom deathRoom) {
         DEATH_ROOMS.add(deathRoom);
-        ID_TO_DEATH_ROOM.put(deathRoom.getID(), deathRoom);
-        return deathRoom;
     }
 
-    public static void begin(boolean isClient, TriviaMurderParty minigame) {
-        KILLING_ROOMS.forEach((killingRoom) -> {
-            killingRoom.setMinigame(minigame);
+    public static void register() {
+        register(new Tattoos());
 
+        register(new Anvil());
+    }
+
+    public static void begin(boolean isClient) {
+        KILLING_ROOMS.forEach((killingRoom) -> {
             if (isClient) {
                 killingRoom.clientInit();
             } else {
-                killingRoom.setScreenHandler(minigame.getKillingRoomScreenHandler());
                 killingRoom.init();
             }
         });
 
         if (!isClient) shuffleKillingRooms();
+        if (!isClient) shuffleDeathRooms();
     }
 
     public static void shuffleKillingRooms() {
@@ -73,9 +68,5 @@ public class KillingRooms {
 
     public static KillingRoom getKillingRoom(String id) {
         return ID_TO_KILLING_ROOM.get(id);
-    }
-
-    public static DeathRoom getDeathRoom(String id) {
-        return ID_TO_DEATH_ROOM.get(id);
     }
 }

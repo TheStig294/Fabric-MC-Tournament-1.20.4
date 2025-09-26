@@ -1,19 +1,23 @@
 package net.thestig294.mctournament.minigame.triviamurderparty.killingroom.deathroom;
 
-import net.minecraft.scoreboard.Team;
 import net.minecraft.util.math.BlockPos;
 import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.DeathRoom;
 
-import java.util.List;
+import java.util.Set;
 
-public class Anvil implements DeathRoom {
+public class Anvil extends DeathRoom {
     @Override
     public String getID() {
         return "anvil";
     }
 
     @Override
-    public void begin(List<Team> deadTeams, BlockPos roomPos) {
+    public float getDeathDelay() {
+        return 3.0f;
+    }
+
+    @Override
+    public void begin(BlockPos roomPos, Set<Integer> killableTeamNumbers) {
 
     }
 }

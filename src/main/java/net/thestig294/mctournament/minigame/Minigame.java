@@ -2,6 +2,7 @@ package net.thestig294.mctournament.minigame;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
@@ -47,6 +48,7 @@ public abstract class Minigame {
     public void serverPreEnd() {
         Tournament.inst().scoreboard().updateOverallScores();
         this.scoreboard.clear();
+        ModUtil.forAllPlayers(LivingEntity::clearStatusEffects);
     }
 
     public abstract void serverEnd();

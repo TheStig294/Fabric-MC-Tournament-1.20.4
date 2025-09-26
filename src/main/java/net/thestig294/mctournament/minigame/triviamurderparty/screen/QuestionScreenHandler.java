@@ -115,7 +115,7 @@ public class QuestionScreenHandler {
                             this.scoreboard.setBoolean(player, TriviaMurderParty.Objectives.IS_CORRECT, isCorrect));
                 });
 
-                this.minigame.getKillingRoomScreenHandler().broadcastNextKillingRoom();
+                this.minigame.startKillingRoom();
             });
         });
 
@@ -132,6 +132,10 @@ public class QuestionScreenHandler {
         this.corridorStartingPos = pos;
         Questions.shuffleCategory(this.minigame.getVariant());
         this.broadcastNextQuestionScreen(Entrypoint.TITLE_IN);
+    }
+
+    public void broadcastNextQuestionScreen() {
+        this.broadcastNextQuestionScreen(Entrypoint.SCREEN_IN);
     }
 
     private void broadcastNextQuestionScreen(Entrypoint entrypoint) {

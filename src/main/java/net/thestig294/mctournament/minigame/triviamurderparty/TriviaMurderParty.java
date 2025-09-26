@@ -2,31 +2,29 @@ package net.thestig294.mctournament.minigame.triviamurderparty;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 import net.thestig294.mctournament.minigame.Minigame;
 import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.KillingRooms;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Questions;
-import net.thestig294.mctournament.minigame.triviamurderparty.screen.KillingRoomScreen;
-import net.thestig294.mctournament.minigame.triviamurderparty.screen.KillingRoomScreenHandler;
-import net.thestig294.mctournament.minigame.triviamurderparty.screen.QuestionScreen;
-import net.thestig294.mctournament.minigame.triviamurderparty.screen.QuestionScreenHandler;
-import net.thestig294.mctournament.structure.Structure;
+import net.thestig294.mctournament.minigame.triviamurderparty.screen.*;
 
 import static net.thestig294.mctournament.font.ModFonts.registerFont;
 import static net.thestig294.mctournament.minigame.MinigameVariants.registerVariant;
 import static net.thestig294.mctournament.network.ModNetworking.registerNetworkID;
 import static net.thestig294.mctournament.structure.ModStructures.registerJigsawStartPool;
-import static net.thestig294.mctournament.structure.ModStructures.registerStructure;
 import static net.thestig294.mctournament.texture.ModTextures.registerTexture;
 
 public class TriviaMurderParty extends Minigame {
     public static final String ID = "trivia_murder_party";
-    public static final int KILLING_ROOM_OFFSET = 20;
+    private static final int KILLING_ROOM_OFFSET = 20;
+    private static final int DEATH_ROOM_OFFSET = 20;
+    private static final int SCORE_ROOM_OFFSET = 20;
 
     private QuestionScreenHandler questionScreenHandler;
     private KillingRoomScreenHandler killingRoomScreenHandler;
+    private ScoreScreenHandler scoreScreenHandler;
 
     @Override
     public String getID() {
@@ -46,16 +44,22 @@ public class TriviaMurderParty extends Minigame {
     @Override
     public void serverInit() {
         Questions.register();
+        KillingRooms.register();
         this.questionScreenHandler = new QuestionScreenHandler(this);
         this.killingRoomScreenHandler = new KillingRoomScreenHandler(this);
+        this.scoreScreenHandler = new ScoreScreenHandler(this);
     }
 
     @Override
     public void serverBegin() {
         this.hideNametags();
         this.questionScreenHandler.begin(this.getPosition());
-        KillingRooms.begin(false, this);
-        this.killingRoomScreenHandler.begin(this.getPosition().west(KILLING_ROOM_OFFSET));
+
+        KillingRooms.begin(false);
+        BlockPos killingRoomPos = this.getPosition().west(KILLING_ROOM_OFFSET);
+
+        this.killingRoomScreenHandler.begin(killingRoomPos, killingRoomPos.north(DEATH_ROOM_OFFSET));
+        this.scoreScreenHandler.begin(killingRoomPos.south(SCORE_ROOM_OFFSET));
     }
 
     @Override
@@ -73,7 +77,7 @@ public class TriviaMurderParty extends Minigame {
     @Environment(EnvType.CLIENT)
     @Override
     public void clientBegin() {
-        KillingRooms.begin(true, this);
+        KillingRooms.begin(true);
     }
 
     @Environment(EnvType.CLIENT)
@@ -82,34 +86,27 @@ public class TriviaMurderParty extends Minigame {
 
     }
 
-    public KillingRoomScreenHandler getKillingRoomScreenHandler() {
-        return this.killingRoomScreenHandler;
+    @SuppressWarnings("unused")
+    public void startNextQuestion() {
+        this.questionScreenHandler.broadcastNextQuestionScreen();
     }
 
-    public boolean isPlayerCorrect(PlayerEntity player) {
-        return this.scoreboard().getBoolean(player, Objectives.IS_CORRECT);
+    public void startKillingRoom() {
+        this.killingRoomScreenHandler.broadcastNextKillingRoom();
     }
 
-    public boolean isPlayerDead(PlayerEntity player) {
-        return this.scoreboard().getBoolean(player, Objectives.IS_DEAD);
-    }
-
-    public void setPlayerCorrect(PlayerEntity player, boolean isCorrect) {
-        this.scoreboard().setBoolean(player, Objectives.IS_CORRECT, isCorrect);
-    }
-
-    public void setPlayerDead(String playerName, boolean isDead) {
-        this.scoreboard().setBoolean(playerName, Objectives.IS_DEAD, isDead);
+    public void startScoreScreen() {
+        this.scoreScreenHandler.broadcastNextScoreScreen();
     }
 
     public static class Objectives {
         public static final String IS_CORRECT = "is_correct";
+        public static final String IS_KILLABLE = "is_killable";
         public static final String IS_DEAD = "is_dead";
     }
 
     public static class Structures {
         public static final Identifier CORRIDOR = registerJigsawStartPool(ID, "corridor");
-        public static final Structure DEATH_ROOM = registerStructure(ID, "death_room", 0,0,0);
     }
 
     public static class NetworkIDs {

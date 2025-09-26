@@ -46,9 +46,7 @@ public class Tattoos extends KillingRoom {
     }
 
     @Override
-    public void begin() {
-        BlockPos roomPos = this.screenHandler().getKillingRoomPos();
-
+    public void begin(BlockPos roomPos) {
         this.forAllConnectedTeamPlayers((team, player) -> {
             GameMode gamemode = this.isOnTrial(player) ? GameMode.CREATIVE : GameMode.SPECTATOR;
             ModUtil.setGamemode(player, gamemode);
@@ -77,7 +75,7 @@ public class Tattoos extends KillingRoom {
     private void endVoting() {
         ModUtil.chatMessage("Votes:");
         int minVotes = ModUtil.getPlayers().size();
-        Team deadTeam = null;
+        Team killableTeam = null;
 
         for (int i = 0; i < BUILD_ROOM_STARTS.size(); i++) {
             Team team = this.tournamentScoreboard().getTeam(i);
@@ -87,7 +85,7 @@ public class Tattoos extends KillingRoom {
 
             if (playerCount < minVotes) {
                 minVotes = playerCount;
-                deadTeam = this.tournamentScoreboard().getTeam(i);
+                killableTeam = this.tournamentScoreboard().getTeam(i);
             }
 
             if (playerCount > 0) {
@@ -95,9 +93,9 @@ public class Tattoos extends KillingRoom {
             }
         }
 
-        if (deadTeam == null) deadTeam = this.tournamentScoreboard().getRandomConnectedTeam();
-        if (deadTeam != null) {
-            this.setTeamDead(deadTeam);
+        if (killableTeam == null) killableTeam = this.tournamentScoreboard().getRandomConnectedTeam();
+        if (killableTeam != null) {
+            this.setTeamKillable(killableTeam);
         }
     }
 

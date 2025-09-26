@@ -1,26 +1,22 @@
 package net.thestig294.mctournament.minigame.triviamurderparty.screen;
 
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.thestig294.mctournament.minigame.MinigameScoreboard;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.DeathRoom;
 import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.KillingRoom;
 import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.KillingRooms;
 import net.thestig294.mctournament.network.ModNetworking;
 import net.thestig294.mctournament.structure.ModStructures;
-import net.thestig294.mctournament.util.ModTimer;
 import net.thestig294.mctournament.util.ModUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class KillingRoomScreenHandler {
-    private static final int DEATH_ROOM_OFFSET = 20;
-
     private final TriviaMurderParty minigame;
-    private final MinigameScoreboard scoreboard;
     private BlockPos killingRoomPos;
     private BlockPos deathRoomPos;
     @Nullable
@@ -30,7 +26,6 @@ public class KillingRoomScreenHandler {
 
     public KillingRoomScreenHandler(TriviaMurderParty minigame) {
         this.minigame = minigame;
-        this.scoreboard = minigame.scoreboard();
         this.killingRoomPos = BlockPos.ORIGIN;
         this.killingRoom = null;
         this.timerIndex = -1;
@@ -42,8 +37,7 @@ public class KillingRoomScreenHandler {
 
             if (this.killingRoom != null) {
                 this.timerIndex++;
-                this.killingRoom.clearDeadTeams();
-                this.killingRoom.begin();
+                this.killingRoom.begin(this.killingRoomPos);
                 this.broadcastHudTimer();
             }
         });
@@ -58,7 +52,7 @@ public class KillingRoomScreenHandler {
                 this.killingRoom.timerEnd(timerName);
                 this.timerIndex++;
 
-                ModTimer.simple(false, this.killingRoom.getTimerQuipLength(timerName), () -> {
+                net.thestig294.mctournament.util.ModTimer.simple(false, this.killingRoom.getTimerQuipLength(timerName), () -> {
                     if (this.timerIndex < timers.size()) {
                         this.broadcastHudTimer();
                     } else {
@@ -68,11 +62,17 @@ public class KillingRoomScreenHandler {
                 });
             }
         });
+
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, player, alive) -> {
+            if (this.minigame.scoreboard().getBoolean(player, TriviaMurderParty.Objectives.IS_DEAD)) {
+                DeathRoom.setPlayerInvisible(player);
+            }
+        });
     }
 
-    public void begin(BlockPos killingRoomPos) {
+    public void begin(BlockPos killingRoomPos, BlockPos deathRoomPos) {
         this.killingRoomPos = killingRoomPos;
-        this.deathRoomPos = killingRoomPos.north(DEATH_ROOM_OFFSET);
+        this.deathRoomPos = deathRoomPos;
     }
 
     public void broadcastNextKillingRoom() {
@@ -102,15 +102,8 @@ public class KillingRoomScreenHandler {
     private void startDeathRoom() {
         if (this.killingRoom == null) return;
 
-        DeathRoom deathRoom = KillingRooms.getNextDeathRoom();
-        ModStructures.place();
-        deathRoom.begin(this.killingRoom.getDeadTeams(), this.deathRoomPos);
-
+        KillingRooms.getNextDeathRoom().init(this.deathRoomPos, this.minigame);
         this.state = State.DISABLED;
-    }
-
-    public BlockPos getKillingRoomPos() {
-        return this.killingRoomPos;
     }
 
     private enum State {
