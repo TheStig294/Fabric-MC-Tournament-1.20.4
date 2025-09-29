@@ -105,7 +105,7 @@ public abstract class AnimatedScreen<
         }
 
         float tps = ModUtilClient.getTicksPerSecond();
-        if (this.isHudState()) tps /= 2;
+        if (this.isHudState()) tps *= 2;
 
         this.uptimeSecs += delta / tps;
         this.stateProgress = ModUtil.lerpPercent(this.stateStartTime, this.stateEndTime, this.uptimeSecs);

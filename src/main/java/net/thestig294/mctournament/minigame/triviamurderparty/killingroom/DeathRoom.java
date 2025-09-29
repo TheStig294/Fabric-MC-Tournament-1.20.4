@@ -35,14 +35,14 @@ public abstract class DeathRoom {
     );
 
     private static final List<BlockPos> DEFAULT_DEATH_POSITIONS = List.of(
-            new BlockPos(-2,0,-4), // 0
-            new BlockPos(2,0,-4), // 1
-            new BlockPos(-4,0,-8), // 2
-            new BlockPos(0,0,-8), // 3
-            new BlockPos(4,0,-8), // 4
-            new BlockPos(-4,0,-12), // 5
-            new BlockPos(0,0,-12), // 6
-            new BlockPos(4,0,-12)  // 7
+            new BlockPos(-2,1,-4), // 0
+            new BlockPos(2,1,-4), // 1
+            new BlockPos(-4,1,-8), // 2
+            new BlockPos(0,1,-8), // 3
+            new BlockPos(4,1,-8), // 4
+            new BlockPos(-4,1,-12), // 5
+            new BlockPos(0,1,-12), // 6
+            new BlockPos(4,1,-12)  // 7
     );
 
     public static void setPlayerInvisible(ServerPlayerEntity player) {

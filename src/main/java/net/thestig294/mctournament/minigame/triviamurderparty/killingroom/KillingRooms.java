@@ -1,7 +1,7 @@
 package net.thestig294.mctournament.minigame.triviamurderparty.killingroom;
 
 import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.deathroom.Anvil;
-import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.room.Tattoos;
+import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.killingroom.Tattoos;
 
 import java.util.*;
 

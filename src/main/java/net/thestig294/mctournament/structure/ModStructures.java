@@ -7,7 +7,6 @@ import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.structure.StructurePlacementData;
 import net.minecraft.structure.pool.StructurePool;
@@ -53,6 +52,7 @@ public class ModStructures {
      * @param structure Structure identifier
      * @param player Player to spawn the structure around
      */
+    @SuppressWarnings("unused")
     public static void place(Structure structure, PlayerEntity player) {
         place(structure, player.getBlockPos(), player.getYaw(), (ServerWorldAccess) player.getWorld());
     }
@@ -106,9 +106,8 @@ public class ModStructures {
      */
     public static void place(Structure structure, BlockPos pos, BlockRotation rotation, ServerWorldAccess world) {
         BlockPos offsetPos = offsetBlockPos(pos, structure.xOffset(), structure.yOffset(), structure.zOffset(), rotation);
-        MinecraftServer server = MCTournament.server();
         StructurePlacementData placementData = new StructurePlacementData().setRotation(rotation);
-        server.getStructureTemplateManager().getTemplateOrBlank(structure.id())
+        MCTournament.server().getStructureTemplateManager().getTemplateOrBlank(structure.id())
                 .place(world, offsetPos, offsetPos, placementData, StructureBlockBlockEntity.createRandom(0), Block.NOTIFY_LISTENERS);
     }
 

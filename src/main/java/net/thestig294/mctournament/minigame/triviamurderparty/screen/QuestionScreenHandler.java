@@ -99,24 +99,21 @@ public class QuestionScreenHandler {
 
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN_START_KILLING_ROOM, serverReceiveInfo -> {
             if (this.state != State.POST_ANSWERING) return;
+            this.state = State.DISABLED;
 
-            ModTimer.simple(false, ANSWERING_TIME_FORGIVENESS, () -> {
-                this.state = State.DISABLED;
+            this.answeredCaptains.forEach((captainName, isCorrect) -> {
+                ServerPlayerEntity captain = ModUtil.getServerPlayer(captainName);
+                if (captain == null) return;
 
-                this.answeredCaptains.forEach((captainName, isCorrect) -> {
-                    ServerPlayerEntity captain = ModUtil.getServerPlayer(captainName);
-                    if (captain == null) return;
+                Team team = captain.getScoreboardTeam();
+                if (team == null) return;
+                List<ServerPlayerEntity> teamMembers = Tournament.inst().scoreboard().getConnectedTeamMembers(team);
 
-                    Team team = captain.getScoreboardTeam();
-                    if (team == null) return;
-                    List<ServerPlayerEntity> teamMembers = Tournament.inst().scoreboard().getConnectedTeamMembers(team);
-
-                    teamMembers.forEach(player ->
-                            this.scoreboard.setBoolean(player, TriviaMurderParty.Objectives.IS_CORRECT, isCorrect));
-                });
-
-                this.minigame.startKillingRoom();
+                teamMembers.forEach(player ->
+                        this.scoreboard.setBoolean(player, TriviaMurderParty.Objectives.IS_CORRECT, isCorrect));
             });
+
+            this.minigame.startKillingRoom();
         });
 
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_MOVE_PLAYER, serverReceiveInfo -> {

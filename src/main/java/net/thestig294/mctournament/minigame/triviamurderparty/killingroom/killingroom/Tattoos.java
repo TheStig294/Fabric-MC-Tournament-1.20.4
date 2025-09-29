@@ -1,4 +1,4 @@
-package net.thestig294.mctournament.minigame.triviamurderparty.killingroom.room;
+package net.thestig294.mctournament.minigame.triviamurderparty.killingroom.killingroom;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -17,17 +17,17 @@ public class Tattoos extends KillingRoom {
             new Timer("building", 60),
             new Timer("voting", 60));
     private static final List<Float> DESCRIPTION_LENGTHS = List.of(3.0f, 3.0f);
-    private static final BlockPos REDSTONE_OFFSET = new BlockPos(5,8,-8);
+    private static final BlockPos REDSTONE_OFFSET = new BlockPos(5,7,-8);
 
     private static final List<BlockPos> BUILD_ROOM_STARTS = List.of(
-            new BlockPos(-29,0,1), // 0
-            new BlockPos(-17,0,1), // 1
-            new BlockPos(-29,0,12), // 2
-            new BlockPos(-17,0,12), // 3
-            new BlockPos(-5,0,12), // 4
-            new BlockPos(-29,0,23), // 5
-            new BlockPos(-17,0,23), // 6
-            new BlockPos(-5,0,23)  // 7
+            new BlockPos(-29,1,1), // 0
+            new BlockPos(-17,1,1), // 1
+            new BlockPos(-29,1,12), // 2
+            new BlockPos(-17,1,12), // 3
+            new BlockPos(-5,1,12), // 4
+            new BlockPos(-29,1,23), // 5
+            new BlockPos(-17,1,23), // 6
+            new BlockPos(-5,1,23)  // 7
     );
 
     private static final List<BlockPos> BUILD_ROOM_ENDS = List.of(
@@ -52,7 +52,7 @@ public class Tattoos extends KillingRoom {
             GameMode gamemode = this.isOnTrial(player) ? GameMode.CREATIVE : GameMode.SPECTATOR;
             ModUtil.setGamemode(player, gamemode);
             int teamNumber = this.tournamentScoreboard().getTeamNumber(team);
-            ModUtil.teleportFacing(player, this.getPosition().add(BUILD_ROOM_STARTS.get(teamNumber)), Direction.SOUTH);
+            ModUtil.teleportFacing(player, this.getPosition().add(BUILD_ROOM_STARTS.get(teamNumber)), Direction.NORTH);
         });
     }
 
@@ -70,7 +70,7 @@ public class Tattoos extends KillingRoom {
         this.forAllConnectedTeamPlayers((team, player) -> {
             player.getInventory().clear();
             ModUtil.setGamemode(player, GameMode.ADVENTURE);
-            ModUtil.teleportFacing(player, this.getStructureOffset(), Direction.WEST);
+            ModUtil.teleportFacing(player, this.getPosition(), Direction.WEST);
         });
     }
 
