@@ -18,6 +18,7 @@ import java.util.function.BiConsumer;
 
 public abstract class KillingRoom {
     private final Structure structure;
+    private BlockPos position = BlockPos.ORIGIN;
 
     public KillingRoom() {
         this.structure = ModStructures.registerStructure(TriviaMurderParty.ID, "/killing_room/" + this.getID(), this.getStructureOffset());
@@ -25,7 +26,7 @@ public abstract class KillingRoom {
 
     public abstract void init();
 
-    public abstract void begin(BlockPos roomPos);
+    public abstract void begin();
 
     public abstract void timerEnd(String timerName);
 
@@ -69,6 +70,14 @@ public abstract class KillingRoom {
     public void setTeamKillable(Team team) {
         team.getPlayerList().forEach(playerName ->
                 this.scoreboard().setBoolean(playerName, TriviaMurderParty.Objectives.IS_KILLABLE, true));
+    }
+
+    public void setPosition(BlockPos killingRoomPos) {
+        this.position = killingRoomPos;
+    }
+
+    public BlockPos getPosition() {
+        return this.position;
     }
 
     public record Timer(String name, int length) {}

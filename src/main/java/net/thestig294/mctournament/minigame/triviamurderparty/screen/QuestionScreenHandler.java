@@ -1,7 +1,6 @@
 package net.thestig294.mctournament.minigame.triviamurderparty.screen;
 
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -92,7 +91,7 @@ public class QuestionScreenHandler {
 
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_TRIGGER_LIGHTS_OFF, serverReceiveInfo -> {
             if (this.state != State.POST_ANSWERING) return;
-            PlayerEntity player = serverReceiveInfo.player();
+            ServerPlayerEntity player = serverReceiveInfo.player();
             BlockPos pos = this.playerRedstonePositions.getOrDefault(player.getNameForScoreboard(), player.getBlockPos().add(LIGHTS_OFF_REDSTONE_BLOCK_OFFSET));
             ModUtil.placeRedstoneBlock(pos);
         });
@@ -104,7 +103,7 @@ public class QuestionScreenHandler {
                 this.state = State.DISABLED;
 
                 this.answeredCaptains.forEach((captainName, isCorrect) -> {
-                    PlayerEntity captain = ModUtil.getServerPlayer(captainName);
+                    ServerPlayerEntity captain = ModUtil.getServerPlayer(captainName);
                     if (captain == null) return;
 
                     Team team = captain.getScoreboardTeam();
@@ -120,7 +119,7 @@ public class QuestionScreenHandler {
         });
 
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_MOVE_PLAYER, serverReceiveInfo -> {
-            PlayerEntity player = serverReceiveInfo.player();
+            ServerPlayerEntity player = serverReceiveInfo.player();
             if (this.state != State.POST_ANSWERING || player.velocityModified) return;
             player.requestTeleportOffset(0.0, 1.0, 0.0);
             player.addVelocity(PLAYER_MOVE_VELOCITY);

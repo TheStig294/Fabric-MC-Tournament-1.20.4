@@ -96,7 +96,7 @@ public class TournamentScoreboard {
             if (team != null) {
                 this.scoreboard.removeTeam(team);
             }
-            this.teams.add(this.scoreboard.addTeam(this.getTeamName(i)));
+            this.teams.add(this.scoreboard.addTeam(this.getInternalTeamName(i)));
         }
 
         this.teamCaptainNames.clear();
@@ -205,8 +205,8 @@ public class TournamentScoreboard {
         return this.getTeamCaptain(isClient, team.getName());
     }
 
-    public @Nullable PlayerEntity getTeamCaptain(boolean isClient, String teamName) {
-        return this.getTeamCaptain(isClient, this.getTeamNumber(teamName));
+    public @Nullable PlayerEntity getTeamCaptain(boolean isClient, String internalTeamName) {
+        return this.getTeamCaptain(isClient, this.getTeamNumber(internalTeamName));
     }
 
     public @Nullable PlayerEntity getTeamCaptain(boolean isClient, int teamNumber) {
@@ -230,8 +230,8 @@ public class TournamentScoreboard {
         this.setTeamCaptain(team.getName(), captain);
     }
 
-    public void setTeamCaptain(String teamName, @Nullable PlayerEntity captain)  {
-        this.setTeamCaptain(this.getTeamNumber(teamName), captain);
+    public void setTeamCaptain(String internalTeamName, @Nullable PlayerEntity captain)  {
+        this.setTeamCaptain(this.getTeamNumber(internalTeamName), captain);
     }
 
     public void setTeamCaptain(int teamNumber, @Nullable PlayerEntity captain) {
@@ -287,12 +287,35 @@ public class TournamentScoreboard {
         minigameScoreboard.setScore(newCaptainName, minigameScoreboard.getScore(oldCaptainName));
     }
 
-    public String getTeamName(int teamNumber) {
+    /**
+     * Gets the name of a player's team, if they're in one, else returns {@code null}. <br>
+     * For now, this is the name of the team's captain
+     * @param isClient Whether the realm this function is called in is the client
+     * @param player The player whose team name is to be returned
+     * @return {@code String} of the player's team name, {@code null} if they don't belong to a team
+     */
+    public @Nullable String getTeamName(boolean isClient, PlayerEntity player) {
+        return this.getTeamName(isClient, this.getTeamNumber(player));
+    }
+
+    /**
+     * Gets the name of a player's team, if they're in one, else returns {@code null}. <br>
+     * For now, this is the name of the team's captain
+     * @param isClient Whether the realm this function is called in is the client
+     * @param teamNumber The internal team number from {@code 0} to {@link TournamentScoreboard#MAX_TEAMS}
+     * @return {@code String} of the player's team name, {@code null} if they don't belong to a team
+     */
+    public @Nullable String getTeamName(boolean isClient, int teamNumber) {
+        PlayerEntity captain = this.getTeamCaptain(isClient, teamNumber);
+        return captain == null ? null : captain.getNameForScoreboard();
+    }
+
+    public String getInternalTeamName(int teamNumber) {
         return TEAM_NAME_PREFIX + teamNumber;
     }
 
     public @Nullable Team getTeam(int teamNumber) {
-        return this.scoreboard.getTeam(this.getTeamName(teamNumber));
+        return this.scoreboard.getTeam(this.getInternalTeamName(teamNumber));
     }
 
     /**
@@ -311,13 +334,13 @@ public class TournamentScoreboard {
 
     /**
      * Converts a team name into a team number
-     * @param teamName String of valid tournament team name
+     * @param internalTeamName String of valid tournament team name
      * @return Team's team number, or -1 if not a properly formatted tournament team name.
      * <p>
-     * See: {@link TournamentScoreboard#getTeamName(int)}
+     * See: {@link TournamentScoreboard#getInternalTeamName(int)}
      */
-    public int getTeamNumber(String teamName) {
-        Integer teamNumber = Ints.tryParse(teamName.substring(TEAM_NAME_PREFIX.length()));
+    public int getTeamNumber(String internalTeamName) {
+        Integer teamNumber = Ints.tryParse(internalTeamName.substring(TEAM_NAME_PREFIX.length()));
         return teamNumber == null ? -1 : teamNumber;
     }
 

@@ -37,7 +37,8 @@ public class KillingRoomScreenHandler {
 
             if (this.killingRoom != null) {
                 this.timerIndex++;
-                this.killingRoom.begin(this.killingRoomPos);
+                this.killingRoom.setPosition(this.killingRoomPos);
+                this.killingRoom.begin();
                 this.broadcastHudTimer();
             }
         });

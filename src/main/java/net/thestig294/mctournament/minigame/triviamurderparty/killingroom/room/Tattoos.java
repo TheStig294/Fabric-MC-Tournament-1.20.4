@@ -12,33 +12,35 @@ import net.thestig294.mctournament.util.ModUtil;
 import java.util.List;
 
 public class Tattoos extends KillingRoom {
-    private static final BlockPos STRUCTURE_OFFSET = new BlockPos(0,0,0);
+    private static final BlockPos STRUCTURE_OFFSET = new BlockPos(32,2,11);
     private static final List<Timer> TIMERS = List.of(
             new Timer("building", 60),
-            new Timer("voting", 20));
+            new Timer("voting", 30));
     private static final List<Float> DESCRIPTION_LENGTHS = List.of(3.0f, 3.0f);
 
     private static final List<BlockPos> BUILD_ROOM_STARTS = List.of(
-            new BlockPos(0,0,0), // 0
-            new BlockPos(0,0,0), // 1
-            new BlockPos(0,0,0), // 2
-            new BlockPos(0,0,0), // 3
-            new BlockPos(0,0,0), // 4
-            new BlockPos(0,0,0), // 5
-            new BlockPos(0,0,0), // 6
-            new BlockPos(0,0,0)  // 7
+            new BlockPos(-29,0,1), // 0
+            new BlockPos(-17,0,1), // 1
+            new BlockPos(-29,0,12), // 2
+            new BlockPos(-17,0,12), // 3
+            new BlockPos(-5,0,12), // 4
+            new BlockPos(-29,0,23), // 5
+            new BlockPos(-17,0,23), // 6
+            new BlockPos(-5,0,23)  // 7
     );
 
     private static final List<BlockPos> BUILD_ROOM_ENDS = List.of(
-            new BlockPos(0,0,0), // 0
-            new BlockPos(0,0,0), // 1
-            new BlockPos(0,0,0), // 2
-            new BlockPos(0,0,0), // 3
-            new BlockPos(0,0,0), // 4
-            new BlockPos(0,0,0), // 5
-            new BlockPos(0,0,0), // 6
-            new BlockPos(0,0,0)  // 7
+            new BlockPos(-18,5,-8), // 0
+            new BlockPos(-6,5,-8), // 1
+            new BlockPos(-18,5,2), // 2
+            new BlockPos(-6,5,2), // 3
+            new BlockPos(5,5,2), // 4
+            new BlockPos(-18,5,13), // 5
+            new BlockPos(-6,5,13), // 6
+            new BlockPos(5,5,13)  // 7
     );
+
+    private static final BlockPos REDSTONE_OFFSET = new BlockPos(5,8,-8);
 
     @Override
     public void init() {
@@ -46,13 +48,12 @@ public class Tattoos extends KillingRoom {
     }
 
     @Override
-    public void begin(BlockPos roomPos) {
+    public void begin() {
         this.forAllConnectedTeamPlayers((team, player) -> {
             GameMode gamemode = this.isOnTrial(player) ? GameMode.CREATIVE : GameMode.SPECTATOR;
             ModUtil.setGamemode(player, gamemode);
             int teamNumber = this.tournamentScoreboard().getTeamNumber(team);
-            BlockPos offsetPosition = roomPos.add(BUILD_ROOM_STARTS.get(teamNumber));
-            ModUtil.teleportFacing(player, offsetPosition, Direction.SOUTH);
+            ModUtil.teleportFacing(player, this.getPosition().add(BUILD_ROOM_STARTS.get(teamNumber)), Direction.SOUTH);
         });
     }
 
@@ -65,6 +66,8 @@ public class Tattoos extends KillingRoom {
     }
 
     private void startVoting() {
+        ModUtil.placeRedstoneBlock(this.getPosition().add(REDSTONE_OFFSET));
+
         this.forAllConnectedTeamPlayers((team, player) -> {
             player.getInventory().clear();
             ModUtil.setGamemode(player, GameMode.ADVENTURE);
@@ -89,7 +92,7 @@ public class Tattoos extends KillingRoom {
             }
 
             if (playerCount > 0) {
-                ModUtil.chatMessage(this.tournamentScoreboard().getTeamName(i) + " - " + playerCount);
+                ModUtil.chatMessage(this.tournamentScoreboard().getTeamName(false, i) + " - " + playerCount);
             }
         }
 

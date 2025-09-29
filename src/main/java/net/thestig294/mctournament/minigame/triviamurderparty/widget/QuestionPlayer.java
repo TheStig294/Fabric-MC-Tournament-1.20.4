@@ -21,6 +21,7 @@ import java.awt.*;
 public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
     private final boolean isCaptain;
     private final String playerName;
+    private final Text nameText;
     private final int originalX;
     private final int originalY;
     private final int originalWidth;
@@ -35,8 +36,7 @@ public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
     private QuestionImage crossWidget;
 
     public QuestionPlayer(int x, int y, int width, int height, PlayerEntity player, TextRenderer textRenderer) {
-        super(x, y, width, height, Text.literal(player.getNameForScoreboard())
-                .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER)));
+        super(x, y, width, height, Text.empty());
 
         PlayerEntity clientPlayer = MCTournament.client().player;
         if (clientPlayer == null) {
@@ -54,6 +54,10 @@ public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
         }
 
         this.playerName = player.getNameForScoreboard();
+        String teamName = Tournament.inst().clientScoreboard().getTeamName(true, player);
+        String nameString = teamName == null ? this.playerName : teamName;
+        this.nameText = Text.literal(nameString)
+                .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER));
         this.originalX = x;
         this.originalY = y;
         this.originalWidth = width;
@@ -78,7 +82,7 @@ public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
 
         InventoryScreen.drawEntity(context, this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(),
                 30, 0.0625f, mouseX, mouseY, this.getPlayer());
-        context.drawCenteredTextWithShadow(this.textRenderer, this.getMessage(),
+        context.drawCenteredTextWithShadow(this.textRenderer, this.nameText,
                 this.getX() + (this.getWidth() / 2), this.getY() + 3, this.getTextColor());
 
         if (this.isCaptain || this.alwaysDrawBottomText) {
