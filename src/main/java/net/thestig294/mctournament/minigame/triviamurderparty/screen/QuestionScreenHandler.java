@@ -8,6 +8,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.thestig294.mctournament.minigame.MinigameScoreboard;
+import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Questions;
 import net.thestig294.mctournament.network.ModNetworking;
@@ -36,8 +37,8 @@ public class QuestionScreenHandler {
     private State state;
     private BlockPos corridorStartingPos;
 
-    public QuestionScreenHandler(TriviaMurderParty minigame) {
-        this.minigame = minigame;
+    public QuestionScreenHandler() {
+        this.minigame = Minigames.TRIVIA_MURDER_PARTY;
         this.scoreboard = minigame.scoreboard();
         this.answeredCaptains = new HashMap<>();
         this.playerRedstonePositions = new HashMap<>();

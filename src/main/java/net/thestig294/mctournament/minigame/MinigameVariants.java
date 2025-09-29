@@ -1,6 +1,5 @@
 package net.thestig294.mctournament.minigame;
 
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.random.Random;
 
 import java.util.ArrayList;
@@ -9,27 +8,27 @@ import java.util.List;
 import java.util.Map;
 
 public class MinigameVariants {
-    private static final Map<Identifier, List<String>> REGISTERED = new HashMap<>();
+    private static final Map<String, List<String>> REGISTERED = new HashMap<>();
 
     public static final String DEFAULT = "default";
     public static final String RANDOM = "random";
 
-    public static String registerVariant(Identifier minigame, String variant) {
-        if (!REGISTERED.containsKey(minigame)) {
-            REGISTERED.put(minigame, new ArrayList<>());
-            REGISTERED.get(minigame).add(DEFAULT);
+    public static String registerVariant(String minigameID, String variant) {
+        if (!REGISTERED.containsKey(minigameID)) {
+            REGISTERED.put(minigameID, new ArrayList<>());
+            REGISTERED.get(minigameID).add(DEFAULT);
         }
 
-        REGISTERED.get(minigame).add(variant);
+        REGISTERED.get(minigameID).add(variant);
         return variant;
     }
 
-    public static String getRandom(Identifier minigame) {
-        return getRandom(minigame, true);
+    public static String getRandom(String minigameID) {
+        return getRandom(minigameID, true);
     }
 
-    public static String getRandom(Identifier minigame, boolean includeDefaultVariant) {
-        List<String> variants = REGISTERED.get(minigame);
+    public static String getRandom(String minigameID, boolean includeDefaultVariant) {
+        List<String> variants = REGISTERED.get(minigameID);
         int randomIndex = Random.create().nextBetween(includeDefaultVariant ? 0 : 1, variants.size() - 1);
 
         return variants.get(randomIndex);

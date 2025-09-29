@@ -8,7 +8,6 @@ import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.Minigame;
@@ -26,7 +25,7 @@ public class Tournament {
     private int round = -1;
     private boolean isActive = false;
     private Minigame minigame = null;
-    private List<Identifier> minigameIDs = new ArrayList<>();
+    private List<String> minigameIDs = new ArrayList<>();
     private List<Minigame> minigames = new ArrayList<>();
     private List<String> variants = new ArrayList<>();
     private BlockPos position = BlockPos.ORIGIN;
@@ -55,7 +54,7 @@ public class Tournament {
 
         buffer.writeInt(this.minigameIDs.size());
         for (final var id : this.minigameIDs) {
-            buffer.writeIdentifier(id);
+            buffer.writeString(id);
         }
 
         buffer.writeInt(this.variants.size());
@@ -74,7 +73,7 @@ public class Tournament {
         int minigameCount = buffer.readInt();
         this.minigameIDs = new ArrayList<>(minigameCount);
         for (int i = 0; i < minigameCount; i++) {
-            this.minigameIDs.add(buffer.readIdentifier());
+            this.minigameIDs.add(buffer.readString());
         }
 
         int variantCount = buffer.readInt();
@@ -127,10 +126,10 @@ public class Tournament {
 
     private void updateMinigame(boolean isClient) {
         if (this.round <= -1) {
-            this.minigame = Minigames.get(Minigames.TOURNAMENT_BEGIN);
+            this.minigame = Minigames.TOURNAMENT_BEGIN;
         } else if (this.round == this.minigames.size()) {
-            this.minigame = Minigames.get(Minigames.TOURNAMENT_END);
-        } else if (this.minigame != null && this.minigame.equals(Minigames.get(Minigames.TOURNAMENT_END))) {
+            this.minigame = Minigames.TOURNAMENT_END;
+        } else if (Objects.equals(this.minigame, Minigames.TOURNAMENT_END)) {
             this.isActive = false;
             return;
         } else {

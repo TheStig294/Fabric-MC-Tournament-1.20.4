@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.DeathRoom;
 import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.KillingRoom;
@@ -24,8 +25,8 @@ public class KillingRoomScreenHandler {
     private int timerIndex;
     private State state;
 
-    public KillingRoomScreenHandler(TriviaMurderParty minigame) {
-        this.minigame = minigame;
+    public KillingRoomScreenHandler() {
+        this.minigame = Minigames.TRIVIA_MURDER_PARTY;
         this.killingRoomPos = BlockPos.ORIGIN;
         this.killingRoom = null;
         this.timerIndex = -1;
@@ -103,7 +104,9 @@ public class KillingRoomScreenHandler {
     private void startDeathRoom() {
         if (this.killingRoom == null) return;
 
-        KillingRooms.getNextDeathRoom().init(this.deathRoomPos, this.minigame);
+        DeathRoom deathRoom = KillingRooms.getNextDeathRoom();
+        deathRoom.setPosition(this.deathRoomPos);
+        deathRoom.init();
         this.state = State.DISABLED;
     }
 

@@ -5,7 +5,6 @@ import net.fabricmc.api.Environment;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.thestig294.mctournament.minigame.Minigame;
-import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.KillingRooms;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Questions;
 import net.thestig294.mctournament.minigame.triviamurderparty.screen.*;
@@ -45,9 +44,9 @@ public class TriviaMurderParty extends Minigame {
     public void serverInit() {
         Questions.register();
         KillingRooms.register();
-        this.questionScreenHandler = new QuestionScreenHandler(this);
-        this.killingRoomScreenHandler = new KillingRoomScreenHandler(this);
-        this.scoreScreenHandler = new ScoreScreenHandler(this);
+        this.questionScreenHandler = new QuestionScreenHandler();
+        this.killingRoomScreenHandler = new KillingRoomScreenHandler();
+        this.scoreScreenHandler = new ScoreScreenHandler();
     }
 
     @Override
@@ -150,9 +149,9 @@ public class TriviaMurderParty extends Minigame {
 
     @SuppressWarnings("unused")
     public static class Variants {
-        public static final String GAMING = registerVariant(Minigames.TRIVIA_MURDER_PARTY, "gaming");
-        public static final String AUSSIE = registerVariant(Minigames.TRIVIA_MURDER_PARTY, "aussie");
-        public static final String SILLY = registerVariant(Minigames.TRIVIA_MURDER_PARTY, "silly");
-        public static final String YOGSCAST = registerVariant(Minigames.TRIVIA_MURDER_PARTY, "yogscast");
+        public static final String GAMING = registerVariant(ID, "gaming");
+        public static final String AUSSIE = registerVariant(ID, "aussie");
+        public static final String SILLY = registerVariant(ID, "silly");
+        public static final String YOGSCAST = registerVariant(ID, "yogscast");
     }
 }

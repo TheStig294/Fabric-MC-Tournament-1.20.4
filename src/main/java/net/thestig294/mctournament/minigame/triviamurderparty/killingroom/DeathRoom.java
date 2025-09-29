@@ -6,6 +6,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.thestig294.mctournament.minigame.MinigameScoreboard;
+import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.structure.ModStructures;
 import net.thestig294.mctournament.structure.Structure;
@@ -20,28 +21,28 @@ import java.util.Set;
 public abstract class DeathRoom {
     private static final float BEGIN_DELAY = 3.0f;
     private static final float POST_DEATH_DELAY = 3.0f;
+    private static final BlockPos DEFAULT_STRUCTURE_OFFSET = new BlockPos(7,0,15);
 
-    private static final BlockPos DEFAULT_STRUCTURE_OFFSET =
-            new BlockPos(0,0,0);
     private static final List<BlockPos> DEFAULT_REDSTONE_OFFSETS = List.of(
-            new BlockPos(0,0,0), // 0
-            new BlockPos(0,0,0), // 1
-            new BlockPos(0,0,0), // 2
-            new BlockPos(0,0,0), // 3
-            new BlockPos(0,0,0), // 4
-            new BlockPos(0,0,0), // 5
-            new BlockPos(0,0,0), // 6
-            new BlockPos(0,0,0)  // 7
+            new BlockPos(-2,20,-4), // 0
+            new BlockPos(2,20,-4), // 1
+            new BlockPos(-4,20,-8), // 2
+            new BlockPos(0,20,-8), // 3
+            new BlockPos(4,20,-8), // 4
+            new BlockPos(-4,20,-12), // 5
+            new BlockPos(0,20,-12), // 6
+            new BlockPos(4,20,-12)  // 7
     );
+
     private static final List<BlockPos> DEFAULT_DEATH_POSITIONS = List.of(
-            new BlockPos(0,0,0), // 0
-            new BlockPos(0,0,0), // 1
-            new BlockPos(0,0,0), // 2
-            new BlockPos(0,0,0), // 3
-            new BlockPos(0,0,0), // 4
-            new BlockPos(0,0,0), // 5
-            new BlockPos(0,0,0), // 6
-            new BlockPos(0,0,0)  // 7
+            new BlockPos(-2,0,-4), // 0
+            new BlockPos(2,0,-4), // 1
+            new BlockPos(-4,0,-8), // 2
+            new BlockPos(0,0,-8), // 3
+            new BlockPos(4,0,-8), // 4
+            new BlockPos(-4,0,-12), // 5
+            new BlockPos(0,0,-12), // 6
+            new BlockPos(4,0,-12)  // 7
     );
 
     public static void setPlayerInvisible(ServerPlayerEntity player) {
@@ -50,20 +51,24 @@ public abstract class DeathRoom {
 
     private final Structure structure;
     private final Set<Integer> killableTeamNumbers;
+    private final TriviaMurderParty minigame;
+    private BlockPos position;
 
     public DeathRoom() {
         this.structure = ModStructures.registerStructure(TriviaMurderParty.ID, "/death_room/" + this.getID(), this.getStructureOffset());
         this.killableTeamNumbers = new HashSet<>();
+        this.minigame = Minigames.TRIVIA_MURDER_PARTY;
+        this.position = BlockPos.ORIGIN;
     }
 
     public abstract String getID();
 
     public abstract float getDeathDelay();
 
-    public void init(BlockPos deathRoomPos, TriviaMurderParty minigame) {
-        MinigameScoreboard scoreboard = minigame.scoreboard();
+    public void init() {
+        MinigameScoreboard scoreboard = this.minigame().scoreboard();
 
-        ModStructures.place(this.getStructure(), deathRoomPos);
+        ModStructures.place(this.getStructure(), this.getPosition());
         List<BlockPos> deathPositions = this.getDeathPositions();
         this.killableTeamNumbers.clear();
 
@@ -74,10 +79,10 @@ public abstract class DeathRoom {
             if (scoreboard.getBoolean(player, TriviaMurderParty.Objectives.IS_KILLABLE)) {
                 int teamNumber = Tournament.inst().scoreboard().getTeamNumber(player);
                 this.killableTeamNumbers.add(teamNumber);
-                teleportPos = deathRoomPos.add(deathPositions.get(teamNumber));
+                teleportPos = this.getPosition().add(deathPositions.get(teamNumber));
                 direction = Direction.SOUTH;
             } else {
-                teleportPos = deathRoomPos;
+                teleportPos = this.getPosition();
                 direction = Direction.NORTH;
             }
 
@@ -86,9 +91,9 @@ public abstract class DeathRoom {
 
         ModTimer.simple(false, BEGIN_DELAY, () -> {
             this.killableTeamNumbers.forEach(teamNumber ->
-                    ModUtil.placeRedstoneBlock(deathRoomPos.add(this.getRedstoneOffsets().get(teamNumber))));
+                    ModUtil.placeRedstoneBlock(this.getPosition().add(this.getRedstoneOffsets().get(teamNumber))));
 
-            this.begin(deathRoomPos, this.killableTeamNumbers);
+            this.begin();
         });
 
         ModTimer.simple(false, this.getDeathDelay(), () -> ModUtil.forAllPlayers(player -> {
@@ -102,7 +107,7 @@ public abstract class DeathRoom {
         ModTimer.simple(false, this.getDeathDelay() + POST_DEATH_DELAY, minigame::startScoreScreen);
     }
 
-    public abstract void begin(BlockPos roomPos, Set<Integer> killableTeamNumbers);
+    public abstract void begin();
 
     public Structure getStructure() {
         return this.structure;
@@ -118,5 +123,22 @@ public abstract class DeathRoom {
 
     public List<BlockPos> getDeathPositions() {
         return DEFAULT_DEATH_POSITIONS;
+    }
+
+    public void setPosition(BlockPos deathRoomPos) {
+        this.position = deathRoomPos;
+    }
+
+    public BlockPos getPosition() {
+        return this.position;
+    }
+
+    public TriviaMurderParty minigame() {
+        return this.minigame;
+    }
+
+    @SuppressWarnings("unused")
+    public Set<Integer> getKillableTeamNumbers() {
+        return this.killableTeamNumbers;
     }
 }

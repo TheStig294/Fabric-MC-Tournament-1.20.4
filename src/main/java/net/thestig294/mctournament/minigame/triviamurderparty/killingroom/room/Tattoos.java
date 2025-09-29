@@ -17,6 +17,7 @@ public class Tattoos extends KillingRoom {
             new Timer("building", 60),
             new Timer("voting", 30));
     private static final List<Float> DESCRIPTION_LENGTHS = List.of(3.0f, 3.0f);
+    private static final BlockPos REDSTONE_OFFSET = new BlockPos(5,8,-8);
 
     private static final List<BlockPos> BUILD_ROOM_STARTS = List.of(
             new BlockPos(-29,0,1), // 0
@@ -39,8 +40,6 @@ public class Tattoos extends KillingRoom {
             new BlockPos(-6,5,13), // 6
             new BlockPos(5,5,13)  // 7
     );
-
-    private static final BlockPos REDSTONE_OFFSET = new BlockPos(5,8,-8);
 
     @Override
     public void init() {

@@ -1,6 +1,5 @@
 package net.thestig294.mctournament.minigame;
 
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.random.Random;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.mariokart.MarioKart;
@@ -13,30 +12,24 @@ import net.thestig294.mctournament.util.ModUtil;
 import java.util.*;
 
 public class Minigames {
-    private static final Map<Identifier, Minigame> REGISTERED = new HashMap<>();
+    private static final Map<String, Minigame> REGISTERED = new HashMap<>();
 
     /**
      * A special minigames that getKillingRoom automatically played at the beginning and end of every tournament
      */
-    public static final Identifier TOURNAMENT_BEGIN = register(new TournamentBegin());
-    public static final Identifier TOURNAMENT_END = register(new TournamentEnd());
+    public static final TournamentBegin TOURNAMENT_BEGIN = (TournamentBegin) register(new TournamentBegin());
+    public static final TournamentEnd TOURNAMENT_END = (TournamentEnd) register(new TournamentEnd());
 
-    public static final Identifier TRIVIA_MURDER_PARTY = register(new TriviaMurderParty());
-    public static final Identifier TOWERFALL = register(new Towerfall());
-    public static final Identifier MARIO_KART = register(new MarioKart());
+    public static final TriviaMurderParty TRIVIA_MURDER_PARTY = (TriviaMurderParty) register(new TriviaMurderParty());
+    @SuppressWarnings("unused")
+    public static final Towerfall TOWERFALL = (Towerfall) register(new Towerfall());
+    @SuppressWarnings("unused")
+    public static final MarioKart MARIO_KART = (MarioKart) register(new MarioKart());
 
 
-    public static Identifier register(Minigame minigame) {
-        return register(minigame.getID(), minigame);
-    }
-
-    private static Identifier register(String id, Minigame minigame) {
-        return register(new Identifier(MCTournament.MOD_ID, id), minigame);
-    }
-
-    public static Identifier register(Identifier id, Minigame minigame) {
-        REGISTERED.put(id, minigame);
-        return id;
+    public static Minigame register(Minigame minigame) {
+        REGISTERED.put(minigame.getID(), minigame);
+        return minigame;
     }
 
     public static void registerMinigames(boolean isClient) {
@@ -57,21 +50,23 @@ public class Minigames {
     }
 
 //    Gets all minigame IDs, except for the special minigames, as they aren't a valid minigame to actually play...
-    public static ArrayList<Identifier> getMinigameIds() {
+    public static List<String> getMinigameIds() {
         return new ArrayList<>(REGISTERED.keySet().stream()
-                .filter(identifier -> !identifier.equals(TOURNAMENT_END) && !identifier.equals(TOURNAMENT_BEGIN)).toList());
+                .filter(id -> !id.equals(TOURNAMENT_END.getID()) && !id.equals(TOURNAMENT_BEGIN.getID()))
+                .toList());
     }
 
-    public static List<Identifier> getRandomMinigames(int count){
+    @SuppressWarnings("unused")
+    public static List<String> getRandomMinigames(int count){
         count = ModUtil.clampInt(count, 1, REGISTERED.size());
         if (count == 1) {
             return List.of(getRandomMinigame());
         }
 
-        List<Identifier> idList = getMinigameIds();
+        List<String> idList = getMinigameIds();
         Collections.shuffle(idList);
 
-        List<Identifier> result = new ArrayList<>();
+        List<String> result = new ArrayList<>();
 
         for (int i = 0; i < count; i++) {
             result.add(idList.get(i));
@@ -80,26 +75,22 @@ public class Minigames {
         return result;
     }
 
-    public static Identifier getRandomMinigame() {
-        List<Identifier> idList = getMinigameIds();
+    public static String getRandomMinigame() {
+        List<String> idList = getMinigameIds();
         int randomIndex = Random.create().nextBetween(0, idList.size());
 
         return idList.get(randomIndex);
     }
 
-    public static Minigame get(Identifier id) {
+    public static Minigame get(String id) {
         return REGISTERED.get(id);
     }
 
-    public static List<Minigame> get(List<Identifier> ids) {
+    public static List<Minigame> get(List<String> ids) {
         List<Minigame> result = new ArrayList<>();
         for (final var id : ids) {
             result.add(get(id));
         }
         return result;
-    }
-
-    public static void logRegistration(String type, Identifier minigameID) {
-        ModUtil.logRegistration(type, get(minigameID).getID());
     }
 }
