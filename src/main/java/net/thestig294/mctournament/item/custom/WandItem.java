@@ -8,9 +8,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
-import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
-import net.thestig294.mctournament.minigame.triviamurderparty.screen.KillingRoomScreen;
 import net.thestig294.mctournament.structure.ModStructures;
 
 public class WandItem extends Item {
@@ -29,9 +27,7 @@ public class WandItem extends Item {
 
     @SuppressWarnings("unused")
     public ActionResult onAttackBlock(PlayerEntity player, World world) {
-        if (world.isClient()) {
-            MCTournament.client().setScreen(new KillingRoomScreen(KillingRoomScreen.State.TIMER_IN, "tattoos", 1));
-        }
+//        MCTournament.client().setScreen(new KillingRoomScreen(KillingRoomScreen.State.TIMER_IN, "tattoos", 1));
 
         return ActionResult.PASS;
     }

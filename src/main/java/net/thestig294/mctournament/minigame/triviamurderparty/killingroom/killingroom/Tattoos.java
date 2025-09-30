@@ -15,7 +15,7 @@ public class Tattoos extends KillingRoom {
     private static final BlockPos STRUCTURE_OFFSET = new BlockPos(32,2,11);
     private static final List<Timer> TIMERS = List.of(
             new Timer("building", 60),
-            new Timer("voting", 60));
+            new Timer("voting", 30));
     private static final List<Float> DESCRIPTION_LENGTHS = List.of(3.0f, 3.0f);
     private static final BlockPos REDSTONE_OFFSET = new BlockPos(5,7,-8);
 

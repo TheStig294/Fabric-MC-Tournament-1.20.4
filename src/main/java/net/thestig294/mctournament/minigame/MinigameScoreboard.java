@@ -3,7 +3,6 @@ package net.thestig294.mctournament.minigame;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.scoreboard.*;
 import net.minecraft.text.Text;
-import net.minecraft.world.World;
 import net.thestig294.mctournament.MCTournament;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,9 +20,9 @@ public class MinigameScoreboard {
         if (this.scoreboard != null) return false;
 
         if (this.isClient) {
-            World world = MCTournament.client().world;
-            if (world == null) return true;
-            this.scoreboard = world.getScoreboard();
+            if (MCTournament.client().world == null) return true;
+            //noinspection DataFlowIssue
+            this.scoreboard = MCTournament.client().world.getScoreboard();
         } else {
             this.scoreboard = MCTournament.server().getScoreboard();
         }
