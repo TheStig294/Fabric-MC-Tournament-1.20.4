@@ -48,7 +48,7 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
         this.description = Text.translatable(this.getDescriptionString())
                 .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION));
         this.timerDescription = Text.translatable(this.getTimerDescriptionString())
-                .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER));
+                .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION));
         List<KillingRoom.Timer> timers = this.room.getTimers();
         this.timerLength = timerIndex >= 0 && timerIndex < timers.size() ? timers.get(timerIndex).length() : 0;
     }
@@ -63,8 +63,8 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
 
         this.timerWidget = this.addDrawableChild(new QuestionTimer(0, 0, 64, 64, this.timerLength,
                 1.0f, TIMER_MOVE_TIME));
-        this.timerDescriptionWidget = this.addDrawableChild(new QuestionText(0, 0, this.timerDescription,
-                20, ModColors.WHITE, this.width, this.textRenderer));
+        this.timerDescriptionWidget = this.addDrawableChild(new QuestionText(this.hudWidth() / 2, 30, this.timerDescription,
+                20, ModColors.WHITE, this.hudWidth() * 2 / 3, this.textRenderer));
     }
 
     @SuppressWarnings("unused")
@@ -153,10 +153,10 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
             }
             public void render(KillingRoomScreen screen) {
                 screen.animate(screen.timerWidget::setAlpha, 0.0f, 1.0f);
-                screen.animate(screen.timerWidget::setY, -screen.timerWidget.getOriginalHeight(), screen.timerWidget.getOriginalHeight());
+                screen.animate(screen.timerWidget::setY, -screen.timerWidget.getOriginalY(), screen.timerWidget.getOriginalY());
                 screen.animate(screen.timerDescriptionWidget::setAlpha, 0.0f, 1.0f);
-                screen.animate(screen.timerDescriptionWidget::setY, -screen.timerDescriptionWidget.getOriginalHeight(),
-                        screen.timerDescriptionWidget.getOriginalHeight());
+                screen.animate(screen.timerDescriptionWidget::setY, -screen.timerDescriptionWidget.getOriginalY(),
+                        screen.timerDescriptionWidget.getOriginalY());
             }
             public void refresh(KillingRoomScreen screen) {screen.timerWidget.setAlpha(1.0f);}
             public float duration(KillingRoomScreen screen) {return TIMER_MOVE_TIME;}
@@ -174,10 +174,10 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
             public boolean isHudState(KillingRoomScreen screen) {return true;}
             public void render(KillingRoomScreen screen) {
                 screen.animate(screen.timerWidget::setAlpha, 1.0f, 0.0f);
-                screen.animate(screen.timerWidget::setY, screen.timerWidget.getOriginalHeight(), -screen.timerWidget.getOriginalHeight());
+                screen.animate(screen.timerWidget::setY, screen.timerWidget.getOriginalY(), -screen.timerWidget.getOriginalY());
                 screen.animate(screen.timerDescriptionWidget::setAlpha, 1.0f, 0.0f);
-                screen.animate(screen.timerDescriptionWidget::setY, screen.timerDescriptionWidget.getOriginalHeight(),
-                        -screen.timerDescriptionWidget.getOriginalHeight());
+                screen.animate(screen.timerDescriptionWidget::setY, screen.timerDescriptionWidget.getOriginalY(),
+                        -screen.timerDescriptionWidget.getOriginalY());
             }
             public void end(KillingRoomScreen screen) {
                 ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.KILLING_ROOM_TIMER_UP, PacketByteBufs.create()

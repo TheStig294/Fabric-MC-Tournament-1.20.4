@@ -3,9 +3,8 @@ package net.thestig294.mctournament.minigame;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.scoreboard.*;
 import net.minecraft.text.Text;
+import net.minecraft.world.World;
 import net.thestig294.mctournament.MCTournament;
-import net.thestig294.mctournament.tournament.Tournament;
-import net.thestig294.mctournament.tournament.TournamentScoreboard;
 import org.jetbrains.annotations.Nullable;
 
 public class MinigameScoreboard {
@@ -18,13 +17,24 @@ public class MinigameScoreboard {
         this.isClient = isClient;
     }
 
-    public void serverBegin() {
-        Tournament tournament = Tournament.inst();
-        TournamentScoreboard tournamentScoreboard = this.isClient ? tournament.clientScoreboard() : tournament.scoreboard();
-        if (tournamentScoreboard == null) return;
+    private boolean initScoreboard() {
+        if (this.scoreboard != null) return false;
 
-        this.scoreboard = tournamentScoreboard.getScoreboard();
-        this.resetObjective(this.getObjectivePrefix(), this.getMainObjectiveDisplayName());
+        if (this.isClient) {
+            World world = MCTournament.client().world;
+            if (world == null) return true;
+            this.scoreboard = world.getScoreboard();
+        } else {
+            this.scoreboard = MCTournament.server().getScoreboard();
+        }
+
+        return false;
+    }
+
+    public void begin() {
+        if (this.initScoreboard()) return;
+
+        if (!this.isClient) this.resetObjective(this.getObjectivePrefix(), this.getMainObjectiveDisplayName());
     }
 
     public String getObjectivePrefix() {
@@ -42,14 +52,16 @@ public class MinigameScoreboard {
      * @return {@link ScoreboardObjective} from non-prefixed score name
      */
     public @Nullable ScoreboardObjective getObjective(String name) {
+        if (this.initScoreboard()) return null;
+
         return this.scoreboard.getNullableObjective(this.getObjectivePrefix() + name);
     }
 
-    public ScoreboardObjective getOrCreateObjective(String name) {
+    public @Nullable ScoreboardObjective getOrCreateObjective(String name) {
         return this.getOrCreateObjective(name, name);
     }
 
-    public ScoreboardObjective getOrCreateObjective(String name, String displayName) {
+    public @Nullable ScoreboardObjective getOrCreateObjective(String name, String displayName) {
         ScoreboardObjective objective = this.getObjective(name);
         if (objective == null) {
             return this.addObjective(name, displayName);
@@ -58,13 +70,17 @@ public class MinigameScoreboard {
         }
     }
 
-    public ScoreboardObjective addObjective(String name, String displayName) {
+    public @Nullable ScoreboardObjective addObjective(String name, String displayName) {
+        if (this.initScoreboard()) return null;
+
         return this.scoreboard.addObjective(this.getObjectivePrefix() + name, ScoreboardCriterion.DUMMY,
                 Text.literal(displayName), ScoreboardCriterion.RenderType.INTEGER,
                 false, null);
     }
 
     public void removeObjective(String name) {
+        if (this.initScoreboard()) return;
+
         ScoreboardObjective objective = this.getObjective(name);
         if (objective != null) this.scoreboard.removeObjective(objective);
     }
@@ -93,11 +109,9 @@ public class MinigameScoreboard {
         return this.getScore(playerName, objectiveName) != 0;
     }
 
-    public int getScore(PlayerEntity player, String objectiveName) {
-        return this.getScore(player.getNameForScoreboard(), objectiveName);
-    }
-
     public int getScore(String playerName, String objectiveName) {
+        if (this.initScoreboard()) return 0;
+
         ScoreboardObjective objective = this.getOrCreateObjective(objectiveName);
         return this.scoreboard.getOrCreateScore(ScoreHolder.fromName(playerName), objective).getScore();
     }
@@ -114,11 +128,9 @@ public class MinigameScoreboard {
         this.setScore(playerName, objectiveName, value ? 1 : 0);
     }
 
-    public void setScore(PlayerEntity player, String objectiveName, int score) {
-        this.setScore(player.getNameForScoreboard(), objectiveName, score);
-    }
-
     public void setScore(String playerName, String objectiveName, int score) {
+        if (this.initScoreboard()) return;
+
         ScoreboardObjective objective = this.getOrCreateObjective(objectiveName);
         this.scoreboard.getOrCreateScore(ScoreHolder.fromName(playerName), objective).setScore(score);
     }
@@ -132,6 +144,8 @@ public class MinigameScoreboard {
     }
 
     public void clear() {
+        if (this.initScoreboard()) return;
+
         this.scoreboard.getObjectives().stream()
                 .filter(objective -> objective.getName().startsWith(this.getObjectivePrefix()))
                 .forEach(this.scoreboard::removeObjective);

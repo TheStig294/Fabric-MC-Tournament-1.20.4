@@ -146,6 +146,7 @@ public class Tournament {
 
         ModTimer.simple(isClient, MINIGAME_BEGIN_DELAY_SECS, () -> {
             if (isClient) {
+                minigame.clientPreBegin();
                 minigame.clientBegin();
             } else {
                 minigame.serverPreBegin();

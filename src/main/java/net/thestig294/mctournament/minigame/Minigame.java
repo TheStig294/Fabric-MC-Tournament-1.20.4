@@ -35,7 +35,7 @@ public abstract class Minigame {
     public abstract void serverInit();
 
     public void serverPreBegin() {
-        this.scoreboard.serverBegin();
+        this.scoreboard.begin();
         ModUtil.forAllPlayers((player) -> ModUtil.setGamemode(player, GameMode.ADVENTURE));
     }
 
@@ -60,6 +60,11 @@ public abstract class Minigame {
 
     @Environment(EnvType.CLIENT)
     public abstract void clientInit();
+
+    @Environment(EnvType.CLIENT)
+    public void clientPreBegin() {
+        this.clientScoreboard.begin();
+    }
 
     /**
      * Called after a small delay after the last round ends to allow for packets to be sent between the server and client.

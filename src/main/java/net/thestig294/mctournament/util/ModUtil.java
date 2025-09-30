@@ -134,9 +134,9 @@ public class ModUtil {
 
     public static int directionToYaw(Direction direction) {
         return switch (direction) {
-            case WEST -> -90;
+            case WEST -> 90;
             case NORTH -> 180;
-            case EAST -> 90;
+            case EAST -> -90;
             default -> 0;
         };
     }

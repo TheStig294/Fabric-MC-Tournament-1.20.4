@@ -47,6 +47,8 @@ public abstract class AnimatedScreen<
     private int stateProgressPercent;
     private boolean firstStateTick;
     private boolean firstState;
+    private boolean wasHudState;
+    private boolean renderHudTick;
 
     public AnimatedScreen(@Nullable E startingState) {
         super(Text.empty());
@@ -60,6 +62,8 @@ public abstract class AnimatedScreen<
         this.stateProgressPercent = 0;
         this.firstStateTick = true;
         this.firstState = true;
+        this.wasHudState = false;
+        this.renderHudTick = false;
 
         if (!HUD_HOOK_CREATED) {
             HudRenderCallback.EVENT.register((context, delta) -> {
@@ -96,6 +100,14 @@ public abstract class AnimatedScreen<
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        if (this.isHudState()) {
+            this.renderHudTick = !this.renderHudTick;
+
+            if (!this.renderHudTick) {
+                delta = 0;
+            }
+        }
+
         super.render(context, mouseX, mouseY, delta);
 
         if (this.stateEndTime <= this.uptimeSecs) {
@@ -104,10 +116,7 @@ public abstract class AnimatedScreen<
             if (this.state == null) return;
         }
 
-        float tps = ModUtilClient.getTicksPerSecond();
-        if (this.isHudState()) tps *= 2;
-
-        this.uptimeSecs += delta / tps;
+        this.uptimeSecs += delta / ModUtilClient.getTicksPerSecond();
         this.stateProgress = ModUtil.lerpPercent(this.stateStartTime, this.stateEndTime, this.uptimeSecs);
         this.stateProgressPercent = (int) (this.stateProgress * 100);
 
@@ -137,6 +146,7 @@ public abstract class AnimatedScreen<
             MinecraftClient client = MCTournament.client();
             this.init(client, client.getWindow().getScaledWidth(), client.getWindow().getScaledHeight());
         } else {
+            this.wasHudState = this.isHudState();
             this.state = this.getNextState();
         }
 
@@ -145,9 +155,11 @@ public abstract class AnimatedScreen<
             ACTIVE_HUD_SCREEN = null;
             return;
         } else if (this.isHudState()) {
+            MCTournament.client().setScreen(null);
             ACTIVE_HUD_SCREEN = this.toChild();
-        } else {
+        } else if (!this.isHudState() && this.wasHudState){
             ACTIVE_HUD_SCREEN = null;
+            MCTournament.client().setScreen(this);
         }
 
         this.firstState = false;
@@ -219,6 +231,23 @@ public abstract class AnimatedScreen<
 
     protected boolean isHudState() {
         return this.state != null && this.state.isHudState(this.toChild());
+    }
+
+    /**
+     * Must be used instead of {@link AnimatedScreen#width} during HUD states
+     * @return The width of the screen during a HUD state
+     */
+    public int hudWidth() {
+        return MCTournament.client().getWindow().getScaledWidth();
+    }
+
+    /**
+     * Must be used instead of {@link AnimatedScreen#height} during HUD states
+     * @return The height of the screen during a HUD state
+     */
+    @SuppressWarnings("unused")
+    public int hudHeight() {
+        return MCTournament.client().getWindow().getScaledHeight();
     }
 
     public interface State<T extends AnimatedScreen<T, ? extends State<T>>> {

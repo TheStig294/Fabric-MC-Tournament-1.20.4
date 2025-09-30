@@ -7,7 +7,9 @@ import net.thestig294.mctournament.screen.AnimatedScreen;
 import net.thestig294.mctournament.util.ModTimer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 
 @Mixin(MinecraftClient.class)
@@ -27,5 +29,13 @@ public class AnimatedScreenMixin {
         }
 
         return newScreen;
+    }
+
+    @Inject(method = "onResolutionChanged", at = @At("TAIL"))
+    private void onResolutionChanged(CallbackInfo ci) {
+        if (AnimatedScreen.ACTIVE_HUD_SCREEN != null) {
+            MinecraftClient client = MCTournament.client();
+            AnimatedScreen.ACTIVE_HUD_SCREEN.resize(client, client.getWindow().getScaledWidth(), client.getWindow().getScaledHeight());
+        }
     }
 }

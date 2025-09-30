@@ -18,7 +18,7 @@ import java.util.OptionalInt;
 public class QuestionText extends MultilineTextWidget implements QuestionWidget {
     private final int lineHeight;
     private final Identifier font;
-    private Text updatedText;
+    private MultilineText multilineText;
     private int updatedColor;
     private boolean textUpdated;
     private int intValue;
@@ -45,7 +45,7 @@ public class QuestionText extends MultilineTextWidget implements QuestionWidget 
         super(x, y, Text.literal(text).styled(style -> style.withFont(font)), textRenderer);
         this.lineHeight = lineHeight;
         this.font = font;
-        this.updatedText = Text.empty();
+        this.multilineText = MultilineText.EMPTY;
         this.updatedColor = color;
         this.textUpdated = false;
         this.intValue = intValue;
@@ -72,14 +72,16 @@ public class QuestionText extends MultilineTextWidget implements QuestionWidget 
     @Override
     public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         context.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
+
         if (this.textUpdated) {
-            context.drawCenteredTextWithShadow(this.getTextRenderer(), this.updatedText,
-                    this.getX(), this.getY() - this.getHeight(), this.updatedColor);
+            this.multilineText.drawCenterWithShadow(context, this.getX(),
+                    this.getY() - this.getHeight(), this.lineHeight, this.updatedColor);
         } else {
             MultilineText multilineText = this.cacheKeyToText.map(this.getCacheKey());
             multilineText.drawCenterWithShadow(context, this.getX(),
                     this.getY() - this.getHeight(), this.lineHeight, this.getTextColor());
         }
+
         context.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
@@ -101,8 +103,8 @@ public class QuestionText extends MultilineTextWidget implements QuestionWidget 
     }
 
     public void setText(Text text, int color) {
-        this.updatedText = text;
         this.updatedColor = color;
+        this.multilineText = MultilineText.create(this.getTextRenderer(), text, this.maxWidth);
         this.textUpdated = true;
     }
 
