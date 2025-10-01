@@ -14,7 +14,6 @@ import net.thestig294.mctournament.minigame.Minigame;
 import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.network.ModNetworking;
 import net.thestig294.mctournament.util.ModTimer;
-import net.thestig294.mctournament.util.ModUtil;
 
 import java.util.*;
 
@@ -34,8 +33,6 @@ public class Tournament {
     private TournamentScoreboard clientScoreboard;
 
     public void serverSetup(TournamentSettings settings) {
-        ModUtil.runConsoleCommand("/gamerule sendCommandFeedback false");
-        ModUtil.runConsoleCommand("/gamerule commandBlockOutput false");
         this.round = -1;
         this.isActive = true;
         this.minigameIDs = settings.getMinigames();

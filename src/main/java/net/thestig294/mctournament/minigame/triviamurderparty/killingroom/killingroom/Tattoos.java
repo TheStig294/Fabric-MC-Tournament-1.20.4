@@ -14,20 +14,20 @@ import java.util.List;
 public class Tattoos extends KillingRoom {
     private static final BlockPos STRUCTURE_OFFSET = new BlockPos(32,2,11);
     private static final List<Timer> TIMERS = List.of(
-            new Timer("building", 60),
-            new Timer("voting", 30));
-    private static final List<Float> DESCRIPTION_LENGTHS = List.of(3.0f, 3.0f);
+            new Timer("building", 5),
+            new Timer("voting", 5));
+    private static final List<Float> DESCRIPTION_LENGTHS = List.of(1.0f, 1.0f);
     private static final BlockPos REDSTONE_OFFSET = new BlockPos(5,7,-8);
 
     private static final List<BlockPos> BUILD_ROOM_STARTS = List.of(
-            new BlockPos(-29,1,1), // 0
-            new BlockPos(-17,1,1), // 1
-            new BlockPos(-29,1,12), // 2
-            new BlockPos(-17,1,12), // 3
-            new BlockPos(-5,1,12), // 4
-            new BlockPos(-29,1,23), // 5
-            new BlockPos(-17,1,23), // 6
-            new BlockPos(-5,1,23)  // 7
+            new BlockPos(-29,0,1), // 0
+            new BlockPos(-17,0,1), // 1
+            new BlockPos(-29,0,12), // 2
+            new BlockPos(-17,0,12), // 3
+            new BlockPos(-5,0,12), // 4
+            new BlockPos(-29,0,23), // 5
+            new BlockPos(-17,0,23), // 6
+            new BlockPos(-5,0,23)  // 7
     );
 
     private static final List<BlockPos> BUILD_ROOM_ENDS = List.of(
@@ -79,26 +79,29 @@ public class Tattoos extends KillingRoom {
         int minVotes = ModUtil.getPlayers().size();
         Team killableTeam = null;
 
-        for (int i = 0; i < BUILD_ROOM_STARTS.size(); i++) {
-            Team team = this.tournamentScoreboard().getTeam(i);
-            if (!this.tournamentScoreboard().isTeamConnected(team)) continue;
+        for (final var player : ModUtil.getPlayers()) {
+            Team team = player.getScoreboardTeam();
+            if (!this.isOnTrial(player) || team == null || !this.tournamentScoreboard().isTeamConnected(team)) continue;
 
-            int playerCount = ModUtil.getPlayersWithinBound(BUILD_ROOM_STARTS.get(i), BUILD_ROOM_ENDS.get(i)).size();
+            int teamNumber = this.tournamentScoreboard().getTeamNumber(team);
+
+            int playerCount = ModUtil.getPlayersWithinBound(
+                    this.getPosition().add(BUILD_ROOM_STARTS.get(teamNumber)).down(),
+                    this.getPosition().add(BUILD_ROOM_ENDS.get(teamNumber)))
+                    .size();
 
             if (playerCount < minVotes) {
                 minVotes = playerCount;
-                killableTeam = this.tournamentScoreboard().getTeam(i);
+                killableTeam = team;
             }
 
             if (playerCount > 0) {
-                ModUtil.chatMessage(this.tournamentScoreboard().getTeamName(false, i) + " - " + playerCount);
+                ModUtil.chatMessage(this.tournamentScoreboard().getTeamName(false, team) + ": " + playerCount);
             }
         }
 
         if (killableTeam == null) killableTeam = this.tournamentScoreboard().getRandomConnectedTeam();
-        if (killableTeam != null) {
-            this.setTeamKillable(killableTeam);
-        }
+        if (killableTeam != null) this.setTeamKillable(killableTeam);
     }
 
     @Environment(EnvType.CLIENT)

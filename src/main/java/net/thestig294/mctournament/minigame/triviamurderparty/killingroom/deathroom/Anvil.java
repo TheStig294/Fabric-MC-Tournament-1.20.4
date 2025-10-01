@@ -10,7 +10,7 @@ public class Anvil extends DeathRoom {
 
     @Override
     public float getDeathDelay() {
-        return 3.0f;
+        return 6.0f;
     }
 
     @Override

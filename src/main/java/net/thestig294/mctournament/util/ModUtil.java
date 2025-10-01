@@ -168,13 +168,19 @@ public class ModUtil {
     }
 
     public static List<ServerPlayerEntity> getPlayersWithinBound(BlockPos start, BlockPos end) {
-        return getPlayers().stream()
-                .filter(player ->
-                        withinRange(player.getPos().getX(), start.getX(), end.getX())
-                                && withinRange(player.getPos().getY(), start.getY(), end.getY())
-                                && withinRange(player.getPos().getZ(), start.getZ(), end.getZ())
-                )
-                .toList();
+        List<ServerPlayerEntity> result = new ArrayList<>();
+
+        for (final var player : getPlayers()) {
+            boolean withinX = withinRange(player.getPos().getX(), start.getX(), end.getX());
+            boolean withinY = withinRange(player.getPos().getY(), start.getY(), end.getY());
+            boolean withinZ = withinRange(player.getPos().getZ(), start.getZ(), end.getZ());
+
+            if (withinX && withinY && withinZ) {
+                result.add(player);
+            }
+        }
+
+        return result;
     }
 
     public static void chatMessage(String message) {

@@ -28,6 +28,7 @@ public class KillingRoomScreenHandler {
     public KillingRoomScreenHandler() {
         this.minigame = Minigames.TRIVIA_MURDER_PARTY;
         this.killingRoomPos = BlockPos.ORIGIN;
+        this.deathRoomPos = BlockPos.ORIGIN;
         this.killingRoom = null;
         this.timerIndex = -1;
         this.state = State.INTRO;
@@ -78,10 +79,11 @@ public class KillingRoomScreenHandler {
     }
 
     public void broadcastNextKillingRoom() {
-        this.timerIndex = -1;
         this.killingRoom = KillingRooms.getNextKillingRoom();
-        ModStructures.place(this.killingRoom.getStructure(), this.killingRoomPos);
+        this.timerIndex = -1;
+        this.state = State.INTRO;
 
+        ModStructures.place(this.killingRoom.getStructure(), this.killingRoomPos);
         ModUtil.forAllPlayers(player -> ModUtil.teleportFacing(player, this.killingRoomPos, Direction.NORTH));
 
         if (this.killingRoom != null) ModNetworking.broadcast(TriviaMurderParty.NetworkIDs.KILLING_ROOM_SCREEN, PacketByteBufs.create()

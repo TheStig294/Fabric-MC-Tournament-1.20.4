@@ -33,15 +33,11 @@ public class MinigameScoreboard {
     public void begin() {
         if (this.initScoreboard()) return;
 
-        if (!this.isClient) this.resetObjective(this.getObjectivePrefix(), this.getMainObjectiveDisplayName());
+        if (!this.isClient) this.clear();
     }
 
     public String getObjectivePrefix() {
-        return MCTournament.MOD_ID + ':' + this.minigame.getID() + '_';
-    }
-
-    public String getMainObjectiveDisplayName() {
-        return this.minigame.getName().getString();
+        return this.minigame.getID() + '_';
     }
 
     /**
@@ -77,18 +73,6 @@ public class MinigameScoreboard {
                 false, null);
     }
 
-    public void removeObjective(String name) {
-        if (this.initScoreboard()) return;
-
-        ScoreboardObjective objective = this.getObjective(name);
-        if (objective != null) this.scoreboard.removeObjective(objective);
-    }
-
-    public void resetObjective(String name, String displayName) {
-        this.removeObjective(name);
-        this.addObjective(name, displayName);
-    }
-    
     /**
      * Score functions that do not specify a name use the minigame's "main" objective instead,
      * that has a blank name containing only the scoreboard objective prefix. <p>

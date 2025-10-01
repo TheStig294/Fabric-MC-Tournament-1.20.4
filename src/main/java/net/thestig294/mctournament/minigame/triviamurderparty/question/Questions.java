@@ -63,30 +63,30 @@ public class Questions {
                 "In the Name of the Father",
                 "My Beautiful Laundrette",
                 "The Last of the Mohicans",
-                3, 8.0f);
+                3, 0.1f);
         register("How long does it take a freshly laid egg to hatch into a baby chicken?",
                 "10 days",
                 "3 weeks",
                 "2 months",
                 "Half a year",
-                1, 3.5f);
+                1, 0.1f);
         register("Which of these is Indian?",
                 "Rooibos tea",
                 "Zavarka tea",
                 "Pu’erh tea",
                 "Masala chai",
-                3, 1.5f);
+                3, 0.1f);
         register("Which country straddles two continents?",
                 "Turkey",
                 "Romania",
                 "Yemen",
                 "India",
-                0, 2.0f);
+                0, 0.1f);
         register("Which of these movies stars somebody in prison for a crime they did NOT commit?",
                 "The Shawshank Redemption",
                 "Cool Hand Luke",
                 "Chicago",
                 "Dead Man Walking",
-                0, 4.0f);
+                0, 0.1f);
     }
 }

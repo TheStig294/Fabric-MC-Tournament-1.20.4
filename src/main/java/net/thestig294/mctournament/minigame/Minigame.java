@@ -35,6 +35,18 @@ public abstract class Minigame {
     public abstract void serverInit();
 
     public void serverPreBegin() {
+        ModUtil.runConsoleCommand("/gamerule sendCommandFeedback false");
+        ModUtil.runConsoleCommand("/gamerule commandBlockOutput false");
+        ModUtil.runConsoleCommand("/gamerule doTileDrops false");
+        ModUtil.runConsoleCommand("/gamerule doEntityDrops false");
+        ModUtil.runConsoleCommand("/gamerule doDaylightCycle false");
+        ModUtil.runConsoleCommand("/gamerule doWeatherCycle false");
+        ModUtil.runConsoleCommand("/gamerule doMobSpawning false");
+        ModUtil.runConsoleCommand("/time set day");
+        ModUtil.runConsoleCommand("/effect clear @a");
+        ModUtil.runConsoleCommand("/clear @a");
+        ModUtil.runConsoleCommand("/kill @e[type=!minecraft:player]");
+
         this.scoreboard.begin();
         ModUtil.forAllPlayers((player) -> ModUtil.setGamemode(player, GameMode.ADVENTURE));
     }

@@ -27,7 +27,7 @@ import java.util.function.Function;
 public class TournamentScoreboard {
     public static final int MAX_TEAMS = 8;
     public static final String TEAM_NAME_PREFIX = MCTournament.MOD_ID + '_';
-    public static final String OBJECTIVE_NAME = MCTournament.MOD_ID + ":tournamentScore";
+    public static final String OBJECTIVE_NAME = MCTournament.MOD_ID + "_tournament_score";
 
     private final boolean isClient;
     private boolean hooksAdded;
@@ -285,6 +285,10 @@ public class TournamentScoreboard {
 
         MinigameScoreboard minigameScoreboard = minigame.scoreboard();
         minigameScoreboard.setScore(newCaptainName, minigameScoreboard.getScore(oldCaptainName));
+    }
+
+    public @Nullable String getTeamName(boolean isClient, Team team) {
+        return this.getTeamName(isClient, this.getTeamNumber(team));
     }
 
     /**

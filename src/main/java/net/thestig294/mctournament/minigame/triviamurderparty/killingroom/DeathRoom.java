@@ -20,29 +20,28 @@ import java.util.Set;
 
 public abstract class DeathRoom {
     private static final float BEGIN_DELAY = 3.0f;
-    private static final float POST_DEATH_DELAY = 3.0f;
-    private static final BlockPos DEFAULT_STRUCTURE_OFFSET = new BlockPos(7,0,15);
+    private static final BlockPos DEFAULT_STRUCTURE_OFFSET = new BlockPos(7,1,15);
 
     private static final List<BlockPos> DEFAULT_REDSTONE_OFFSETS = List.of(
-            new BlockPos(-2,20,-4), // 0
-            new BlockPos(2,20,-4), // 1
-            new BlockPos(-4,20,-8), // 2
-            new BlockPos(0,20,-8), // 3
-            new BlockPos(4,20,-8), // 4
-            new BlockPos(-4,20,-12), // 5
-            new BlockPos(0,20,-12), // 6
-            new BlockPos(4,20,-12)  // 7
+            new BlockPos(-2,19,-4), // 0
+            new BlockPos(2,19,-4), // 1
+            new BlockPos(-4,19,-8), // 2
+            new BlockPos(0,19,-8), // 3
+            new BlockPos(4,19,-8), // 4
+            new BlockPos(-4,19,-12), // 5
+            new BlockPos(0,19,-12), // 6
+            new BlockPos(4,19,-12)  // 7
     );
 
     private static final List<BlockPos> DEFAULT_DEATH_POSITIONS = List.of(
-            new BlockPos(-2,1,-4), // 0
-            new BlockPos(2,1,-4), // 1
-            new BlockPos(-4,1,-8), // 2
-            new BlockPos(0,1,-8), // 3
-            new BlockPos(4,1,-8), // 4
-            new BlockPos(-4,1,-12), // 5
-            new BlockPos(0,1,-12), // 6
-            new BlockPos(4,1,-12)  // 7
+            new BlockPos(-2,0,-4), // 0
+            new BlockPos(2,0,-4), // 1
+            new BlockPos(-4,0,-8), // 2
+            new BlockPos(0,0,-8), // 3
+            new BlockPos(4,0,-8), // 4
+            new BlockPos(-4,0,-12), // 5
+            new BlockPos(0,0,-12), // 6
+            new BlockPos(4,0,-12)  // 7
     );
 
     public static void setPlayerInvisible(ServerPlayerEntity player) {
@@ -101,10 +100,9 @@ public abstract class DeathRoom {
                 scoreboard.setBoolean(player, TriviaMurderParty.Objectives.IS_KILLABLE, false);
                 scoreboard.setBoolean(player, TriviaMurderParty.Objectives.IS_DEAD, true);
                 setPlayerInvisible(player);
+                minigame.startScoreScreen();
             }
         }));
-
-        ModTimer.simple(false, this.getDeathDelay() + POST_DEATH_DELAY, minigame::startScoreScreen);
     }
 
     public abstract void begin();

@@ -59,8 +59,10 @@ public abstract class KillingRoom {
     }
 
     public boolean isOnTrial(PlayerEntity player) {
-        return !this.scoreboard().getBoolean(player, TriviaMurderParty.Objectives.IS_CORRECT)
-                && !this.scoreboard().getBoolean(player, TriviaMurderParty.Objectives.IS_DEAD);
+        boolean isCorrect = this.scoreboard().getBoolean(player, TriviaMurderParty.Objectives.IS_CORRECT);
+        boolean isDead = this.scoreboard().getBoolean(player, TriviaMurderParty.Objectives.IS_DEAD);
+
+        return !isCorrect && !isDead;
     }
 
     public void forAllConnectedTeamPlayers(BiConsumer<Team, ServerPlayerEntity> lambda) {
