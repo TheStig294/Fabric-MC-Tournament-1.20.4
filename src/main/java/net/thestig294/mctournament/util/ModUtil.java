@@ -5,6 +5,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
@@ -13,10 +14,7 @@ import net.thestig294.mctournament.MCTournament;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class ModUtil {
@@ -150,13 +148,33 @@ public class ModUtil {
         ModUtil.runConsoleCommand("/gamemode %s %s", gamemode.getName(), player.getNameForScoreboard());
     }
 
+    public static Pair<Integer, Integer> getMinMax(int int1, int int2) {
+        int min, max;
+
+        if (int1 < int2) {
+            min = int1;
+            max = int2;
+        } else {
+            min = int2;
+            max = int1;
+        }
+
+        return new Pair<>(min, max);
+    }
+
+    public static boolean withinRange(double value, int bound1, int bound2) {
+        Pair<Integer, Integer> range = getMinMax(bound1, bound2);
+        return range.getLeft() <= value && value <= range.getRight();
+    }
+
     public static List<ServerPlayerEntity> getPlayersWithinBound(BlockPos start, BlockPos end) {
-        return getPlayers().stream().filter(player -> {
-            BlockPos pos = player.getBlockPos();
-            return start.getX() <= pos.getX() && pos.getX() <= end.getX() &&
-                    start.getY() <= pos.getY() && pos.getY() <= end.getY() &&
-                    start.getZ() <= pos.getZ() && pos.getZ() <= end.getZ();
-        }).toList();
+        return getPlayers().stream()
+                .filter(player ->
+                        withinRange(player.getPos().getX(), start.getX(), end.getX())
+                                && withinRange(player.getPos().getY(), start.getY(), end.getY())
+                                && withinRange(player.getPos().getZ(), start.getZ(), end.getZ())
+                )
+                .toList();
     }
 
     public static void chatMessage(String message) {
