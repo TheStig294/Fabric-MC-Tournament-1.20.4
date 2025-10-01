@@ -5,6 +5,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.MinecraftServer;
+import net.thestig294.mctournament.command.ModServerCommands;
 import net.thestig294.mctournament.font.ModFonts;
 import net.thestig294.mctournament.item.ModItemGroups;
 import net.thestig294.mctournament.item.ModItems;
@@ -46,6 +47,8 @@ public class MCTournament implements ModInitializer {
 		Tournament.inst().serverInit();
 
         ModTimer.init(false);
+
+        ModServerCommands.registerServerCommands();
 	}
 
     public static MinecraftServer server() {

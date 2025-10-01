@@ -6,7 +6,8 @@
     "JigsawMixin"
   ],
   "client": [
-    "AnimatedScreenMixin"
+    "AnimatedScreenMixin",
+    "MinecraftClientInvoker"
   ],
   "injectors": {
     "defaultRequire": 1

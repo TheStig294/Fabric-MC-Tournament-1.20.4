@@ -81,7 +81,7 @@ public class Tattoos extends KillingRoom {
 
         for (final var player : ModUtil.getPlayers()) {
             Team team = player.getScoreboardTeam();
-            if (!this.isOnTrial(player) || team == null || !this.tournamentScoreboard().isTeamConnected(team)) continue;
+            if (!this.isOnTrial(player) || team == null) continue;
 
             int teamNumber = this.tournamentScoreboard().getTeamNumber(team);
 

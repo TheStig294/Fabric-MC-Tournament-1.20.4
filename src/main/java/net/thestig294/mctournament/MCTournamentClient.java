@@ -2,6 +2,7 @@ package net.thestig294.mctournament;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.MinecraftClient;
+import net.thestig294.mctournament.command.ModClientCommands;
 import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.tournament.Tournament;
 import net.thestig294.mctournament.util.ModTimer;
@@ -16,5 +17,7 @@ public class MCTournamentClient implements ClientModInitializer {
         Tournament.inst().clientInit();
 
         ModTimer.init(true);
+
+        ModClientCommands.registerCommands();
     }
 }

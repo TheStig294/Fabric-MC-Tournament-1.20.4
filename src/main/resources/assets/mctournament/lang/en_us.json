@@ -1,4 +1,6 @@
 {
+  "commands.mctournament.clearscreen": "Screen cleared!",
+
   "itemGroup.mctournament" : "MC Tournament",
   "item.mctournament.trophy" : "Trophy",
   "item.mctournament.remote" : "Remote",
@@ -22,5 +24,7 @@
   "screen.mctournament.killing_room_tattoos_description_0" : "Build me a new tattoo",
   "screen.mctournament.killing_room_tattoos_description_1" : "You have 60 seconds...",
   "screen.mctournament.killing_room_tattoos_description_timer_0" : "Build now!",
-  "screen.mctournament.killing_room_tattoos_description_timer_1" : "Stand next to your favourite!\n(Not on the shoomlights)"
+  "screen.mctournament.killing_room_tattoos_description_timer_1" : "Stand next to your favourite!\n(Not on the shoomlights)",
+  "commands.mctournament.start.error": "Minigame does not exist!",
+  "commands.mctournament.start": "Started minigame: %s"
 }

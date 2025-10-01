@@ -11,6 +11,7 @@ import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.Killin
 import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.KillingRooms;
 import net.thestig294.mctournament.network.ModNetworking;
 import net.thestig294.mctournament.structure.ModStructures;
+import net.thestig294.mctournament.tournament.Tournament;
 import net.thestig294.mctournament.util.ModUtil;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,6 +39,14 @@ public class KillingRoomScreenHandler {
             this.state = State.ACTIVE;
 
             if (this.killingRoom != null) {
+                Tournament.inst().scoreboard().setGlobalShowFriendlyInvisibles(true);
+
+                ModUtil.forAllPlayers(player -> {
+                    if (!this.minigame.scoreboard().getBoolean(player, TriviaMurderParty.Objectives.IS_DEAD)) {
+                        ModUtil.setInvisible(player, false);
+                    }
+                });
+
                 this.timerIndex++;
                 this.killingRoom.setPosition(this.killingRoomPos);
                 this.killingRoom.begin();
@@ -68,7 +77,7 @@ public class KillingRoomScreenHandler {
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, player, alive) -> {
             if (this.minigame.scoreboard().getBoolean(player, TriviaMurderParty.Objectives.IS_DEAD)) {
-                DeathRoom.setPlayerInvisible(player);
+                ModUtil.setInvisible(player, true);
             }
         });
     }
@@ -84,7 +93,12 @@ public class KillingRoomScreenHandler {
         this.state = State.INTRO;
 
         ModStructures.place(this.killingRoom.getStructure(), this.killingRoomPos);
-        ModUtil.forAllPlayers(player -> ModUtil.teleportFacing(player, this.killingRoomPos, Direction.NORTH));
+        Tournament.inst().scoreboard().setGlobalShowFriendlyInvisibles(false);
+
+        ModUtil.forAllPlayers(player -> {
+            ModUtil.setInvisible(player, true);
+            ModUtil.teleportFacing(player, this.killingRoomPos, Direction.NORTH);
+        });
 
         if (this.killingRoom != null) ModNetworking.broadcast(TriviaMurderParty.NetworkIDs.KILLING_ROOM_SCREEN, PacketByteBufs.create()
                 .writeEnumConstant(Entrypoint.TITLE_IN)

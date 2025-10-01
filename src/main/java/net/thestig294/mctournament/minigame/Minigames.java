@@ -8,6 +8,7 @@ import net.thestig294.mctournament.minigame.tournamentend.TournamentEnd;
 import net.thestig294.mctournament.minigame.towerfall.Towerfall;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.util.ModUtil;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -82,6 +83,7 @@ public class Minigames {
         return idList.get(randomIndex);
     }
 
+    @Nullable
     public static Minigame get(String id) {
         return REGISTERED.get(id);
     }

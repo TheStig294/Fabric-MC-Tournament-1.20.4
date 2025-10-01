@@ -108,10 +108,6 @@ public class TournamentScoreboard {
         }
     }
 
-    public void serverEnd() {
-        this.setGlobalNametagVisibility(true);
-    }
-
     private PacketByteBuf getTeamCaptainsInfoBuffer() {
         PacketByteBuf buffer = PacketByteBufs.create();
         buffer.writeInt(MAX_TEAMS);
@@ -365,7 +361,7 @@ public class TournamentScoreboard {
                         lambda.accept(team, player)));
     }
 
-    public boolean isTeamConnected(@Nullable Team team) {
+    public boolean isTeamMemberConnected(@Nullable Team team) {
         return team != null && !this.getConnectedTeamMembers(team).isEmpty();
     }
 
@@ -373,7 +369,7 @@ public class TournamentScoreboard {
         List<Team> teamsCopy = new ArrayList<>(this.teams);
         Collections.shuffle(teamsCopy);
         return teamsCopy.stream()
-                .filter(this::isTeamConnected)
+                .filter(this::isTeamMemberConnected)
                 .findFirst()
                 .orElse(null);
     }
@@ -388,11 +384,15 @@ public class TournamentScoreboard {
         }));
     }
 
+    public void setNametagVisibility(Team team, boolean isVisible) {
+        team.setNameTagVisibilityRule(isVisible ? AbstractTeam.VisibilityRule.ALWAYS : AbstractTeam.VisibilityRule.NEVER);
+    }
+
     public void setGlobalNametagVisibility(boolean isVisible) {
         this.forAllTeams(team -> this.setNametagVisibility(team, isVisible));
     }
 
-    public void setNametagVisibility(Team team, boolean isVisible) {
-        team.setNameTagVisibilityRule(isVisible ? AbstractTeam.VisibilityRule.ALWAYS : AbstractTeam.VisibilityRule.NEVER);
+    public void setGlobalShowFriendlyInvisibles(boolean isVisible) {
+        this.forAllTeams(team -> team.setShowFriendlyInvisibles(isVisible));
     }
 }

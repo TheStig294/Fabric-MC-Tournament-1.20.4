@@ -7,6 +7,7 @@ import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.SoundEvent;
+import net.minecraft.text.Text;
 import net.thestig294.mctournament.MCTournament;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,5 +60,9 @@ public class ModUtilClient {
         ClientWorld world = MCTournament.client().world;
         if (world == null) return 20.0f;
         return world.getTickManager().getTickRate();
+    }
+
+    public static void printChat(Text text) {
+        MCTournament.client().inGameHud.getChatHud().addMessage(text);
     }
 }

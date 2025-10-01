@@ -11,9 +11,11 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.text.Text;
 import net.thestig294.mctournament.MCTournament;
+import net.thestig294.mctournament.mixin.MinecraftClientInvoker;
 import net.thestig294.mctournament.util.ModUtil;
 import net.thestig294.mctournament.util.ModUtilClient;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 import java.util.Objects;
@@ -180,6 +182,19 @@ public abstract class AnimatedScreen<
         PAUSED_SCREEN = this;
         MCTournament.client().openGameMenu(false);
         return false;
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        MinecraftClient client = MCTournament.client();
+
+        if (keyCode == GLFW.GLFW_KEY_SLASH) {
+            ((MinecraftClientInvoker) client).callOpenChatScreen("");
+
+            return true;
+        }
+
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override

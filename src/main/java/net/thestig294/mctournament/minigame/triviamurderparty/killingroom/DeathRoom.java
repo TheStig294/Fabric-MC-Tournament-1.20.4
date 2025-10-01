@@ -1,8 +1,5 @@
 package net.thestig294.mctournament.minigame.triviamurderparty.killingroom;
 
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.thestig294.mctournament.minigame.MinigameScoreboard;
@@ -43,10 +40,6 @@ public abstract class DeathRoom {
             new BlockPos(0,0,-12), // 6
             new BlockPos(4,0,-12)  // 7
     );
-
-    public static void setPlayerInvisible(ServerPlayerEntity player) {
-        player.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, StatusEffectInstance.INFINITE));
-    }
 
     private final Structure structure;
     private final Set<Integer> killableTeamNumbers;
@@ -99,7 +92,7 @@ public abstract class DeathRoom {
             if (scoreboard.getBoolean(player, TriviaMurderParty.Objectives.IS_KILLABLE)) {
                 scoreboard.setBoolean(player, TriviaMurderParty.Objectives.IS_KILLABLE, false);
                 scoreboard.setBoolean(player, TriviaMurderParty.Objectives.IS_DEAD, true);
-                setPlayerInvisible(player);
+                ModUtil.setInvisible(player, true);
                 minigame.startScoreScreen();
             }
         }));

@@ -1,6 +1,8 @@
 package net.thestig294.mctournament.util;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -193,5 +195,13 @@ public class ModUtil {
 
     public static boolean isValid(@Nullable Entity entity) {
         return entity != null && !entity.isRemoved();
+    }
+
+    public static void setInvisible(ServerPlayerEntity player, boolean isInvisible) {
+        if (isInvisible) {
+            player.addStatusEffect(new StatusEffectInstance(StatusEffects.INVISIBILITY, StatusEffectInstance.INFINITE));
+        } else {
+            player.removeStatusEffect(StatusEffects.INVISIBILITY);
+        }
     }
 }
