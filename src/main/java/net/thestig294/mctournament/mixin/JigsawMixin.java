@@ -19,8 +19,8 @@ public class JigsawMixin {
             ordinal = 0
     )
 	private static BlockRotation blockRotation(BlockRotation originalRotation) {
-        if (ModStructures.JIGSAW_ROTATION_OVERRIDE != null) {
-            return ModStructures.JIGSAW_ROTATION_OVERRIDE;
+        if (ModStructures.JIGSAW_ROTATION_MIXIN != null) {
+            return ModStructures.JIGSAW_ROTATION_MIXIN;
         }
         return originalRotation;
 	}

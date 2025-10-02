@@ -12,7 +12,6 @@ import net.thestig294.mctournament.minigame.triviamurderparty.screen.*;
 import static net.thestig294.mctournament.font.ModFonts.registerFont;
 import static net.thestig294.mctournament.minigame.MinigameVariants.registerVariant;
 import static net.thestig294.mctournament.network.ModNetworking.registerNetworkID;
-import static net.thestig294.mctournament.structure.ModStructures.registerJigsawStartPool;
 import static net.thestig294.mctournament.texture.ModTextures.registerTexture;
 
 public class TriviaMurderParty extends Minigame {
@@ -85,11 +84,6 @@ public class TriviaMurderParty extends Minigame {
 
     }
 
-    @SuppressWarnings("unused")
-    public void startNextQuestion() {
-        this.questionScreenHandler.broadcastNextQuestionScreen();
-    }
-
     public void startKillingRoom() {
         this.killingRoomScreenHandler.broadcastNextKillingRoom();
     }
@@ -98,14 +92,18 @@ public class TriviaMurderParty extends Minigame {
         this.scoreScreenHandler.broadcastNextScoreScreen();
     }
 
+    public void startNextQuestion() {
+        this.questionScreenHandler.broadcastNextQuestionScreen();
+    }
+
+    public void startFinalRound() {
+
+    }
+
     public static class Objectives {
         public static final String IS_CORRECT = "is_correct";
         public static final String IS_KILLABLE = "is_killable";
         public static final String IS_DEAD = "is_dead";
-    }
-
-    public static class Structures {
-        public static final Identifier CORRIDOR = registerJigsawStartPool(ID, "corridor");
     }
 
     public static class NetworkIDs {

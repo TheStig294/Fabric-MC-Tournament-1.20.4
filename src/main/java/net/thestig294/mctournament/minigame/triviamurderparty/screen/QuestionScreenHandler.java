@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -21,14 +22,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static net.thestig294.mctournament.structure.ModStructures.registerJigsawStartPool;
+
 public class QuestionScreenHandler {
     public static final int CORRECT_ANSWER_POINTS = 1000;
-    public static final int ANSWERING_TIME_SECONDS = 20;
+    private static final int ANSWERING_TIME_SECONDS = 20;
 //    The time in seconds the game secretly lets you answer even though the time is up on the server, for lag compensation
-    public static final int ANSWERING_TIME_FORGIVENESS = 2;
-    public static final BlockPos LIGHTS_OFF_REDSTONE_BLOCK_OFFSET = new BlockPos(-3, -2, -73);
-    public static final BlockPos LIGHTS_ON_REDSTONE_BLOCK_OFFSET = new BlockPos(3, -2, -73);
-    public static final Vec3d PLAYER_MOVE_VELOCITY = new Vec3d(0.0, 0.0, -100.0);
+    private static final int ANSWERING_TIME_FORGIVENESS = 2;
+    private static final Identifier CORRIDOR_STRUCTURE = registerJigsawStartPool(TriviaMurderParty.ID, "corridor");
+    private static final BlockPos LIGHTS_OFF_REDSTONE_BLOCK_OFFSET = new BlockPos(-3, -2, -73);
+    private static final BlockPos LIGHTS_ON_REDSTONE_BLOCK_OFFSET = new BlockPos(3, -2, -73);
+    private static final Vec3d PLAYER_MOVE_VELOCITY = new Vec3d(0.0, 0.0, -100.0);
 
     private final TriviaMurderParty minigame;
     private final MinigameScoreboard scoreboard;
@@ -144,7 +148,7 @@ public class QuestionScreenHandler {
 
         for (final var player : ModUtil.getPlayers()) {
             ModUtil.teleportFacing(player, playerPos, Direction.NORTH);
-            ModStructures.jigsawPlace(TriviaMurderParty.Structures.CORRIDOR, player);
+            ModStructures.jigsawPlace(CORRIDOR_STRUCTURE, player);
             ModUtil.placeRedstoneBlock(playerPos.add(LIGHTS_ON_REDSTONE_BLOCK_OFFSET));
             this.playerRedstonePositions.put(player.getNameForScoreboard(), playerPos.add(LIGHTS_OFF_REDSTONE_BLOCK_OFFSET));
 //            Each player is spawned in their own corridor, this is the width of the structure, plus 3 block of space

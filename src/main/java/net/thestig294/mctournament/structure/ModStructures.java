@@ -22,9 +22,9 @@ public class ModStructures {
     /**
      * All jigsaw structures must name their starting pool "_start"
      */
-    public static final String JIGSAW_START_POOL_NAME = "_start";
-    public static final Identifier MINECRAFT_EMPTY = new Identifier("minecraft", "empty");
-    public static BlockRotation JIGSAW_ROTATION_OVERRIDE;
+    private static final String JIGSAW_START_POOL_NAME = "_start";
+    private static final Identifier MINECRAFT_EMPTY = new Identifier("minecraft", "empty");
+    public static BlockRotation JIGSAW_ROTATION_MIXIN;
 
     public static Structure registerStructure(String minigameID, String id, BlockPos offset) {
         return registerStructure(minigameID, id, offset.getX(), offset.getY(), offset.getZ());
@@ -149,8 +149,8 @@ public class ModStructures {
         RegistryKey<Registry<StructurePool>> templatePoolRegistryKey = RegistryKeys.TEMPLATE_POOL;
         Registry<StructurePool> structurePoolRegistry = MCTournament.server().getRegistryManager().get(templatePoolRegistryKey);
         RegistryEntry<StructurePool> startPoolEntry = structurePoolRegistry.getEntry(structurePoolRegistry.get(startPool));
-        JIGSAW_ROTATION_OVERRIDE = rotation;
+        JIGSAW_ROTATION_MIXIN = rotation;
         StructurePoolBasedGenerator.generate(world, startPoolEntry, MINECRAFT_EMPTY, 7, pos, false);
-        JIGSAW_ROTATION_OVERRIDE = null;
+        JIGSAW_ROTATION_MIXIN = null;
     }
 }
