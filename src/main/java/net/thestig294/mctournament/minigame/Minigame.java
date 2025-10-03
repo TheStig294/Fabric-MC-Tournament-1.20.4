@@ -8,7 +8,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.tournament.Tournament;
-import net.thestig294.mctournament.tournament.TournamentScoreboard;
+import net.thestig294.mctournament.tournament.Teams;
 import net.thestig294.mctournament.util.ModUtil;
 
 public abstract class Minigame {
@@ -59,10 +59,9 @@ public abstract class Minigame {
     public abstract void serverBegin();
 
     public void serverPreEnd() {
-        TournamentScoreboard tournamentScoreboard = Tournament.inst().scoreboard();
-        tournamentScoreboard.updateOverallScores();
-        tournamentScoreboard.setGlobalNametagVisibility(true);
-        tournamentScoreboard.setGlobalShowFriendlyInvisibles(true);
+        this.teams().updateOverallScores();
+        this.teams().setGlobalNametagVisibility(true);
+        this.teams().setGlobalShowFriendlyInvisibles(true);
         this.scoreboard.clear();
         ModUtil.forAllPlayers(LivingEntity::clearStatusEffects);
     }
@@ -128,15 +127,20 @@ public abstract class Minigame {
         return this.clientScoreboard;
     }
 
-    public void hideNametags() {
-        Tournament.inst().scoreboard().setGlobalNametagVisibility(false);
-    }
-
     public void setPosition(BlockPos pos) {
         this.position = pos;
     }
 
     public BlockPos getPosition() {
         return this.position;
+    }
+
+    public Teams teams() {
+        return Tournament.inst().teams();
+    }
+
+    @SuppressWarnings("unused")
+    public Teams clientTeams() {
+        return Tournament.inst().clientTeams();
     }
 }

@@ -7,7 +7,6 @@ import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.structure.ModStructures;
 import net.thestig294.mctournament.structure.Structure;
-import net.thestig294.mctournament.tournament.Tournament;
 import net.thestig294.mctournament.util.ModTimer;
 import net.thestig294.mctournament.util.ModUtil;
 
@@ -69,7 +68,7 @@ public abstract class DeathRoom {
             Direction direction;
 
             if (scoreboard.getBoolean(player, TriviaMurderParty.Objectives.IS_KILLABLE)) {
-                int teamNumber = Tournament.inst().scoreboard().getTeamNumber(player);
+                int teamNumber = this.minigame.teams().getTeamNumber(player);
                 this.killableTeamNumbers.add(teamNumber);
                 teleportPos = this.getPosition().add(deathPositions.get(teamNumber));
                 direction = Direction.SOUTH;
@@ -91,8 +90,8 @@ public abstract class DeathRoom {
         ModTimer.simple(false, this.getDeathDelay(), () -> ModUtil.forAllPlayers(player -> {
             if (scoreboard.getBoolean(player, TriviaMurderParty.Objectives.IS_KILLABLE)) {
                 scoreboard.setBoolean(player, TriviaMurderParty.Objectives.IS_KILLABLE, false);
-                scoreboard.setBoolean(player, TriviaMurderParty.Objectives.IS_DEAD, true);
-                ModUtil.setInvisible(player, true);
+                minigame.setDead(player, true);
+                ModUtil.respawnIfDead(player);
                 minigame.startScoreScreen();
             }
         }));

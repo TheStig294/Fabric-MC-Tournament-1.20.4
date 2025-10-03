@@ -19,7 +19,7 @@ public class ModItemGroups {
         ModUtil.logRegistration("item groups");
 
         registerItemGroup("mctournament", FabricItemGroup.builder()
-                .displayName(Text.translatable("itemGroup.mctournament"))
+                .displayName(Text.translatable("itemGroup." + MCTournament.MOD_ID))
                 .icon(() -> new ItemStack(ModItems.TROPHY))
                 .entries((displayContext, entries) -> {
                     entries.add(ModItems.TROPHY);

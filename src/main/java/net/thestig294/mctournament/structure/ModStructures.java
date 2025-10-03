@@ -108,6 +108,9 @@ public class ModStructures {
         BlockPos offsetPos = offsetBlockPos(pos, structure.xOffset(), structure.yOffset(), structure.zOffset(), rotation);
         StructurePlacementData placementData = new StructurePlacementData().setRotation(rotation);
         MCTournament.server().getStructureTemplateManager().getTemplateOrBlank(structure.id())
+//                Do not be alarmed at the random seed being set to a constant value,
+//                it is actually a flag that indicates a seed needs to be generated, and is used like this by the /place command.
+//                Unfortunately, the base code does not provide a nice enum or public static final int to show this...
                 .place(world, offsetPos, offsetPos, placementData, StructureBlockBlockEntity.createRandom(0), Block.NOTIFY_LISTENERS);
     }
 

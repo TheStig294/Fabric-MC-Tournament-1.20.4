@@ -29,8 +29,8 @@ public class Tournament {
     private List<String> variants = new ArrayList<>();
     private BlockPos position = BlockPos.ORIGIN;
 
-    private TournamentScoreboard scoreboard;
-    private TournamentScoreboard clientScoreboard;
+    private Teams teams;
+    private Teams clientTeams;
 
     public void serverSetup(TournamentSettings settings) {
         this.round = -1;
@@ -38,8 +38,8 @@ public class Tournament {
         this.minigameIDs = settings.getMinigames();
         this.variants = settings.getVariants();
         this.position = settings.getPosition();
-        this.scoreboard = this.scoreboard == null ? new TournamentScoreboard(false) : this.scoreboard;
-        this.scoreboard.serverInit();
+        this.teams = this.teams == null ? new Teams(false) : this.teams;
+        this.teams.serverInit();
 
         this.sharedSetup(false);
         ModNetworking.broadcast(ModNetworking.TOURNAMENT_SETUP, this.getClientInfoBuffer());
@@ -79,8 +79,8 @@ public class Tournament {
             this.variants.add(buffer.readString());
         }
 
-        this.clientScoreboard = this.clientScoreboard == null ? new TournamentScoreboard(true) : this.clientScoreboard;
-        this.clientScoreboard.clientInit();
+        this.clientTeams = this.clientTeams == null ? new Teams(true) : this.clientTeams;
+        this.clientTeams.clientInit();
         this.sharedSetup(true);
     }
 
@@ -92,7 +92,7 @@ public class Tournament {
     }
 
 //    Must be called at the end of a minigame to clean up any events for the next minigame,
-//    and for the Tournament instance to tally the scores from the minigame's scoreboard.
+//    and for the Tournament instance to tally the scores from the minigame's teams.
 //    Can be called from a single client, or from the server
     public void endCurrentMinigame(boolean isClient) {
         if (!this.isActive) return;
@@ -135,7 +135,7 @@ public class Tournament {
 
 
 //        Called after a small delay to allow for packets to be sent between the server and client,
-//        from the last minigame's end function, and the initial state update for the TournamentScoreboard
+//        from the last minigame's end function, and the initial state update for the Teams
 //        Caching the value of the current minigame so that it is not changed by the time the timer runs...
         Minigame minigame = this.minigame;
         minigame.setPosition(this.position.east(MINIGAME_POSITION_OFFSET * this.round));
@@ -181,13 +181,13 @@ public class Tournament {
     }
 
 
-    public TournamentScoreboard scoreboard() {
-        return this.scoreboard;
+    public Teams teams() {
+        return this.teams;
     }
 
     @Environment(EnvType.CLIENT)
-    public TournamentScoreboard clientScoreboard() {
-        return this.clientScoreboard;
+    public Teams clientTeams() {
+        return this.clientTeams;
     }
 
     public Minigame minigame() {

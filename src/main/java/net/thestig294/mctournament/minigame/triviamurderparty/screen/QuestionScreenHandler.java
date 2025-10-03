@@ -14,7 +14,6 @@ import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Questions;
 import net.thestig294.mctournament.network.ModNetworking;
 import net.thestig294.mctournament.structure.ModStructures;
-import net.thestig294.mctournament.tournament.Tournament;
 import net.thestig294.mctournament.util.ModTimer;
 import net.thestig294.mctournament.util.ModUtil;
 
@@ -64,6 +63,7 @@ public class QuestionScreenHandler {
             boolean isCaptain = buffer.readBoolean();
             int answerPosition = buffer.readInt();
             boolean isCorrect = buffer.readBoolean();
+            Team team = this.minigame.teams().getTeam(playerName);
 
             ModNetworking.broadcast(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, PacketByteBufs.create()
                     .writeString(playerName)
@@ -74,11 +74,11 @@ public class QuestionScreenHandler {
 
             if (isCaptain && !this.answeredCaptains.containsKey(playerName)) {
                 this.answeredCaptains.put(playerName, isCorrect);
-                if (isCorrect) this.scoreboard.addScore(playerName, CORRECT_ANSWER_POINTS);
+                if (isCorrect && team != null) this.scoreboard.addScore(team, CORRECT_ANSWER_POINTS);
 
 //                Ending answering once all captains have answered
                 int answeredPlayers = this.answeredCaptains.size();
-                int playersToAnswer = Tournament.inst().scoreboard().getValidTeamCaptains(false).size();
+                int playersToAnswer = this.minigame.teams().getTeamCaptains().size();
 
                 if (answeredPlayers >= playersToAnswer) {
                     this.broadcastAnsweringEnd();
@@ -88,7 +88,7 @@ public class QuestionScreenHandler {
 
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_ALL_CORRECT_LOOP_BACK, serverReceiveInfo -> {
             if (this.state != State.POST_ANSWERING) return;
-            for (final var captain : Tournament.inst().scoreboard().getValidTeamCaptains(false)) {
+            for (final var captain : this.minigame.teams().getTeamCaptains()) {
                 if (!this.answeredCaptains.getOrDefault(captain.getNameForScoreboard(), false)) return;
             }
             this.broadcastNextQuestionScreen(Entrypoint.QUESTION_NUMBER_IN);
@@ -111,7 +111,7 @@ public class QuestionScreenHandler {
 
                 Team team = captain.getScoreboardTeam();
                 if (team == null) return;
-                List<ServerPlayerEntity> teamMembers = Tournament.inst().scoreboard().getConnectedTeamMembers(team);
+                List<ServerPlayerEntity> teamMembers = this.minigame.teams().getConnectedTeamMembers(team);
 
                 teamMembers.forEach(player ->
                         this.scoreboard.setBoolean(player, TriviaMurderParty.Objectives.IS_CORRECT, isCorrect));

@@ -47,14 +47,14 @@ public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
                 this.isCaptain = false;
             } else {
                 int teamSize = team.getPlayerList().size();
-                PlayerEntity captain = Tournament.inst().clientScoreboard().getTeamCaptain(true, clientPlayer);
+                PlayerEntity captain = Tournament.inst().clientTeams().getTeamCaptain(clientPlayer);
 //                Don't show the "Your Team" text if the player is in a "team" of 1!
                 this.isCaptain = teamSize > 1 && captain != null && captain.equals(player);
             }
         }
 
         this.playerName = player.getNameForScoreboard();
-        String teamName = Tournament.inst().clientScoreboard().getTeamName(true, player);
+        String teamName = Tournament.inst().clientTeams().getTeamName(player);
         String nameString = teamName == null ? this.playerName : teamName;
         this.nameText = Text.literal(nameString)
                 .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER));
@@ -64,7 +64,7 @@ public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
         this.originalHeight = height;
         this.textRenderer = textRenderer;
         this.textColor = ModColors.WHITE;
-        this.bottomText = Text.translatable("widget.mctournament.question_player_your_team")
+        this.bottomText = Text.translatable("widget." + MCTournament.MOD_ID + ".question_player_your_team")
                 .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER));
         this.bottomTextAlpha = 1.0f;
         this.answerState = AnswerState.UNANSWERED;

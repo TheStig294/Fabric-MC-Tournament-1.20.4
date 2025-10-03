@@ -24,10 +24,11 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class TournamentScoreboard {
-    public static final int MAX_TEAMS = 8;
-    public static final String TEAM_NAME_PREFIX = MCTournament.MOD_ID + '_';
-    public static final String OBJECTIVE_NAME = MCTournament.MOD_ID + "_tournament_score";
+public class Teams {
+    private static final int MAX_TEAMS = 8;
+    private static final String TEAM_NAME_PREFIX = MCTournament.MOD_ID + '_';
+    private static final String OBJECTIVE_NAME = MCTournament.MOD_ID + "_tournament_score";
+    public static final int NULL_TEAM_NUMBER = -1;
 
     private final boolean isClient;
     private boolean hooksAdded;
@@ -36,7 +37,7 @@ public class TournamentScoreboard {
     private Scoreboard scoreboard;
     private ScoreboardObjective objective;
 
-    public TournamentScoreboard(boolean isClient) {
+    public Teams(boolean isClient) {
         this.isClient = isClient;
         this.hooksAdded = false;
         this.teams = new ArrayList<>(MAX_TEAMS);
@@ -115,7 +116,7 @@ public class TournamentScoreboard {
         for (int i = 0; i < MAX_TEAMS; i++) {
             buffer.writeInt(i);
 
-            PlayerEntity captain = this.getTeamCaptain(false, i);
+            PlayerEntity captain = this.getTeamCaptain(i);
             boolean isNull = captain == null;
             buffer.writeBoolean(isNull);
 
@@ -192,29 +193,29 @@ public class TournamentScoreboard {
         return this.scoreboard;
     }
 
-    public @Nullable PlayerEntity getTeamCaptain(boolean isClient, PlayerEntity player) {
+    public @Nullable PlayerEntity getTeamCaptain(PlayerEntity player) {
         Team team = player.getScoreboardTeam();
-        return team != null ? this.getTeamCaptain(isClient, team) : null;
+        return team != null ? this.getTeamCaptain(team) : null;
     }
 
-    public @Nullable PlayerEntity getTeamCaptain(boolean isClient, Team team) {
-        return this.getTeamCaptain(isClient, team.getName());
+    public @Nullable PlayerEntity getTeamCaptain(Team team) {
+        return this.getTeamCaptain(team.getName());
     }
 
-    public @Nullable PlayerEntity getTeamCaptain(boolean isClient, String internalTeamName) {
-        return this.getTeamCaptain(isClient, this.getTeamNumber(internalTeamName));
+    public @Nullable PlayerEntity getTeamCaptain(String internalTeamName) {
+        return this.getTeamCaptain(this.getTeamNumber(internalTeamName));
     }
 
-    public @Nullable PlayerEntity getTeamCaptain(boolean isClient, int teamNumber) {
-        return ModUtil.getPlayer(isClient, this.teamCaptainNames.get(teamNumber));
+    public @Nullable PlayerEntity getTeamCaptain(int teamNumber) {
+        return ModUtil.getPlayer(this.isClient, this.teamCaptainNames.get(teamNumber));
     }
 
     /**
      * @return A list of all team captains, in order of team name from 0 to {@code MAX_TEAMS},
      * ignoring teams with missing captains
      */
-    public List<PlayerEntity> getValidTeamCaptains(boolean isClient) {
-        Function<String, PlayerEntity> getPlayerFunction = isClient ? ModUtilClient::getPlayer : ModUtil::getServerPlayer;
+    public List<PlayerEntity> getTeamCaptains() {
+        Function<String, PlayerEntity> getPlayerFunction = this.isClient ? ModUtilClient::getPlayer : ModUtil::getServerPlayer;
 
         return this.teamCaptainNames.values().stream()
                 .map(getPlayerFunction)
@@ -283,30 +284,28 @@ public class TournamentScoreboard {
         minigameScoreboard.setScore(newCaptainName, minigameScoreboard.getScore(oldCaptainName));
     }
 
-    public @Nullable String getTeamName(boolean isClient, Team team) {
-        return this.getTeamName(isClient, this.getTeamNumber(team));
+    public @Nullable String getTeamName(Team team) {
+        return this.getTeamName(this.getTeamNumber(team));
     }
 
     /**
      * Gets the name of a player's team, if they're in one, else returns {@code null}. <br>
      * For now, this is the name of the team's captain
-     * @param isClient Whether the realm this function is called in is the client
      * @param player The player whose team name is to be returned
      * @return {@code String} of the player's team name, {@code null} if they don't belong to a team
      */
-    public @Nullable String getTeamName(boolean isClient, PlayerEntity player) {
-        return this.getTeamName(isClient, this.getTeamNumber(player));
+    public @Nullable String getTeamName(PlayerEntity player) {
+        return this.getTeamName(this.getTeamNumber(player));
     }
 
     /**
      * Gets the name of a player's team, if they're in one, else returns {@code null}. <br>
      * For now, this is the name of the team's captain
-     * @param isClient Whether the realm this function is called in is the client
-     * @param teamNumber The internal team number from {@code 0} to {@link TournamentScoreboard#MAX_TEAMS}
+     * @param teamNumber The internal team number from {@code 0} to {@link Teams#MAX_TEAMS}
      * @return {@code String} of the player's team name, {@code null} if they don't belong to a team
      */
-    public @Nullable String getTeamName(boolean isClient, int teamNumber) {
-        PlayerEntity captain = this.getTeamCaptain(isClient, teamNumber);
+    public @Nullable String getTeamName(int teamNumber) {
+        PlayerEntity captain = this.getTeamCaptain(teamNumber);
         return captain == null ? null : captain.getNameForScoreboard();
     }
 
@@ -318,6 +317,11 @@ public class TournamentScoreboard {
         return this.scoreboard.getTeam(this.getInternalTeamName(teamNumber));
     }
 
+    public @Nullable Team getTeam(String playerName) {
+        PlayerEntity player = ModUtil.getPlayer(this.isClient, playerName);
+        return player == null ? null : player.getScoreboardTeam();
+    }
+
     /**
      * Gets a player's team number
      * @param player PlayerEntity
@@ -325,7 +329,7 @@ public class TournamentScoreboard {
      */
     public int getTeamNumber(PlayerEntity player) {
         Team team = player.getScoreboardTeam();
-        return team == null ? -1 : this.getTeamNumber(team);
+        return team == null ? NULL_TEAM_NUMBER : this.getTeamNumber(team);
     }
 
     public int getTeamNumber(Team team) {
@@ -337,11 +341,16 @@ public class TournamentScoreboard {
      * @param internalTeamName String of valid tournament team name
      * @return Team's team number, or -1 if not a properly formatted tournament team name.
      * <p>
-     * See: {@link TournamentScoreboard#getInternalTeamName(int)}
+     * See: {@link Teams#getInternalTeamName(int)}
      */
     public int getTeamNumber(String internalTeamName) {
         Integer teamNumber = Ints.tryParse(internalTeamName.substring(TEAM_NAME_PREFIX.length()));
-        return teamNumber == null ? -1 : teamNumber;
+        return teamNumber == null ? NULL_TEAM_NUMBER : teamNumber;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean hasTeam(PlayerEntity player) {
+        return this.getTeamNumber(player) != NULL_TEAM_NUMBER;
     }
 
     public List<ServerPlayerEntity> getConnectedTeamMembers(Team team) {
@@ -355,9 +364,13 @@ public class TournamentScoreboard {
         return teamPlayers;
     }
 
+    public void forAllConnectedTeamMembers(Team team, Consumer<ServerPlayerEntity> lambda) {
+        this.getConnectedTeamMembers(team).forEach(lambda);
+    }
+
     public void forAllConnectedTeamPlayers(BiConsumer<Team, ServerPlayerEntity> lambda) {
-        this.forAllTeams((team) ->
-                this.getConnectedTeamMembers(team).forEach((player) ->
+        this.getConnectedTeams().forEach(team ->
+                this.forAllConnectedTeamMembers(team, (player) ->
                         lambda.accept(team, player)));
     }
 
@@ -365,13 +378,18 @@ public class TournamentScoreboard {
         return team != null && !this.getConnectedTeamMembers(team).isEmpty();
     }
 
-    public @Nullable Team getRandomConnectedTeam() {
-        List<Team> teamsCopy = new ArrayList<>(this.teams);
-        Collections.shuffle(teamsCopy);
-        return teamsCopy.stream()
+    public List<Team> getConnectedTeams() {
+        return this.teams.stream()
                 .filter(this::isTeamMemberConnected)
-                .findFirst()
-                .orElse(null);
+                .toList();
+    }
+
+    @SuppressWarnings("unused")
+    public @Nullable Team getRandomConnectedTeam() {
+        List<Team> connectedTeams = this.getConnectedTeams();
+        if (connectedTeams.isEmpty()) return null;
+        int randomIndex = ModUtil.random(this.isClient).nextInt(connectedTeams.size());
+        return connectedTeams.get(randomIndex);
     }
 
     public void updateOverallScores() {
@@ -394,5 +412,9 @@ public class TournamentScoreboard {
 
     public void setGlobalShowFriendlyInvisibles(boolean isVisible) {
         this.forAllTeams(team -> team.setShowFriendlyInvisibles(isVisible));
+    }
+
+    public void sendChatMessage(Team team, Text message) {
+        this.getConnectedTeamMembers(team).forEach(player -> player.sendMessage(message, false));
     }
 }

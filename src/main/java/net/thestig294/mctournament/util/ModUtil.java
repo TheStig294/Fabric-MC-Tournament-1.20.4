@@ -21,6 +21,7 @@ import java.util.function.Consumer;
 
 public class ModUtil {
     private static final Map<String, ServerPlayerEntity> CACHED_PLAYERS = new HashMap<>();
+    private static final Random SHARED_RANDOM = Random.create();
 
     public static void logRegistration(String type) {
         logRegistration(type, MCTournament.MOD_ID);
@@ -32,11 +33,11 @@ public class ModUtil {
 
 //    Used for the fake room code shown on the bottom right of the QuestionScreen
 //    (And potentially elsewhere, so I'm shoving this in a Util class :P)
-    public static String getRandomString(int length, int numberChars){
+    public static String getRandomString(boolean isClient, int length, int numberChars){
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         String nums = "0123456789";
         char[] builder = new char[4];
-        Random random = Random.create();
+        Random random = random(isClient);
 
         for (int i = 0; i < length; i++) {
             if (random.nextBoolean() || numberChars == 0) {
@@ -86,7 +87,7 @@ public class ModUtil {
 
     /**
      * A cached copy of a player's entity from their name, this is safe to use in rapidly repeated calls like tick hooks!
-     * @param playerName A string of the player's scoreboard-safe name (See: {@link PlayerEntity#getNameForScoreboard()})
+     * @param playerName A string of the player's teams-safe name (See: {@link PlayerEntity#getNameForScoreboard()})
      * @return The {@link ServerPlayerEntity} of the player, or {@code null} if they cannot be found
      */
     public static @Nullable ServerPlayerEntity getServerPlayer(String playerName) {
@@ -185,12 +186,8 @@ public class ModUtil {
         return result;
     }
 
-    public static void chatMessage(String message) {
-        printMessage(message, false);
-    }
-
-    public static void printMessage(String message, boolean overlay) {
-        MCTournament.server().getPlayerManager().broadcast(Text.literal(message), overlay);
+    public static void broadcastChatMessage(String message) {
+        MCTournament.server().getPlayerManager().broadcast(Text.literal(message), false);
     }
 
     public static boolean isValid(@Nullable Entity entity) {
@@ -203,5 +200,35 @@ public class ModUtil {
         } else {
             player.removeStatusEffect(StatusEffects.INVISIBILITY);
         }
+    }
+
+    public static void respawnIfDead(ServerPlayerEntity player) {
+        if (player.isAlive()) return;
+        MCTournament.server().getPlayerManager().respawnPlayer(player, false);
+    }
+
+    public static Random random(boolean isClient) {
+        return isClient ? ModUtilClient.random() : SHARED_RANDOM;
+    }
+
+    public static <T> @Nullable T getRandomElement(boolean isClient, List<T> list) {
+        if (list.isEmpty()) return null;
+        int size = list.size();
+        if (size == 1) return list.get(0);
+
+        return list.get(random(isClient).nextInt(size));
+    }
+
+    public static String getPositionString(int positionNum) {
+        return switch (Math.abs(positionNum % 100)) {
+            case 11,12,13 -> positionNum + "th";
+
+            default -> positionNum + switch (Math.abs(positionNum % 10)) {
+                case 1 -> "st";
+                case 2 -> "nd";
+                case 3 -> "rd";
+                default -> "th";
+            };
+        };
     }
 }

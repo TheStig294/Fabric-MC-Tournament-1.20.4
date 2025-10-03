@@ -68,7 +68,7 @@ public class QuestionButton extends PressableWidget implements QuestionWidget {
         if (player == null || this.locked) return;
         this.pressed = false;
 
-        boolean isCaptain = Tournament.inst().clientScoreboard().isTeamCaptain(player);
+        boolean isCaptain = Tournament.inst().clientTeams().isTeamCaptain(player);
 
         ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERED, PacketByteBufs.create()
                 .writeString(player.getNameForScoreboard())

@@ -11,7 +11,6 @@ import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.Killin
 import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.KillingRooms;
 import net.thestig294.mctournament.network.ModNetworking;
 import net.thestig294.mctournament.structure.ModStructures;
-import net.thestig294.mctournament.tournament.Tournament;
 import net.thestig294.mctournament.util.ModUtil;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +38,7 @@ public class KillingRoomScreenHandler {
             this.state = State.ACTIVE;
 
             if (this.killingRoom != null) {
-                Tournament.inst().scoreboard().setGlobalShowFriendlyInvisibles(true);
+                this.minigame.teams().setGlobalShowFriendlyInvisibles(true);
 
                 ModUtil.forAllPlayers(player -> {
                     if (!this.minigame.scoreboard().getBoolean(player, TriviaMurderParty.Objectives.IS_DEAD)) {
@@ -93,7 +92,7 @@ public class KillingRoomScreenHandler {
         this.state = State.INTRO;
 
         ModStructures.place(this.killingRoom.getStructure(), this.killingRoomPos);
-        Tournament.inst().scoreboard().setGlobalShowFriendlyInvisibles(false);
+        this.minigame.teams().setGlobalShowFriendlyInvisibles(false);
 
         ModUtil.forAllPlayers(player -> {
             ModUtil.setInvisible(player, true);

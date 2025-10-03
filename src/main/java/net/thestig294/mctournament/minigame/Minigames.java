@@ -1,6 +1,5 @@
 package net.thestig294.mctournament.minigame;
 
-import net.minecraft.util.math.random.Random;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.mariokart.MarioKart;
 import net.thestig294.mctournament.minigame.tournamentbegin.TournamentBegin;
@@ -58,29 +57,19 @@ public class Minigames {
     }
 
     @SuppressWarnings("unused")
-    public static List<String> getRandomMinigames(int count){
+    public static List<String> getRandomMinigames(boolean isClient, int count){
         count = ModUtil.clampInt(count, 1, REGISTERED.size());
         if (count == 1) {
-            return List.of(getRandomMinigame());
+            return List.of(getRandomMinigame(isClient));
         }
 
-        List<String> idList = getMinigameIds();
+        List<String> idList = new ArrayList<>(getMinigameIds());
         Collections.shuffle(idList);
-
-        List<String> result = new ArrayList<>();
-
-        for (int i = 0; i < count; i++) {
-            result.add(idList.get(i));
-        }
-
-        return result;
+        return idList.subList(0, count);
     }
 
-    public static String getRandomMinigame() {
-        List<String> idList = getMinigameIds();
-        int randomIndex = Random.create().nextBetween(0, idList.size());
-
-        return idList.get(randomIndex);
+    public static String getRandomMinigame(boolean isClient) {
+        return ModUtil.getRandomElement(isClient, getMinigameIds());
     }
 
     @Nullable

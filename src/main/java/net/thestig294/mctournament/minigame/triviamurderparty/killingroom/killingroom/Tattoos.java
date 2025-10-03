@@ -9,7 +9,7 @@ import net.minecraft.world.GameMode;
 import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.KillingRoom;
 import net.thestig294.mctournament.util.ModUtil;
 
-import java.util.List;
+import java.util.*;
 
 public class Tattoos extends KillingRoom {
     private static final BlockPos STRUCTURE_OFFSET = new BlockPos(32,2,11);
@@ -48,10 +48,10 @@ public class Tattoos extends KillingRoom {
 
     @Override
     public void begin() {
-        this.forAllConnectedTeamPlayers((team, player) -> {
+        this.teams().forAllConnectedTeamPlayers((team, player) -> {
             GameMode gamemode = this.isOnTrial(player) ? GameMode.CREATIVE : GameMode.SPECTATOR;
             ModUtil.setGamemode(player, gamemode);
-            int teamNumber = this.tournamentScoreboard().getTeamNumber(team);
+            int teamNumber = this.teams().getTeamNumber(team);
             ModUtil.teleportFacing(player, this.getPosition().add(BUILD_ROOM_STARTS.get(teamNumber)), Direction.NORTH);
         });
     }
@@ -67,7 +67,7 @@ public class Tattoos extends KillingRoom {
     private void startVoting() {
         ModUtil.placeRedstoneBlock(this.getPosition().add(REDSTONE_OFFSET));
 
-        this.forAllConnectedTeamPlayers((team, player) -> {
+        this.teams().forAllConnectedTeamPlayers((team, player) -> {
             player.getInventory().clear();
             ModUtil.setGamemode(player, GameMode.ADVENTURE);
             ModUtil.teleportFacing(player, this.getPosition(), Direction.WEST);
@@ -75,15 +75,15 @@ public class Tattoos extends KillingRoom {
     }
 
     private void endVoting() {
-        ModUtil.chatMessage("Votes:");
-        int minVotes = ModUtil.getPlayers().size();
-        Team killableTeam = null;
+        ModUtil.broadcastChatMessage("= Votes =");
+        int minVotes = ModUtil.getPlayers().size() + 1;
+        List<Team> killableTeams = new ArrayList<>();
 
         for (final var player : ModUtil.getPlayers()) {
             Team team = player.getScoreboardTeam();
             if (!this.isOnTrial(player) || team == null) continue;
 
-            int teamNumber = this.tournamentScoreboard().getTeamNumber(team);
+            int teamNumber = this.teams().getTeamNumber(team);
 
             int playerCount = ModUtil.getPlayersWithinBound(
                     this.getPosition().add(BUILD_ROOM_STARTS.get(teamNumber)).down(),
@@ -92,16 +92,19 @@ public class Tattoos extends KillingRoom {
 
             if (playerCount < minVotes) {
                 minVotes = playerCount;
-                killableTeam = team;
+                killableTeams.clear();
+                killableTeams.add(team);
+            } else if (playerCount == minVotes) {
+                killableTeams.add(team);
             }
 
-            if (playerCount > 0) {
-                ModUtil.chatMessage(this.tournamentScoreboard().getTeamName(false, team) + ": " + playerCount);
-            }
+            ModUtil.broadcastChatMessage(this.teams().getTeamName(team) + ": " + playerCount);
         }
 
-        if (killableTeam == null) killableTeam = this.tournamentScoreboard().getRandomConnectedTeam();
-        if (killableTeam != null) this.setTeamKillable(killableTeam);
+//        If teams tie votes, a random team is killed instead
+        Team randomTeam = ModUtil.getRandomElement(false, killableTeams);
+        if (randomTeam == null) return;
+        this.setTeamKillable(randomTeam);
     }
 
     @Environment(EnvType.CLIENT)

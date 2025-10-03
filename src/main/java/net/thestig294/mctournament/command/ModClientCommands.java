@@ -25,6 +25,6 @@ public class ModClientCommands {
 
         MCTournament.client().setScreen(null);
 
-        ModUtilClient.printChat(Text.translatable("commands.mctournament.clearscreen"));
+        ModUtilClient.printChat(Text.translatable("commands." + MCTournament.MOD_ID + ".clearscreen"));
     }
 }

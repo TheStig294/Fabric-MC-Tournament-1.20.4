@@ -2,12 +2,15 @@ package net.thestig294.mctournament.minigame.triviamurderparty;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.thestig294.mctournament.minigame.Minigame;
 import net.thestig294.mctournament.minigame.triviamurderparty.killingroom.KillingRooms;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Questions;
 import net.thestig294.mctournament.minigame.triviamurderparty.screen.*;
+import net.thestig294.mctournament.util.ModUtil;
 
 import static net.thestig294.mctournament.font.ModFonts.registerFont;
 import static net.thestig294.mctournament.minigame.MinigameVariants.registerVariant;
@@ -50,7 +53,7 @@ public class TriviaMurderParty extends Minigame {
 
     @Override
     public void serverBegin() {
-        this.hideNametags();
+        this.teams().setGlobalNametagVisibility(false);
         this.questionScreenHandler.begin(this.getPosition());
 
         KillingRooms.begin(false);
@@ -98,6 +101,15 @@ public class TriviaMurderParty extends Minigame {
 
     public void startFinalRound() {
 
+    }
+
+    public boolean isDead(PlayerEntity player) {
+        return this.scoreboard().getBoolean(player, Objectives.IS_DEAD);
+    }
+
+    public void setDead(ServerPlayerEntity player, boolean isDead) {
+        ModUtil.setInvisible(player, isDead);
+        this.scoreboard().setBoolean(player, Objectives.IS_DEAD, isDead);
     }
 
     public static class Objectives {

@@ -1,6 +1,6 @@
 package net.thestig294.mctournament.minigame;
 
-import net.minecraft.util.math.random.Random;
+import net.thestig294.mctournament.util.ModUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +29,7 @@ public class MinigameVariants {
 
     public static String getRandom(String minigameID, boolean includeDefaultVariant) {
         List<String> variants = REGISTERED.get(minigameID);
-        int randomIndex = Random.create().nextBetween(includeDefaultVariant ? 0 : 1, variants.size() - 1);
+        int randomIndex = ModUtil.random(false).nextBetween(includeDefaultVariant ? 0 : 1, variants.size() - 1);
 
         return variants.get(randomIndex);
     }

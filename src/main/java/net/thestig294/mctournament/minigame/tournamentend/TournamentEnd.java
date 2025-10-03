@@ -32,7 +32,7 @@ public class TournamentEnd extends Minigame {
 
     @Override
     public void serverBegin() {
-        MCTournament.server().getPlayerManager().broadcast(Text.translatable("tournament.mctournament.end_message"), true);
+        MCTournament.server().getPlayerManager().broadcast(Text.translatable("tournament." + MCTournament.MOD_ID + ".end_message"), true);
     }
 
     @Override
@@ -58,7 +58,7 @@ public class TournamentEnd extends Minigame {
 
     }
 
-//    The tournament scoreboard is used directly instead
+//    The tournament teams is used directly instead
     @Override
     public void serverPreEnd() {
     }

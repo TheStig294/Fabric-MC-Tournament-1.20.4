@@ -8,6 +8,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.random.Random;
 import net.thestig294.mctournament.MCTournament;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,10 +20,11 @@ import java.util.Map;
 @Environment(EnvType.CLIENT)
 public class ModUtilClient {
     private static final Map<String, PlayerEntity> CACHED_PLAYERS = new HashMap<>();
+    private static final Random SHARED_RANDOM = Random.create();
 
     /**
      * A cached copy of a player's entity from their name, this is safe to use in rapidly repeated calls like tick hooks!
-     * @param playerName A string of the player's scoreboard-safe name (See: {@link PlayerEntity#getNameForScoreboard()})
+     * @param playerName A string of the player's teams-safe name (See: {@link PlayerEntity#getNameForScoreboard()})
      * @return The {@link PlayerEntity} of the player, or {@code null} if they cannot be found
      */
     public static @Nullable PlayerEntity getPlayer(String playerName) {
@@ -64,5 +66,9 @@ public class ModUtilClient {
 
     public static void printChat(Text text) {
         MCTournament.client().inGameHud.getChatHud().addMessage(text);
+    }
+
+    public static Random random() {
+        return SHARED_RANDOM;
     }
 }

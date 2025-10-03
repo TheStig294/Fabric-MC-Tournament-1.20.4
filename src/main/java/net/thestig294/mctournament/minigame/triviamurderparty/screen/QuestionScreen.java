@@ -6,7 +6,6 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.math.random.Random;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Question;
@@ -82,7 +81,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
         this.rightBoxWidget = this.addDrawableChild(new QuestionBox(this.width,0, this.width, this.height, ModColors.BLACK));
 
         this.playerWidgets.clear();
-        List<PlayerEntity> teamCaptains = Tournament.inst().clientScoreboard().getValidTeamCaptains(true);
+        List<PlayerEntity> teamCaptains = Tournament.inst().clientTeams().getTeamCaptains();
         for (int i = 0; i < teamCaptains.size(); i++) {
             QuestionPlayer player = new QuestionPlayer(i * this.width / 8, 0,
                     this.width / 8, this.height / 3, teamCaptains.get(i), this.textRenderer);
@@ -122,7 +121,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
         this.roomCodeWidgets.add(this.addDrawableChild(new QuestionText( this.width - 40, this.height - 12,
                 "MINECRAFT.TV", TriviaMurderParty.Fonts.QUESTION_ANSWER, 10, ModColors.GREY, 100, this.textRenderer)));
         this.roomCodeWidgets.add(this.addDrawableChild(new QuestionText( this.width - 20, this.height,
-                ModUtil.getRandomString(4, 2), TriviaMurderParty.Fonts.QUESTION_ANSWER, 10, ModColors.RED,
+                ModUtil.getRandomString(true, 4, 2), TriviaMurderParty.Fonts.QUESTION_ANSWER, 10, ModColors.RED,
                 100, this.textRenderer)));
     }
 
@@ -140,8 +139,8 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
         TITLE_HOLD {
             public void render(QuestionScreen screen) {
                 screen.everyStatePercent(TITLE_SHAKE_FREQUENCY_PERCENT, () -> screen.titleWidgets.forEach(widget -> {
-                    widget.setX(widget.getOriginalX() + Random.create().nextBetween(-TITLE_SHAKE_PIXEL_AMPLITUDE, TITLE_SHAKE_PIXEL_AMPLITUDE));
-                    widget.setY(widget.getOriginalY() + Random.create().nextBetween(-TITLE_SHAKE_PIXEL_AMPLITUDE, TITLE_SHAKE_PIXEL_AMPLITUDE));
+                    widget.setX(widget.getOriginalX() + ModUtil.random(true).nextBetween(-TITLE_SHAKE_PIXEL_AMPLITUDE, TITLE_SHAKE_PIXEL_AMPLITUDE));
+                    widget.setY(widget.getOriginalY() + ModUtil.random(true).nextBetween(-TITLE_SHAKE_PIXEL_AMPLITUDE, TITLE_SHAKE_PIXEL_AMPLITUDE));
                 }));
             }
             public void refresh(QuestionScreen screen) {TITLE_IN.refresh(screen);}
@@ -441,7 +440,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
             public void render(QuestionScreen screen) {}
             public void refresh(QuestionScreen screen) {REVEAL_INCORRECT_CROSSES.refresh(screen);}
             public float duration(QuestionScreen screen) {return screen.getQuip(QuipType.INCORRECT);}
-            public State next(QuestionScreen screen) {return Random.create().nextBoolean() ? KILLING_ROOM_TRANSITION_MOVE : KILLING_ROOM_TRANSITION_LIGHTS;}
+            public State next(QuestionScreen screen) {return ModUtil.random(true).nextBoolean() ? KILLING_ROOM_TRANSITION_MOVE : KILLING_ROOM_TRANSITION_LIGHTS;}
         },
         KILLING_ROOM_TRANSITION_MOVE {
             public void begin(QuestionScreen screen) {ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_MOVE_PLAYER);}
@@ -608,7 +607,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
     private void resetRevealedAnswer() {
         PlayerEntity player = MCTournament.client().player;
         if (player == null) return;
-        PlayerEntity captain = Tournament.inst().clientScoreboard().getTeamCaptain(true, player);
+        PlayerEntity captain = Tournament.inst().clientTeams().getTeamCaptain(player);
         int selectedAnswer = captain == null ? -1 : this.captainAnswers.getOrDefault(captain.getNameForScoreboard(), -1);
 
         for (final var widget : this.answerWidgets) {

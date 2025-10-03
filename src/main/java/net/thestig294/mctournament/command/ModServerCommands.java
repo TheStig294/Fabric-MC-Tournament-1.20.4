@@ -38,7 +38,7 @@ public class ModServerCommands {
     private static int executeStart(ServerCommandSource source, String id) {
         Minigame minigame = Minigames.get(id);
         if (minigame == null) {
-            source.sendError(Text.translatable("commands.mctournament.start.error"));
+            source.sendError(Text.translatable("commands." + MCTournament.MOD_ID + ".start.error"));
             return 0;
         }
 
@@ -53,7 +53,7 @@ public class ModServerCommands {
 
         Tournament.inst().endCurrentMinigame(false);
 
-        source.sendFeedback(() -> Text.translatable("commands.mctournament.start", minigame.getName()), true);
+        source.sendFeedback(() -> Text.translatable("commands." + MCTournament.MOD_ID + ".start", minigame.getName()), true);
         return 1;
     }
 

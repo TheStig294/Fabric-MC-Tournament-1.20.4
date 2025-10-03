@@ -4,17 +4,15 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.scoreboard.Team;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.thestig294.mctournament.minigame.MinigameScoreboard;
+import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.structure.ModStructures;
 import net.thestig294.mctournament.structure.Structure;
-import net.thestig294.mctournament.tournament.Tournament;
-import net.thestig294.mctournament.tournament.TournamentScoreboard;
+import net.thestig294.mctournament.tournament.Teams;
 
 import java.util.List;
-import java.util.function.BiConsumer;
 
 public abstract class KillingRoom {
     private final Structure structure;
@@ -50,12 +48,16 @@ public abstract class KillingRoom {
         return this.structure;
     }
 
-    public TournamentScoreboard tournamentScoreboard() {
-        return Tournament.inst().scoreboard();
+    public TriviaMurderParty minigame() {
+        return Minigames.TRIVIA_MURDER_PARTY;
     }
 
     public MinigameScoreboard scoreboard() {
-        return Tournament.inst().minigame().scoreboard();
+        return this.minigame().scoreboard();
+    }
+
+    public Teams teams() {
+        return this.minigame().teams();
     }
 
     public boolean isOnTrial(PlayerEntity player) {
@@ -63,10 +65,6 @@ public abstract class KillingRoom {
         boolean isDead = this.scoreboard().getBoolean(player, TriviaMurderParty.Objectives.IS_DEAD);
 
         return !isCorrect && !isDead;
-    }
-
-    public void forAllConnectedTeamPlayers(BiConsumer<Team, ServerPlayerEntity> lambda) {
-        this.tournamentScoreboard().forAllConnectedTeamPlayers(lambda);
     }
 
     public void setTeamKillable(Team team) {

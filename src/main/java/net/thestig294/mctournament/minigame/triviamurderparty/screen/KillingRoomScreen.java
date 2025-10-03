@@ -43,7 +43,7 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
         this.timerIndex = timerIndex;
         this.descriptionIndex = 0;
         this.descriptionLengths = room.getDescriptionLengths();
-        this.title = Text.translatable("screen.mctournament.killing_room")
+        this.title = Text.translatable("screen." + TriviaMurderParty.ID + ".killing_room")
                 .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_NUMBER));
         this.description = Text.translatable(this.getDescriptionString())
                 .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION));
@@ -100,7 +100,7 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
         },
         NAME_IN {
             public void begin(KillingRoomScreen screen) {
-                screen.titleWidget.setText("screen.mctournament.killing_room_" + screen.id, ModColors.GREY);
+                screen.titleWidget.setText(screen.getNameString(), ModColors.GREY);
             }
             public void render(KillingRoomScreen screen) {
                 screen.animate(screen.titleWidget::setAlpha, 0.0f, 1.0f);
@@ -205,11 +205,15 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
         });
     }
 
+    private String getNameString() {
+        return "screen." + TriviaMurderParty.ID + ".killing_room_" + this.id;
+    }
+
     private String getDescriptionString() {
-        return "screen.mctournament.killing_room_" + this.id + "_description_" + this.descriptionIndex;
+        return "screen." + TriviaMurderParty.ID + ".killing_room_" + this.id + "_description_" + this.descriptionIndex;
     }
 
     private String getTimerDescriptionString() {
-        return "screen.mctournament.killing_room_" + this.id + "_description_timer_" + this.timerIndex;
+        return "screen." + TriviaMurderParty.ID + ".killing_room_" + this.id + "_description_timer_" + this.timerIndex;
     }
 }

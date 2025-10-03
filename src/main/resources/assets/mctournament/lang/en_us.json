@@ -1,4 +1,10 @@
 {
+  "tournament.mctournament.end_message": "Tournament over! Thanks for playing!",
+
+  "commands.mctournament.clearscreen": "Screen cleared!",
+  "commands.mctournament.start.error": "Minigame does not exist!",
+  "commands.mctournament.start": "Started minigame: %s",
+
   "itemGroup.mctournament" : "MC Tournament",
   "item.mctournament.trophy" : "Trophy",
   "item.mctournament.remote" : "Remote",
@@ -10,21 +16,16 @@
   "minigame.towerfall.name" : "Towerfall",
   "minigame.mario_kart.name" : "Mario Kart",
 
-  "tournament.mctournament.end_message": "Tournament over! Thanks for playing!",
-
   "screen.mctournament.question" : "Question Screen",
   "screen.mctournament.question_welcome" : "WELCOME",
   "widget.mctournament.question_player_your_team" : "Your team",
 
-  "screen.mctournament.killing_room" : "The Killing Room",
+  "screen.trivia_murder_party.killing_room": "The Killing Room",
+  "screen.trivia_murder_party.killing_room_tattoos": "Tattoos",
+  "screen.trivia_murder_party.killing_room_tattoos_description_0": "Build me a new tattoo",
+  "screen.trivia_murder_party.killing_room_tattoos_description_1": "You have 60 seconds...",
+  "screen.trivia_murder_party.killing_room_tattoos_description_timer_0": "Build now!",
+  "screen.trivia_murder_party.killing_room_tattoos_description_timer_1": "Stand next to your favourite!",
 
-  "screen.mctournament.killing_room_tattoos" : "Tattoos",
-  "screen.mctournament.killing_room_tattoos_description_0" : "Build me a new tattoo",
-  "screen.mctournament.killing_room_tattoos_description_1" : "You have 60 seconds...",
-  "screen.mctournament.killing_room_tattoos_description_timer_0" : "Build now!",
-  "screen.mctournament.killing_room_tattoos_description_timer_1" : "Stand next to your favourite!",
-
-  "commands.mctournament.clearscreen": "Screen cleared!",
-  "commands.mctournament.start.error": "Minigame does not exist!",
-  "commands.mctournament.start": "Started minigame: %s"
+  "screen.trivia_murder_party.score": "You're in %s place with a score of: %s"
 }
