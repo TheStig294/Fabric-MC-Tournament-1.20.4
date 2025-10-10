@@ -7,7 +7,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
 import net.thestig294.mctournament.minigame.MinigameScoreboard;
 import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
@@ -31,7 +30,7 @@ public class QuestionScreenHandler {
     private static final Identifier CORRIDOR_STRUCTURE = registerJigsawStartPool(TriviaMurderParty.ID, "corridor");
     private static final BlockPos LIGHTS_OFF_REDSTONE_BLOCK_OFFSET = new BlockPos(-3, -2, -73);
     private static final BlockPos LIGHTS_ON_REDSTONE_BLOCK_OFFSET = new BlockPos(3, -2, -73);
-    private static final Vec3d PLAYER_MOVE_VELOCITY = new Vec3d(0.0, 0.0, -100.0);
+    private static final BlockPos CORRIDOR_TEAM_OFFSET = new BlockPos(10,0,0);
 
     private final TriviaMurderParty minigame;
     private final MinigameScoreboard scoreboard;
@@ -119,14 +118,6 @@ public class QuestionScreenHandler {
 
             this.minigame.startKillingRoom();
         });
-
-        ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_MOVE_PLAYER, serverReceiveInfo -> {
-            ServerPlayerEntity player = serverReceiveInfo.player();
-            if (this.state != State.POST_ANSWERING || player.velocityModified) return;
-            player.requestTeleportOffset(0.0, 1.0, 0.0);
-            player.addVelocity(PLAYER_MOVE_VELOCITY);
-            player.velocityModified = true;
-        });
     }
 
     public void begin(BlockPos pos) {
@@ -144,15 +135,20 @@ public class QuestionScreenHandler {
         ModTimer.remove(false, "QuestionScreenAnsweringTimeUp");
         this.state = State.PRE_ANSWERING;
 
-        BlockPos playerPos = this.corridorStartingPos;
+//        The "Question number" entrypoint for the question screen is only used for asking a new question after all players answered correctly,
+//        we don't want to teleport players back to the spawn point of the corridor, because they're already in it!
+        if (entrypoint != Entrypoint.QUESTION_NUMBER_IN) {
+            this.minigame.teams().forAllConnectedTeamPlayers((team, player) -> {
+                int teamNumber = this.minigame.teams().getTeamNumber(team);
+                BlockPos playerPos = this.corridorStartingPos.add(CORRIDOR_TEAM_OFFSET.multiply(teamNumber));
+                ModUtil.teleportFacing(player, playerPos, Direction.NORTH);
 
-        for (final var player : ModUtil.getPlayers()) {
-            ModUtil.teleportFacing(player, playerPos, Direction.NORTH);
-            ModStructures.jigsawPlace(CORRIDOR_STRUCTURE, player);
-            ModUtil.placeRedstoneBlock(playerPos.add(LIGHTS_ON_REDSTONE_BLOCK_OFFSET));
-            this.playerRedstonePositions.put(player.getNameForScoreboard(), playerPos.add(LIGHTS_OFF_REDSTONE_BLOCK_OFFSET));
-//            Each player is spawned in their own corridor, this is the width of the structure, plus 3 block of space
-            playerPos = playerPos.east(10);
+                if (this.minigame.teams().isTeamCaptain(player)) {
+                    ModStructures.jigsawPlace(CORRIDOR_STRUCTURE, player);
+                    ModUtil.placeRedstoneBlock(playerPos.add(LIGHTS_ON_REDSTONE_BLOCK_OFFSET));
+                    this.playerRedstonePositions.put(player.getNameForScoreboard(), playerPos.add(LIGHTS_OFF_REDSTONE_BLOCK_OFFSET));
+                }
+            });
         }
 
         ModNetworking.broadcast(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN, PacketByteBufs.create()

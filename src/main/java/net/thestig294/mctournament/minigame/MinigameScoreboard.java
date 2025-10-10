@@ -1,6 +1,8 @@
 package net.thestig294.mctournament.minigame;
 
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.network.packet.Packet;
 import net.minecraft.scoreboard.*;
 import net.minecraft.text.Text;
 import net.thestig294.mctournament.MCTournament;
@@ -8,39 +10,65 @@ import net.thestig294.mctournament.tournament.Teams;
 import net.thestig294.mctournament.tournament.Tournament;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public class MinigameScoreboard {
     public static final String MAIN_OBJECTIVE_NAME = "main_score";
 
     private final Minigame minigame;
     private final boolean isClient;
+    private final Set<ScoreboardObjective> trackedObjectives;
     private Scoreboard scoreboard;
-    private final Teams teams;
+    private Teams teams;
 
     public MinigameScoreboard(Minigame minigame, boolean isClient) {
         this.minigame = minigame;
         this.isClient = isClient;
-        this.teams = isClient ? Tournament.inst().clientTeams() : Tournament.inst().teams();
+        this.trackedObjectives = new HashSet<>();
+
+        if (this.isClient) return;
+
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            if (!(this.scoreboard instanceof ServerScoreboard serverScoreboard)) return;
+
+            for (final var objective : this.trackedObjectives) {
+                for (Packet<?> packet : serverScoreboard.createChangePackets(objective)) {
+                    handler.sendPacket(packet);
+                }
+            }
+        });
     }
 
     private boolean initScoreboard() {
-        if (this.scoreboard != null) return false;
+        if (this.scoreboard != null && this.teams != null) return false;
 
         if (this.isClient) {
             if (MCTournament.client().world == null) return true;
             this.scoreboard = Objects.requireNonNull(MCTournament.client().world).getScoreboard();
+            this.teams = Tournament.inst().clientTeams();
         } else {
             this.scoreboard = MCTournament.server().getScoreboard();
+            this.teams = Tournament.inst().teams();
         }
 
-        return false;
+        return this.teams == null;
     }
 
     public void begin() {
         if (this.initScoreboard()) return;
 
         if (!this.isClient) this.clear();
+    }
+
+    private ScoreboardObjective setNetworkedObjective(@Nullable ScoreboardObjective objective) {
+        if (objective != null && !trackedObjectives.contains(objective) && this.scoreboard instanceof ServerScoreboard serverScoreboard) {
+            serverScoreboard.addScoreboardObjective(objective);
+            this.trackedObjectives.add(objective);
+        }
+
+        return objective;
     }
 
     public String getObjectivePrefix() {
@@ -56,7 +84,7 @@ public class MinigameScoreboard {
     public @Nullable ScoreboardObjective getObjective(String name) {
         if (this.initScoreboard()) return null;
 
-        return this.scoreboard.getNullableObjective(this.getObjectivePrefix() + name);
+        return this.setNetworkedObjective(this.scoreboard.getNullableObjective(this.getObjectivePrefix() + name));
     }
 
     public @Nullable ScoreboardObjective getOrCreateObjective(String name) {
@@ -75,12 +103,13 @@ public class MinigameScoreboard {
     public @Nullable ScoreboardObjective addObjective(String name, String displayName) {
         if (this.initScoreboard()) return null;
 
-        return this.scoreboard.addObjective(this.getObjectivePrefix() + name, ScoreboardCriterion.DUMMY,
+        return this.setNetworkedObjective(this.scoreboard.addObjective(this.getObjectivePrefix() + name, ScoreboardCriterion.DUMMY,
                 Text.literal(displayName), ScoreboardCriterion.RenderType.INTEGER,
-                false, null);
+                false, null));
     }
 
     public int getScore(Team team) {
+        if (this.initScoreboard()) return 0;
         PlayerEntity captain = this.teams.getTeamCaptain(team);
         if (captain == null) return 0;
         return this.getScore(captain);
@@ -126,6 +155,7 @@ public class MinigameScoreboard {
 
     @SuppressWarnings("unused")
     public void setScore(Team team, int score) {
+        if (this.initScoreboard()) return;
         PlayerEntity captain = this.teams.getTeamCaptain(team);
         if (captain == null) return;
         this.setScore(captain, score);
@@ -147,6 +177,7 @@ public class MinigameScoreboard {
     }
 
     public void addScore(Team team, int score) {
+        if (this.initScoreboard()) return;
         PlayerEntity captain = this.teams.getTeamCaptain(team);
         if (captain == null) return;
         this.addScore(captain, score);
@@ -188,6 +219,7 @@ public class MinigameScoreboard {
 
     @SuppressWarnings("unused")
     public void clearDisplay(ScoreboardDisplaySlot slot) {
+        if (this.initScoreboard()) return;
         this.scoreboard.setObjectiveSlot(slot, null);
     }
 

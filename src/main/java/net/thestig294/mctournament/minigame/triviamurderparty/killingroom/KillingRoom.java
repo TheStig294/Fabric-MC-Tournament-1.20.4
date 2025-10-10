@@ -60,9 +60,13 @@ public abstract class KillingRoom {
         return this.minigame().teams();
     }
 
-    public boolean isOnTrial(PlayerEntity player) {
-        boolean isCorrect = this.scoreboard().getBoolean(player, TriviaMurderParty.Objectives.IS_CORRECT);
-        boolean isDead = this.scoreboard().getBoolean(player, TriviaMurderParty.Objectives.IS_DEAD);
+    public static boolean isOnTrial(boolean isClient, PlayerEntity player) {
+        TriviaMurderParty minigame = Minigames.TRIVIA_MURDER_PARTY;
+        MinigameScoreboard scoreboard = isClient ? minigame.clientScoreboard() : minigame.scoreboard();
+        if (scoreboard == null) return false;
+
+        boolean isCorrect = scoreboard.getBoolean(player, TriviaMurderParty.Objectives.IS_CORRECT);
+        boolean isDead = scoreboard.getBoolean(player, TriviaMurderParty.Objectives.IS_DEAD);
 
         return !isCorrect && !isDead;
     }

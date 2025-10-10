@@ -30,11 +30,14 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
     private final Text description;
     private final Text timerDescription;
     private final int timerLength;
+    private final boolean onTrial;
+    private final Text onTrialText;
 
     private QuestionText titleWidget;
     private QuestionText descriptionWidget;
     private QuestionTimer timerWidget;
     private QuestionText timerDescriptionWidget;
+    private QuestionText onTrialTextWidget;
 
     public KillingRoomScreen(State startingState, String id, int timerIndex) {
         super(startingState);
@@ -51,6 +54,10 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
                 .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION));
         List<KillingRoom.Timer> timers = this.room.getTimers();
         this.timerLength = timerIndex >= 0 && timerIndex < timers.size() ? timers.get(timerIndex).length() : 0;
+        this.onTrial = KillingRoom.isOnTrial(true, MCTournament.client().player);
+        String translationString = this.onTrial ? "on_trial" : "not_on_trial";
+        this.onTrialText = Text.translatable("screen." + TriviaMurderParty.ID + ".killing_room." + translationString)
+                .styled(style -> style.withFont(TriviaMurderParty.Fonts.QUESTION_ANSWER));
     }
 
     @Override
@@ -65,11 +72,15 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
                 1.0f, TIMER_MOVE_TIME));
         this.timerDescriptionWidget = this.addDrawableChild(new QuestionText(this.hudWidth() / 2, 30, this.timerDescription,
                 20, ModColors.WHITE, this.hudWidth() * 2 / 3, this.textRenderer));
+
+        this.onTrialTextWidget = this.addDrawableChild(new QuestionText(this.width / 2, 15, this.onTrialText,
+                20, this.onTrial ? ModColors.RED : ModColors.GREEN, this.width / 2, this.textRenderer));
     }
 
     @SuppressWarnings("unused")
     public enum State implements AnimatedScreen.State<KillingRoomScreen> {
         TITLE_IN {
+            public void begin(KillingRoomScreen screen) {screen.onTrialTextWidget.setAlpha(1.0f);}
             public void render(KillingRoomScreen screen) {
                 QuestionText title = screen.titleWidget;
                 screen.animate(title::setAlpha, 0.0f, 1.0f);
@@ -78,12 +89,18 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
                 screen.animate(title::setWidth, title.getOriginalWidth() * 2, title.getOriginalWidth());
                 screen.animate(title::setHeight, title.getOriginalHeight() * 2, title.getOriginalHeight());
             }
-            public void refresh(KillingRoomScreen screen) {screen.titleWidget.setAlpha(1.0f);}
+            public void refresh(KillingRoomScreen screen) {
+                screen.titleWidget.setAlpha(1.0f);
+                screen.onTrialTextWidget.setAlpha(1.0f);
+            }
             public float duration(KillingRoomScreen screen) {return 0.5f;}
         },
         TITLE_HOLD {
             public void render(KillingRoomScreen screen) {}
-            public void refresh(KillingRoomScreen screen) {screen.titleWidget.setAlpha(1.0f);}
+            public void refresh(KillingRoomScreen screen) {
+                screen.titleWidget.setAlpha(1.0f);
+                screen.onTrialTextWidget.setAlpha(1.0f);
+            }
             public float duration(KillingRoomScreen screen) {return 1.0f;}
         },
         TITLE_OUT {
@@ -95,7 +112,7 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
                 screen.animate(title::setWidth, title.getOriginalWidth(), title.getOriginalWidth() * 2);
                 screen.animate(title::setHeight, title.getOriginalHeight(), title.getOriginalHeight() * 2);
             }
-            public void refresh(KillingRoomScreen screen) {}
+            public void refresh(KillingRoomScreen screen) {screen.onTrialTextWidget.setAlpha(1.0f);}
             public float duration(KillingRoomScreen screen) {return 1.0f;}
         },
         NAME_IN {
@@ -106,33 +123,48 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
                 screen.animate(screen.titleWidget::setAlpha, 0.0f, 1.0f);
                 screen.animate(screen.titleWidget::setY, 0, screen.titleWidget.getOriginalY());
             }
-            public void refresh(KillingRoomScreen screen) {screen.titleWidget.setAlpha(1.0f);}
+            public void refresh(KillingRoomScreen screen) {
+                screen.titleWidget.setAlpha(1.0f);
+                screen.onTrialTextWidget.setAlpha(1.0f);
+            }
             public float duration(KillingRoomScreen screen) {return 1.0f;}
         },
         NAME_HOLD {
             public void render(KillingRoomScreen screen) {}
-            public void refresh(KillingRoomScreen screen) {screen.titleWidget.setAlpha(1.0f);}
+            public void refresh(KillingRoomScreen screen) {
+                screen.titleWidget.setAlpha(1.0f);
+                screen.onTrialTextWidget.setAlpha(1.0f);
+            }
             public float duration(KillingRoomScreen screen) {return 1.0f;}
         },
         NAME_OUT {
             public void render(KillingRoomScreen screen) {screen.animate(screen.titleWidget::setAlpha, 1.0f, 0.0f);}
-            public void refresh(KillingRoomScreen screen) {}
+            public void refresh(KillingRoomScreen screen) {screen.onTrialTextWidget.setAlpha(1.0f);}
             public float duration(KillingRoomScreen screen) {return 1.0f;}
         },
         DESCRIPTION_IN {
             public void begin(KillingRoomScreen screen) {screen.descriptionWidget.setText(screen.getDescriptionString());}
             public void render(KillingRoomScreen screen) {screen.animate(screen.descriptionWidget::setAlpha, 0.0f, 1.0f);}
-            public void refresh(KillingRoomScreen screen) {screen.descriptionWidget.setAlpha(1.0f);}
+            public void refresh(KillingRoomScreen screen) {
+                screen.descriptionWidget.setAlpha(1.0f);
+                screen.onTrialTextWidget.setAlpha(1.0f);
+            }
             public float duration(KillingRoomScreen screen) {return 1.0f;}
         },
         DESCRIPTION_HOLD {
             public void render(KillingRoomScreen screen) {}
-            public void refresh(KillingRoomScreen screen) {screen.descriptionWidget.setAlpha(1.0f);}
+            public void refresh(KillingRoomScreen screen) {
+                screen.descriptionWidget.setAlpha(1.0f);
+                screen.onTrialTextWidget.setAlpha(1.0f);
+            }
             public float duration(KillingRoomScreen screen) {return screen.descriptionLengths.get(screen.descriptionIndex);}
         },
         DESCRIPTION_OUT {
             public void render(KillingRoomScreen screen) {screen.animate(screen.descriptionWidget::setAlpha, 1.0f, 0.0f);}
-            public void refresh(KillingRoomScreen screen) {screen.descriptionWidget.setAlpha(0.0f);}
+            public void refresh(KillingRoomScreen screen) {
+                screen.descriptionWidget.setAlpha(0.0f);
+                screen.onTrialTextWidget.setAlpha(1.0f);
+            }
             public float duration(KillingRoomScreen screen) {return 1.0f;}
             public State next(KillingRoomScreen screen) {
                 screen.descriptionIndex++;
@@ -158,7 +190,10 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
                 screen.animate(screen.timerDescriptionWidget::setY, -screen.timerDescriptionWidget.getOriginalY(),
                         screen.timerDescriptionWidget.getOriginalY());
             }
-            public void refresh(KillingRoomScreen screen) {screen.timerWidget.setAlpha(1.0f);}
+            public void refresh(KillingRoomScreen screen) {
+                screen.timerWidget.setAlpha(1.0f);
+                screen.onTrialTextWidget.setAlpha(1.0f);
+            }
             public float duration(KillingRoomScreen screen) {return TIMER_MOVE_TIME;}
         },
         TIMER_HOLD {
@@ -167,6 +202,7 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
             public void refresh(KillingRoomScreen screen) {
                 screen.timerWidget.setAlpha(1.0f);
                 screen.timerDescriptionWidget.setAlpha(1.0f);
+                screen.onTrialTextWidget.setAlpha(1.0f);
             }
             public float duration(KillingRoomScreen screen) {return screen.timerLength;}
         },
@@ -183,7 +219,7 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
                 ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.KILLING_ROOM_TIMER_UP, PacketByteBufs.create()
                         .writeInt(screen.timerIndex));
             }
-            public void refresh(KillingRoomScreen screen) {}
+            public void refresh(KillingRoomScreen screen) {screen.onTrialTextWidget.setAlpha(1.0f);}
             public float duration(KillingRoomScreen screen) {return TIMER_MOVE_TIME;}
         }
     }

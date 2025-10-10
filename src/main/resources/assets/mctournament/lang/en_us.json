@@ -21,6 +21,8 @@
   "widget.mctournament.question_player_your_team" : "Your team",
 
   "screen.trivia_murder_party.killing_room": "The Killing Room",
+  "screen.trivia_murder_party.killing_room.on_trial": "You're on trial, you'll die if you fail!",
+  "screen.trivia_murder_party.killing_room.not_on_trial": "You're not on trial, you're safe!",
   "screen.trivia_murder_party.killing_room_tattoos": "Tattoos",
   "screen.trivia_murder_party.killing_room_tattoos_description_0": "Build me a new tattoo",
   "screen.trivia_murder_party.killing_room_tattoos_description_1": "You have 60 seconds...",

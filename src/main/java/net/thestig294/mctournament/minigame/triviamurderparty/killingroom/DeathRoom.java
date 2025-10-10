@@ -1,5 +1,6 @@
 package net.thestig294.mctournament.minigame.triviamurderparty.killingroom;
 
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.thestig294.mctournament.minigame.MinigameScoreboard;
@@ -10,6 +11,7 @@ import net.thestig294.mctournament.structure.Structure;
 import net.thestig294.mctournament.util.ModTimer;
 import net.thestig294.mctournament.util.ModUtil;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -87,14 +89,19 @@ public abstract class DeathRoom {
             this.begin();
         });
 
-        ModTimer.simple(false, this.getDeathDelay(), () -> ModUtil.forAllPlayers(player -> {
-            if (scoreboard.getBoolean(player, TriviaMurderParty.Objectives.IS_KILLABLE)) {
-                scoreboard.setBoolean(player, TriviaMurderParty.Objectives.IS_KILLABLE, false);
-                minigame.setDead(player, true);
-                ModUtil.respawnIfDead(player);
-                minigame.startScoreScreen();
+        ModTimer.simple(false, this.getDeathDelay(), () -> {
+            List<ServerPlayerEntity> players = new ArrayList<>(ModUtil.getPlayers());
+
+            for (final var player : players) {
+                if (scoreboard.getBoolean(player, TriviaMurderParty.Objectives.IS_KILLABLE)) {
+                    scoreboard.setBoolean(player, TriviaMurderParty.Objectives.IS_KILLABLE, false);
+                    minigame.setDead(player, true);
+                    ModUtil.respawnIfDead(player);
+                }
             }
-        }));
+
+            minigame.startScoreScreen();
+        });
     }
 
     public abstract void begin();

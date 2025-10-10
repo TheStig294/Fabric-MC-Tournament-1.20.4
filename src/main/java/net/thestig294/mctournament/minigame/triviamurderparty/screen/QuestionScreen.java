@@ -177,6 +177,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
             public float duration(QuestionScreen screen) {return 1.0f;}
         },
         SCREEN_IN { // Entrypoint for returning from a killing room
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void begin(QuestionScreen screen) {screen.resetBoxWidgets();}
             public void render(QuestionScreen screen) {
                 screen.animate(screen.leftBoxWidget::setX, 0, screen.leftBoxWidget.getOriginalX());
@@ -186,6 +187,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
             public float duration(QuestionScreen screen) {return 1.0f;}
         },
         HUD_IN {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void render(QuestionScreen screen) {
                 screen.playerWidgets.forEach(widget -> {
                     screen.animate(widget::setY, -widget.getOriginalY() - widget.getHeight(), widget.getOriginalY());
@@ -207,22 +209,26 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
             public float duration(QuestionScreen screen) {return 1.0f;}
         },
         QUESTION_NUMBER_IN { // Entrypoint for a new question after all players answered correctly
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void begin(QuestionScreen screen) {screen.questionNumberWidget.setInt(screen.questionNumber);}
             public void render(QuestionScreen screen) {screen.animate(screen.questionNumberWidget::setAlpha, 0.0f, 1.0f);}
             public void refresh(QuestionScreen screen) {HUD_IN.refresh(screen);}
             public float duration(QuestionScreen screen) {return 1.0f;}
         },
         QUESTION_NUMBER_HOLD {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void render(QuestionScreen screen) {}
             public void refresh(QuestionScreen screen) {HUD_IN.refresh(screen);}
             public float duration(QuestionScreen screen) {return 1.0f;}
         },
         QUESTION_NUMBER_OUT {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void render(QuestionScreen screen) {screen.animate(screen.questionNumberWidget::setAlpha, 1.0f, 0.0f);}
             public void refresh(QuestionScreen screen) {HUD_IN.refresh(screen);}
             public float duration(QuestionScreen screen) {return 1.0f;}
         },
         QUESTION_IN {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void begin(QuestionScreen screen) {screen.questionWidget.setPosition(screen.width / 2, screen.height);}
             public void render(QuestionScreen screen) {
                 screen.animate(screen.questionWidget::setY, screen.height, screen.questionWidget.getOriginalY());
@@ -232,16 +238,19 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
             public float duration(QuestionScreen screen) {return 1.0f;}
         },
         QUESTION_HOLD {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void render(QuestionScreen screen) {}
             public void refresh(QuestionScreen screen) {QUESTION_IN.refresh(screen);}
             public float duration(QuestionScreen screen) {return screen.question.holdTime();}
         },
         QUESTION_OUT {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void render(QuestionScreen screen) {screen.animate(screen.questionWidget::setX, screen.width / 2, screen.questionWidget.getOriginalX());}
             public void refresh(QuestionScreen screen) {QUESTION_IN.refresh(screen);}
             public float duration(QuestionScreen screen) {return 1.0f;}
         },
         TIMER_IN {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void render(QuestionScreen screen) {
                 screen.answerWidgets.forEach(widget -> {
                     screen.animate(widget::setX, screen.width + widget.getWidth(), widget.getOriginalX());
@@ -260,12 +269,16 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
             public float duration(QuestionScreen screen) {return TIMER_MOVE_TIME;}
         },
         ANSWERING {
-            public void begin(QuestionScreen screen) {ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERING_BEGIN);}
+            public void begin(QuestionScreen screen) {
+                ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_ANSWERING_BEGIN);
+                screen.timerWidget.reset(0.0f, screen.answeringTimeSeconds);
+            }
             public void render(QuestionScreen screen) {screen.timerTicksLeft = screen.timerWidget.getTicksLeft();}
             public void refresh(QuestionScreen screen) {TIMER_IN.refresh(screen);}
             public float duration(QuestionScreen screen) {return screen.answeringTimeSeconds;}
         },
         TIMER_OUT {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void begin(QuestionScreen screen) {
                 screen.lockButtons();
                 screen.resetAnsweredPlayers();
@@ -285,11 +298,13 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
             public float duration(QuestionScreen screen) {return TIMER_MOVE_TIME;}
         },
         ANSWER_PRE_QUIP {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void render(QuestionScreen screen) {}
             public void refresh(QuestionScreen screen) {TIMER_OUT.refresh(screen);}
             public float duration(QuestionScreen screen) {return screen.getQuip(QuipType.PRE_ANSWER);}
         },
         ANSWER_IN {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void render(QuestionScreen screen) {
                 screen.answerWidgets.forEach(widget -> {
                     if (widget.isCorrect()) {
@@ -310,17 +325,20 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
             public float duration(QuestionScreen screen) {return 0.2f;}
         },
         ANSWER_HOLD {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void render(QuestionScreen screen) {}
             public void refresh(QuestionScreen screen) {ANSWER_IN.refresh(screen);}
             public float duration(QuestionScreen screen) {return 3.0f;}
         },
         ANSWER_POST_QUIP {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void render(QuestionScreen screen) {}
             public void refresh(QuestionScreen screen) {ANSWER_IN.refresh(screen);}
             public float duration(QuestionScreen screen) {return screen.getQuip(QuipType.POST_ANSWER);}
             public State next(QuestionScreen screen) {return screen.allPlayersIncorrect() ? REVEAL_INCORRECT : REVEAL_CORRECT;}
         },
         REVEAL_CORRECT {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void begin(QuestionScreen screen) {
                 screen.playerWidgets.forEach(widget -> {
                     if (!screen.isPlayerCorrect(widget)) return;
@@ -361,6 +379,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
             public float duration(QuestionScreen screen) {return 0.5f;}
         },
         REVEAL_CORRECT_POINTS {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void render(QuestionScreen screen) {
                 screen.playerWidgets.forEach(widget -> {
                     if (!screen.isPlayerCorrect(widget)) return;
@@ -386,6 +405,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
             public State next(QuestionScreen screen) {return screen.allPlayersCorrect() ? ALL_CORRECT_LOOP_BACK : REVEAL_INCORRECT;}
         },
         REVEAL_INCORRECT {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void render(QuestionScreen screen) {
                 screen.playerWidgets.forEach(widget -> {
                     if (!screen.isPlayerCorrect(widget)) return;
@@ -407,6 +427,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
             public float duration(QuestionScreen screen) {return 0.5f;}
         },
         REVEAL_INCORRECT_CROSSES {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void begin(QuestionScreen screen) {screen.playerWidgets.forEach(widget -> widget.setAnswerState(QuestionPlayer.AnswerState.INCORRECT));}
             public void render(QuestionScreen screen) {
                 screen.playerWidgets.forEach(widget -> {
@@ -437,13 +458,14 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
             public float duration(QuestionScreen screen) {return 0.5f;}
         },
         INCORRECT_QUIP {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void render(QuestionScreen screen) {}
             public void refresh(QuestionScreen screen) {REVEAL_INCORRECT_CROSSES.refresh(screen);}
             public float duration(QuestionScreen screen) {return screen.getQuip(QuipType.INCORRECT);}
             public State next(QuestionScreen screen) {return ModUtil.random(true).nextBoolean() ? KILLING_ROOM_TRANSITION_MOVE : KILLING_ROOM_TRANSITION_LIGHTS;}
         },
         KILLING_ROOM_TRANSITION_MOVE {
-            public void begin(QuestionScreen screen) {ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_MOVE_PLAYER);}
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void render(QuestionScreen screen) {
                 screen.children().forEach(child -> {
                     if (child instanceof QuestionBox widget) {
@@ -462,6 +484,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
             public State next(QuestionScreen screen) {return KILLING_ROOM_TRANSITION_HOLD;}
         },
         KILLING_ROOM_TRANSITION_LIGHTS {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void begin(QuestionScreen screen) {ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_TRIGGER_LIGHTS_OFF);}
             public void render(QuestionScreen screen) {
                 screen.children().forEach(child -> {
@@ -474,6 +497,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
             public float duration(QuestionScreen screen) {return 1.0f;}
         },
         KILLING_ROOM_TRANSITION_HOLD {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void render(QuestionScreen screen) {}
             public void end(QuestionScreen screen) {ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN_START_KILLING_ROOM);}
             public void refresh(QuestionScreen screen) {KILLING_ROOM_TRANSITION_MOVE.refresh(screen);}
@@ -481,6 +505,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
             public State next(QuestionScreen screen) {return null;}
         },
         ALL_CORRECT_LOOP_BACK {
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void render(QuestionScreen screen) {
                 screen.animate(screen.questionWidget::setX, screen.questionWidget.getOriginalX(), -screen.questionWidget.getWidth());
                 for (final var widget : screen.answerWidgets) {
@@ -504,7 +529,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
             public float duration(QuestionScreen screen) {return 1.0f;}
         },
         ALL_CORRECT_LOOP_BACK_HOLD {
-            public void begin(QuestionScreen screen) {ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_MOVE_PLAYER);}
+            public boolean isHudState(QuestionScreen screen) {return true;}
             public void render(QuestionScreen screen) {}
             public void end(QuestionScreen screen) {ModNetworking.sendToServer(TriviaMurderParty.NetworkIDs.QUESTION_ALL_CORRECT_LOOP_BACK);}
             public void refresh(QuestionScreen screen) {ALL_CORRECT_LOOP_BACK.refresh(screen);}

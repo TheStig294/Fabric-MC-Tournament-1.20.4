@@ -6,7 +6,6 @@ import net.minecraft.scoreboard.Team;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.structure.ModStructures;
@@ -104,31 +103,34 @@ public class ScoreScreenHandler {
         ModStructures.place(SCORE_ROOM, this.position);
         this.minigame.scoreboard().setDisplay(ScoreboardDisplaySlot.BELOW_NAME);
 
-        SortedMap<Integer, PlayerEntity> teamPositions = new TreeMap<>();
+        PriorityQueue<PlayerScore> captainScoreQueue = new PriorityQueue<>(Comparator.comparingInt(playerPos -> -playerPos.score));
 
         ModUtil.forAllPlayers(player -> {
             if (this.teams.isTeamCaptain(player)) {
                 Team team = player.getScoreboardTeam();
-                if (team != null) teamPositions.put(this.minigame.scoreboard().getScore(team), player);
+                if (team != null) captainScoreQueue.add(new PlayerScore(this.minigame.scoreboard().getScore(team), player));
             } else {
                 ModUtil.teleportFacing(player, this.position, Direction.NORTH);
             }
         });
 
-        var teamPositionList = teamPositions.entrySet().stream().toList();
+        int position = 1;
 
-        for (int i = 0; i < teamPositionList.size(); i++) {
-            var entry = teamPositionList.get(i);
-            int score = entry.getKey();
-            PlayerEntity captain = entry.getValue();
+        while (!captainScoreQueue.isEmpty()) {
+            if (position > 8) break;
+
+            PlayerScore captainScore = captainScoreQueue.poll();
+            PlayerEntity captain = captainScore.player;
+            int score = captainScore.score;
+
             Team team = captain.getScoreboardTeam();
-            int position = i + 1;
             if (team == null) continue;
 
             this.teams.sendChatMessage(team,
-                    Text.translatable("screen." + MCTournament.MOD_ID + ".score", ModUtil.getPositionString(position), score));
+                    Text.translatable("screen." + TriviaMurderParty.ID + ".score", ModUtil.getPositionString(position), score));
 
-            ModUtil.teleportFacing(captain, this.position.add(CAPTAIN_POSITIONS.get(i)), Direction.SOUTH);
+            ModUtil.teleportFacing(captain, this.position.add(CAPTAIN_POSITIONS.get(position - 1)), Direction.SOUTH);
+            position++;
         }
 
         Team finalRoundAliveTeam = this.getFinalRoundAliveTeam();
@@ -143,4 +145,6 @@ public class ScoreScreenHandler {
             }
         });
     }
+
+    private record PlayerScore(Integer score, PlayerEntity player) {}
 }

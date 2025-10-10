@@ -49,7 +49,7 @@ public class Tattoos extends KillingRoom {
     @Override
     public void begin() {
         this.teams().forAllConnectedTeamPlayers((team, player) -> {
-            GameMode gamemode = this.isOnTrial(player) ? GameMode.CREATIVE : GameMode.SPECTATOR;
+            GameMode gamemode = isOnTrial(false, player) ? GameMode.CREATIVE : GameMode.SPECTATOR;
             ModUtil.setGamemode(player, gamemode);
             int teamNumber = this.teams().getTeamNumber(team);
             ModUtil.teleportFacing(player, this.getPosition().add(BUILD_ROOM_STARTS.get(teamNumber)), Direction.NORTH);
@@ -78,10 +78,11 @@ public class Tattoos extends KillingRoom {
         ModUtil.broadcastChatMessage("= Votes =");
         int minVotes = ModUtil.getPlayers().size() + 1;
         List<Team> killableTeams = new ArrayList<>();
+        Set<Team> chatMessageTeams = new HashSet<>();
 
         for (final var player : ModUtil.getPlayers()) {
             Team team = player.getScoreboardTeam();
-            if (!this.isOnTrial(player) || team == null) continue;
+            if (!isOnTrial(false, player) || team == null) continue;
 
             int teamNumber = this.teams().getTeamNumber(team);
 
@@ -98,7 +99,10 @@ public class Tattoos extends KillingRoom {
                 killableTeams.add(team);
             }
 
-            ModUtil.broadcastChatMessage(this.teams().getTeamName(team) + ": " + playerCount);
+            if (!chatMessageTeams.contains(team)) {
+                ModUtil.broadcastChatMessage(this.teams().getTeamName(team) + ": " + playerCount);
+                chatMessageTeams.add(team);
+            }
         }
 
 //        If teams tie votes, a random team is killed instead
