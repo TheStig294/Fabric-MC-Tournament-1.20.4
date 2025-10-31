@@ -21,7 +21,7 @@ public class TriviaMurderParty extends Minigame {
     public static final String ID = "trivia_murder_party";
     private static final int KILLING_ROOM_OFFSET = 20;
     private static final int DEATH_ROOM_OFFSET = 20;
-    private static final int SCORE_ROOM_OFFSET = 20;
+    private static final int SCORE_ROOM_OFFSET = 30;
 
     private QuestionScreenHandler questionScreenHandler;
     private KillingRoomScreenHandler killingRoomScreenHandler;
@@ -60,7 +60,7 @@ public class TriviaMurderParty extends Minigame {
         BlockPos killingRoomPos = this.getPosition().west(KILLING_ROOM_OFFSET);
 
         this.killingRoomScreenHandler.begin(killingRoomPos, killingRoomPos.north(DEATH_ROOM_OFFSET));
-        this.scoreScreenHandler.begin(killingRoomPos.south(SCORE_ROOM_OFFSET));
+        this.scoreScreenHandler.begin(this.getPosition().south(SCORE_ROOM_OFFSET));
     }
 
     @Override

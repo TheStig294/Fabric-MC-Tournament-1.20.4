@@ -1,9 +1,11 @@
 package net.thestig294.mctournament.util;
 
+import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -131,6 +133,15 @@ public class ModUtil {
 
     public static void placeRedstoneBlock(BlockPos pos) {
         runConsoleCommand("/setblock %d %d %d minecraft:redstone_block", pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    public static void placeAirBlock(BlockPos pos) {
+        runConsoleCommand("/setblock %d %d %d minecraft:air", pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    @SuppressWarnings("unused")
+    public static void placeBlock(BlockPos pos, Block block) {
+        runConsoleCommand("/setblock %d %d %d " + Registries.BLOCK.getId(block), pos.getX(), pos.getY(), pos.getZ());
     }
 
     public static int directionToYaw(Direction direction) {

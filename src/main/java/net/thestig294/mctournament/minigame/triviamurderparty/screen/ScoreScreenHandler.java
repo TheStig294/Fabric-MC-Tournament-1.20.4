@@ -21,31 +21,45 @@ import static net.thestig294.mctournament.structure.ModStructures.registerStruct
 
 public class ScoreScreenHandler {
     private static final Structure SCORE_ROOM = registerStructure(TriviaMurderParty.ID, "score_room",
-            0,0,0);
+            6,1,15);
+
+    private static final BlockPos REDSTONE_OFFSET = new BlockPos(1,1,-12);
+
+    private static final List<BlockPos> ELEVATOR_LIGHT_REDSTONE_OFFSETS = List.of(
+            new BlockPos(7,0,-6), // 0
+            new BlockPos(7,1,-6), // 1
+            new BlockPos(7,2,-6), // 2
+            new BlockPos(7,3,-6), // 3
+            new BlockPos(7,4,-6), // 4
+            new BlockPos(7,5,-6) // 5
+    );
 
     private static final List<BlockPos> CAPTAIN_POSITIONS = List.of(
-            new BlockPos(0,0,0), // 0
-            new BlockPos(0,0,0), // 1
-            new BlockPos(0,0,0), // 2
-            new BlockPos(0,0,0), // 3
-            new BlockPos(0,0,0), // 4
-            new BlockPos(0,0,0), // 5
-            new BlockPos(0,0,0), // 6
-            new BlockPos(0,0,0)  // 7
+            new BlockPos(-3,4,-8), // 0
+            new BlockPos(2,3,-8), // 1
+            new BlockPos(1,2,-8), // 2
+            new BlockPos(0,1,-8), // 3
+            new BlockPos(-1,1,-8), // 4
+            new BlockPos(-2,1,-8), // 5
+            new BlockPos(-3,1,-8), // 6
+            new BlockPos(-4,1,-8)  // 7
     );
 
     private final TriviaMurderParty minigame;
     private BlockPos position;
     private Teams teams;
+    private int timesInScoreRoom;
 
     public ScoreScreenHandler() {
         this.minigame = Minigames.TRIVIA_MURDER_PARTY;
         this.position = BlockPos.ORIGIN;
+        this.timesInScoreRoom = 0;
     }
 
     public void begin(BlockPos roomPos) {
         this.position = roomPos;
         this.teams = this.minigame.teams();
+        this.timesInScoreRoom = 0;
     }
 
     @SuppressWarnings("unused")
@@ -101,6 +115,16 @@ public class ScoreScreenHandler {
 
     public void broadcastNextScoreScreen() {
         ModStructures.place(SCORE_ROOM, this.position);
+
+        this.timesInScoreRoom++;
+        for (int i = 0; i < Math.min(this.timesInScoreRoom, ELEVATOR_LIGHT_REDSTONE_OFFSETS.size()); i++) {
+            ModUtil.placeRedstoneBlock(this.position.add(ELEVATOR_LIGHT_REDSTONE_OFFSETS.get(i)));
+        }
+
+//        Used for triggering the redstone timer for the redstone lamps in the build
+        ModUtil.placeRedstoneBlock(this.position.add(REDSTONE_OFFSET));
+        ModTimer.simple(false, 0.1f, () -> ModUtil.placeAirBlock(this.position.add(REDSTONE_OFFSET)));
+
         this.minigame.scoreboard().setDisplay(ScoreboardDisplaySlot.BELOW_NAME);
 
         PriorityQueue<PlayerScore> captainScoreQueue = new PriorityQueue<>(Comparator.comparingInt(playerPos -> -playerPos.score));
