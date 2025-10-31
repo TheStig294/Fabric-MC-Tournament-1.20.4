@@ -30,6 +30,8 @@ public class ModNetworking {
 
     public static final Identifier COMMAND_CLEAR_SCREEN = registerNetworkID("command_clear_screen");
 
+    public static final Identifier REQUEST_RESPAWN = registerNetworkID("request_respawn");
+
 
     public static Identifier registerNetworkID(String name) {
         return new Identifier(MCTournament.MOD_ID, name);

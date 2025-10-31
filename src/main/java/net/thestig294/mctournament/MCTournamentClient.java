@@ -6,12 +6,15 @@ import net.thestig294.mctournament.command.ModClientCommands;
 import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.tournament.Tournament;
 import net.thestig294.mctournament.util.ModTimer;
+import net.thestig294.mctournament.util.ModUtilClient;
 
 public class MCTournamentClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         MCTournament.LOGGER.info("=====Hello Client World!=====");
         MCTournament.setClient(MinecraftClient.getInstance());
+
+        ModUtilClient.init();
 
         Minigames.registerMinigames(true);
         Tournament.inst().clientInit();

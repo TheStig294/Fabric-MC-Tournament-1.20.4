@@ -15,6 +15,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.GameMode;
 import net.thestig294.mctournament.MCTournament;
+import net.thestig294.mctournament.network.ModNetworking;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -215,7 +216,7 @@ public class ModUtil {
 
     public static void respawnIfDead(ServerPlayerEntity player) {
         if (player.isAlive()) return;
-        MCTournament.server().getPlayerManager().respawnPlayer(player, false);
+        ModNetworking.send(ModNetworking.REQUEST_RESPAWN, player);
     }
 
     public static Random random(boolean isClient) {

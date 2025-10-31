@@ -95,13 +95,13 @@ public abstract class DeathRoom {
             for (final var player : players) {
                 if (scoreboard.getBoolean(player, TriviaMurderParty.Objectives.IS_KILLABLE)) {
                     scoreboard.setBoolean(player, TriviaMurderParty.Objectives.IS_KILLABLE, false);
-                    minigame.setDead(player, true);
+                    this.minigame.setDead(player, true);
                     ModUtil.respawnIfDead(player);
                 }
             }
-
-            minigame.startScoreScreen();
         });
+
+        ModTimer.simple(false, this.getDeathDelay() + 0.1f, this.minigame::startScoreScreen);
     }
 
     public abstract void begin();

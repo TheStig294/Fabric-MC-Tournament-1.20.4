@@ -62,9 +62,16 @@ public class MinigameScoreboard {
         if (!this.isClient) this.clear();
     }
 
-    private ScoreboardObjective setNetworkedObjective(@Nullable ScoreboardObjective objective) {
-        if (objective != null && !trackedObjectives.contains(objective) && this.scoreboard instanceof ServerScoreboard serverScoreboard) {
-            serverScoreboard.addScoreboardObjective(objective);
+    private @Nullable ScoreboardObjective setNetworkedObjective(@Nullable ScoreboardObjective objective) {
+        if (objective == null) return null;
+
+        if (!trackedObjectives.contains(objective) && this.scoreboard instanceof ServerScoreboard serverScoreboard) {
+            if (serverScoreboard.getNullableObjective(objective.getName()) == null) {
+                serverScoreboard.addScoreboardObjective(objective);
+            } else {
+                serverScoreboard.updateExistingObjective(objective);
+            }
+
             this.trackedObjectives.add(objective);
         }
 

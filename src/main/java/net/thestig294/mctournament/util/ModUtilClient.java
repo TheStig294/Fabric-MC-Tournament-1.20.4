@@ -3,6 +3,7 @@ package net.thestig294.mctournament.util;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
@@ -10,6 +11,7 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.random.Random;
 import net.thestig294.mctournament.MCTournament;
+import net.thestig294.mctournament.network.ModNetworking;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -21,6 +23,15 @@ import java.util.Map;
 public class ModUtilClient {
     private static final Map<String, PlayerEntity> CACHED_PLAYERS = new HashMap<>();
     private static final Random SHARED_RANDOM = Random.create();
+
+    public static void init() {
+        ModNetworking.clientReceive(ModNetworking.REQUEST_RESPAWN, clientReceiveInfo -> {
+            ClientPlayerEntity client = MCTournament.client().player;
+            if (client == null) return;
+            client.requestRespawn();
+            MCTournament.client().setScreen(null);
+        });
+    }
 
     /**
      * A cached copy of a player's entity from their name, this is safe to use in rapidly repeated calls like tick hooks!
