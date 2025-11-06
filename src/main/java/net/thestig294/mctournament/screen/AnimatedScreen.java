@@ -23,12 +23,6 @@ import java.util.function.IntConsumer;
 
 
 @Environment(EnvType.CLIENT)
-// Behold, the "Curiously Recurring Template Pattern"
-// https://medium.com/@AbhineyKumar/why-use-the-curiously-recurring-template-pattern-crtp-in-java-a9a192022849
-// This is all basically to allow for the screens implementing this class
-// to have access to themselves inside their State enums, e.g.
-// public void render(ExampleScreen screen) {
-// (As a bonus, it also allows for typecast-checking at compile time, rather than at runtime!)
 public abstract class AnimatedScreen<
         T extends AnimatedScreen<T, E>,
         E extends Enum<E> & AnimatedScreen.State<T>>
@@ -85,9 +79,6 @@ public abstract class AnimatedScreen<
      */
     protected abstract void createWidgets();
 
-//    Suppress the warning we're not type checking at runtime, because we're doing it at compile time instead!
-//    (The power of CRTP...)
-    @SuppressWarnings("unchecked")
     private T toChild() {
         return (T) this;
     }
@@ -135,7 +126,6 @@ public abstract class AnimatedScreen<
         if (this.state == null || !this.isHudState()) super.renderBackground(context, mouseX, mouseY, delta);
     }
 
-    @SuppressWarnings("unchecked")
     private @Nullable E getNextState() {
         return this.state == null ? null : (E) this.state.next(this.toChild());
     }
@@ -313,7 +303,6 @@ public abstract class AnimatedScreen<
          * @param screen Instance of your screen during this state
          * @return The screen state after this one
          */
-        @SuppressWarnings("unchecked")
         default State<T> next(T screen) {
             Enum<?> child = (Enum<?>) this;
             Enum<?>[] values = child.getDeclaringClass().getEnumConstants();

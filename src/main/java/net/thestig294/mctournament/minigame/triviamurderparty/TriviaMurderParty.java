@@ -108,7 +108,7 @@ public class TriviaMurderParty extends Minigame {
     }
 
     public void setDead(ServerPlayerEntity player, boolean isDead) {
-        ModUtil.setInvisible(player, isDead);
+        ModUtil.setTransparent(false, player, isDead);
         this.scoreboard().setBoolean(player, Objectives.IS_DEAD, isDead);
     }
 

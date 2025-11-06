@@ -7,6 +7,7 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.random.Random;
@@ -14,15 +15,13 @@ import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.network.ModNetworking;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Environment(EnvType.CLIENT)
 public class ModUtilClient {
     private static final Map<String, PlayerEntity> CACHED_PLAYERS = new HashMap<>();
     private static final Random SHARED_RANDOM = Random.create();
+    public static final Set<String> TRANSPARENT_PLAYERS = new HashSet<>();
 
     public static void init() {
         ModNetworking.clientReceive(ModNetworking.REQUEST_RESPAWN, clientReceiveInfo -> {
@@ -30,6 +29,13 @@ public class ModUtilClient {
             if (client == null) return;
             client.requestRespawn();
             MCTournament.client().setScreen(null);
+        });
+
+        ModNetworking.clientReceive(ModNetworking.SET_TRANSPARENT, clientReceiveInfo -> {
+            PacketByteBuf buffer = clientReceiveInfo.buffer();
+            String player = buffer.readString();
+            boolean isTransparent = buffer.readBoolean();
+            setTransparent(player, isTransparent);
         });
     }
 
@@ -81,5 +87,13 @@ public class ModUtilClient {
 
     public static Random random() {
         return SHARED_RANDOM;
+    }
+
+    public static void setTransparent(String playerName, boolean isTransparent) {
+        if (isTransparent) {
+            TRANSPARENT_PLAYERS.add(playerName);
+        } else {
+            TRANSPARENT_PLAYERS.remove(playerName);
+        }
     }
 }

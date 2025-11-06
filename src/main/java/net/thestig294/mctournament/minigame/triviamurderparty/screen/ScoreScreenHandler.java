@@ -36,13 +36,13 @@ public class ScoreScreenHandler {
 
     private static final List<BlockPos> CAPTAIN_POSITIONS = List.of(
             new BlockPos(-3,4,-8), // 0
-            new BlockPos(2,3,-8), // 1
-            new BlockPos(1,2,-8), // 2
+            new BlockPos(-2,3,-8), // 1
+            new BlockPos(-1,2,-8), // 2
             new BlockPos(0,1,-8), // 3
-            new BlockPos(-1,1,-8), // 4
-            new BlockPos(-2,1,-8), // 5
-            new BlockPos(-3,1,-8), // 6
-            new BlockPos(-4,1,-8)  // 7
+            new BlockPos(1,1,-8), // 4
+            new BlockPos(2,1,-8), // 5
+            new BlockPos(3,1,-8), // 6
+            new BlockPos(4,1,-8)  // 7
     );
 
     private final TriviaMurderParty minigame;

@@ -31,6 +31,7 @@ public class ModNetworking {
     public static final Identifier COMMAND_CLEAR_SCREEN = registerNetworkID("command_clear_screen");
 
     public static final Identifier REQUEST_RESPAWN = registerNetworkID("request_respawn");
+    public static final Identifier SET_TRANSPARENT = registerNetworkID("set_transparent");
 
 
     public static Identifier registerNetworkID(String name) {

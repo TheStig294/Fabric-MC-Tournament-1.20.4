@@ -1,6 +1,5 @@
 package net.thestig294.mctournament.minigame.triviamurderparty.screen;
 
-import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -40,11 +39,7 @@ public class KillingRoomScreenHandler {
             if (this.killingRoom != null) {
                 this.minigame.teams().setGlobalShowFriendlyInvisibles(true);
 
-                ModUtil.forAllPlayers(player -> {
-                    if (!this.minigame.scoreboard().getBoolean(player, TriviaMurderParty.Objectives.IS_DEAD)) {
-                        ModUtil.setInvisible(player, false);
-                    }
-                });
+                ModUtil.forAllPlayers(player -> ModUtil.setInvisible(player, false));
 
                 this.timerIndex++;
                 this.killingRoom.setPosition(this.killingRoomPos);
@@ -71,12 +66,6 @@ public class KillingRoomScreenHandler {
                         this.startDeathRoom();
                     }
                 });
-            }
-        });
-
-        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, player, alive) -> {
-            if (this.minigame.scoreboard().getBoolean(player, TriviaMurderParty.Objectives.IS_DEAD)) {
-                ModUtil.setInvisible(player, true);
             }
         });
     }

@@ -25,7 +25,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class Teams {
-    private static final int MAX_TEAMS = 8;
+    private static final int MAX_TEAMS = 2;
     private static final String TEAM_NAME_PREFIX = MCTournament.MOD_ID + '_';
     private static final String OBJECTIVE_NAME = MCTournament.MOD_ID + "_tournament_score";
     public static final int NULL_TEAM_NUMBER = -1;
@@ -189,6 +189,7 @@ public class Teams {
         }
     }
 
+    @SuppressWarnings("unused")
     public @Nullable Scoreboard getScoreboard() {
         return this.scoreboard;
     }

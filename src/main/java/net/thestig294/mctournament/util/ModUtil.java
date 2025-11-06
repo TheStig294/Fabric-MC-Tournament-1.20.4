@@ -1,5 +1,6 @@
 package net.thestig294.mctournament.util;
 
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -242,5 +243,18 @@ public class ModUtil {
                 default -> "th";
             };
         };
+    }
+
+    public static void setTransparent(boolean isClient, PlayerEntity player, boolean isTransparent) {
+        String playerName = player.getNameForScoreboard();
+
+        if (isClient) {
+            ModUtilClient.setTransparent(playerName, isTransparent);
+        } else {
+            ModNetworking.broadcast(ModNetworking.SET_TRANSPARENT, PacketByteBufs.create()
+                    .writeString(playerName)
+                    .writeBoolean(isTransparent)
+            );
+        }
     }
 }
