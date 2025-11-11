@@ -182,6 +182,11 @@ public class QuestionPlayer extends ClickableWidget implements QuestionWidget {
         return this.alpha;
     }
 
+    @Override
+    public void setAlpha(float alpha) {
+        super.setAlpha(alpha);
+    }
+
     public enum AnswerState {
         UNANSWERED,
         ANSWERED,

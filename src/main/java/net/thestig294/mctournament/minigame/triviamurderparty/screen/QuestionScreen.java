@@ -49,7 +49,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
     private final List<QuestionText> roomCodeWidgets;
 
     public QuestionScreen(Question question, int questionNumber, int answeringTimeSeconds, State startingState) {
-        super(startingState);
+        super(startingState, QuestionScreen.class, State.class);
         this.question = question;
         this.questionNumber = questionNumber;
         this.answeringTimeSeconds = answeringTimeSeconds;

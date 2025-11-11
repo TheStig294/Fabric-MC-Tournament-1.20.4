@@ -144,6 +144,11 @@ public class QuestionText extends MultilineTextWidget implements QuestionWidget 
         return this.alpha;
     }
 
+    @Override
+    public void setAlpha(float alpha) {
+        super.setAlpha(alpha);
+    }
+
     @Environment(EnvType.CLIENT)
     record CacheKey(Text message, int maxWidth, OptionalInt maxRows) {
     }

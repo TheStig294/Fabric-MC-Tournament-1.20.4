@@ -40,7 +40,7 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
     private QuestionText onTrialTextWidget;
 
     public KillingRoomScreen(State startingState, String id, int timerIndex) {
-        super(startingState);
+        super(startingState, KillingRoomScreen.class, State.class);
         this.id = id;
         this.room = KillingRooms.getKillingRoom(id);
         this.timerIndex = timerIndex;

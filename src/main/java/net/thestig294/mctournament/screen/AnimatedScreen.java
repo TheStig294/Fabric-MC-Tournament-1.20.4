@@ -33,6 +33,8 @@ public abstract class AnimatedScreen<
     public static AnimatedScreen<?,?> ACTIVE_HUD_SCREEN = null;
 
     private final Screen parent;
+    private final Class<T> childClass;
+    private final Class<E> stateClass;
 
     @Nullable
     private E state;
@@ -46,9 +48,11 @@ public abstract class AnimatedScreen<
     private boolean wasHudState;
     private boolean renderHudTick;
 
-    public AnimatedScreen(@Nullable E startingState) {
+    public AnimatedScreen(@Nullable E startingState, Class<T> childClass, Class<E> stateClass) {
         super(Text.empty());
         this.parent = MCTournament.client().currentScreen;
+        this.childClass = childClass;
+        this.stateClass = stateClass;
 
         this.state = startingState;
         this.uptimeSecs = 0.0f;
@@ -80,7 +84,7 @@ public abstract class AnimatedScreen<
     protected abstract void createWidgets();
 
     private T toChild() {
-        return (T) this;
+        return this.childClass.cast(this);
     }
 
     @Override
@@ -127,7 +131,7 @@ public abstract class AnimatedScreen<
     }
 
     private @Nullable E getNextState() {
-        return this.state == null ? null : (E) this.state.next(this.toChild());
+        return this.state == null ? null : this.stateClass.cast(this.state.next(this.toChild()));
     }
 
     private void switchToNextState() {
@@ -255,6 +259,10 @@ public abstract class AnimatedScreen<
         return MCTournament.client().getWindow().getScaledHeight();
     }
 
+    public Class<E> getStateClass() {
+        return this.stateClass;
+    }
+
     public interface State<T extends AnimatedScreen<T, ? extends State<T>>> {
         /**
          * Whether this state should be rendered on the HUD and allow for players to interact with the world and move
@@ -307,7 +315,7 @@ public abstract class AnimatedScreen<
             Enum<?> child = (Enum<?>) this;
             Enum<?>[] values = child.getDeclaringClass().getEnumConstants();
             int nextOrdinal = child.ordinal() + 1;
-            return nextOrdinal >= values.length ? null : (State<T>) values[nextOrdinal];
+            return nextOrdinal >= values.length ? null : screen.getStateClass().cast(values[nextOrdinal]);
         }
     }
 }

@@ -108,4 +108,9 @@ public class QuestionTimer extends ClickableWidget implements QuestionWidget {
     public float getAlpha() {
         return this.alpha;
     }
+
+    @Override
+    public void setAlpha(float alpha) {
+        super.setAlpha(alpha);
+    }
 }
