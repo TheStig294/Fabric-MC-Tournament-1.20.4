@@ -46,7 +46,6 @@ public abstract class AnimatedScreen<
     private boolean firstStateTick;
     private boolean firstState;
     private boolean wasHudState;
-    private boolean renderHudTick;
 
     public AnimatedScreen(@Nullable E startingState, Class<T> childClass, Class<E> stateClass) {
         super(Text.empty());
@@ -63,7 +62,6 @@ public abstract class AnimatedScreen<
         this.firstStateTick = true;
         this.firstState = true;
         this.wasHudState = false;
-        this.renderHudTick = false;
 
         if (!HUD_HOOK_CREATED) {
             HudRenderCallback.EVENT.register((context, delta) -> {
@@ -97,14 +95,6 @@ public abstract class AnimatedScreen<
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        if (this.isHudState()) {
-            this.renderHudTick = !this.renderHudTick;
-
-            if (!this.renderHudTick) {
-                delta = 0;
-            }
-        }
-
         super.render(context, mouseX, mouseY, delta);
 
         if (this.stateEndTime <= this.uptimeSecs) {
@@ -113,7 +103,9 @@ public abstract class AnimatedScreen<
             if (this.state == null) return;
         }
 
-        this.uptimeSecs += delta / ModUtilClient.getTicksPerSecond();
+        float divisor = this.isHudState() ? MCTournament.client().getCurrentFps() : ModUtilClient.getTicksPerSecond();
+//        float divisor = ModUtilClient.getTicksPerSecond();
+        this.uptimeSecs += delta / divisor;
         this.stateProgress = ModUtil.lerpPercent(this.stateStartTime, this.stateEndTime, this.uptimeSecs);
         this.stateProgressPercent = (int) (this.stateProgress * 100);
 
