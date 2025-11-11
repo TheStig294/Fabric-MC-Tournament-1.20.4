@@ -83,7 +83,7 @@ public class ScoreScreenHandler {
             PlayerEntity captain = this.teams.getTeamCaptain(team);
             if (captain == null) continue;
 
-            if (this.minigame.isDead(captain)) {
+            if (this.minigame.scoreboard().getBoolean(captain, TriviaMurderParty.Objectives.IS_DEAD)) {
                 if (lastAliveTeam == null) {
                     lastAliveTeam = team;
                 } else {

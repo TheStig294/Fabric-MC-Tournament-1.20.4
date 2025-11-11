@@ -3,12 +3,13 @@
   "package": "net.thestig294.mctournament.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "JigsawMixin"
+    "JigsawMixin",
+    "ScoreboardMixin"
   ],
   "client": [
     "AnimatedScreenMixin",
-    "TransparentPlayerMixin",
-    "MinecraftClientInvoker"
+    "MinecraftClientInvoker",
+    "TransparentPlayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

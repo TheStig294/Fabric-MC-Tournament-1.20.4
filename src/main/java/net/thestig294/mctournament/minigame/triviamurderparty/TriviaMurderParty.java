@@ -2,7 +2,6 @@ package net.thestig294.mctournament.minigame.triviamurderparty;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -101,10 +100,6 @@ public class TriviaMurderParty extends Minigame {
 
     public void startFinalRound() {
 
-    }
-
-    public boolean isDead(PlayerEntity player) {
-        return this.scoreboard().getBoolean(player, Objectives.IS_DEAD);
     }
 
     public void setDead(ServerPlayerEntity player, boolean isDead) {

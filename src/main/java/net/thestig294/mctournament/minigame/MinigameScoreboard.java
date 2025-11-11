@@ -65,13 +65,8 @@ public class MinigameScoreboard {
     private @Nullable ScoreboardObjective setNetworkedObjective(@Nullable ScoreboardObjective objective) {
         if (objective == null) return null;
 
-        if (!trackedObjectives.contains(objective) && this.scoreboard instanceof ServerScoreboard serverScoreboard) {
-            if (serverScoreboard.getNullableObjective(objective.getName()) == null) {
-                serverScoreboard.addScoreboardObjective(objective);
-            } else {
-                serverScoreboard.updateExistingObjective(objective);
-            }
-
+        if (this.scoreboard instanceof ServerScoreboard serverScoreboard && !this.trackedObjectives.contains(objective)) {
+            serverScoreboard.addScoreboardObjective(objective);
             this.trackedObjectives.add(objective);
         }
 
@@ -180,8 +175,8 @@ public class MinigameScoreboard {
         if (this.initScoreboard()) return;
 
         ScoreboardObjective objective = this.getOrCreateObjective(objectiveName);
-        this.scoreboard.getOrCreateScore(ScoreHolder.fromName(playerName), objective).setScore(score);
-        this.setNetworkedObjective(objective);
+        ScoreHolder scoreHolder = ScoreHolder.fromName(playerName);
+        this.scoreboard.getOrCreateScore(scoreHolder, objective).setScore(score);
     }
 
     public void addScore(Team team, int score) {
