@@ -17,7 +17,6 @@ import net.thestig294.mctournament.util.ModTimer;
 import net.thestig294.mctournament.util.ModUtil;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static net.thestig294.mctournament.structure.ModStructures.registerJigsawStartPool;
@@ -73,7 +72,13 @@ public class QuestionScreenHandler {
 
             if (isCaptain && !this.answeredCaptains.containsKey(playerName)) {
                 this.answeredCaptains.put(playerName, isCorrect);
-                if (isCorrect && team != null) this.scoreboard.addScore(team, CORRECT_ANSWER_POINTS);
+
+                if (team != null) {
+                    if (isCorrect) this.scoreboard.addScore(team, CORRECT_ANSWER_POINTS);
+
+                    this.minigame.teams().getConnectedTeamMembers(team).forEach(player ->
+                            this.scoreboard.setBoolean(player, TriviaMurderParty.Objectives.IS_CORRECT, isCorrect));
+                }
 
 //                Ending answering once all captains have answered
                 int answeredPlayers = this.answeredCaptains.size();
@@ -103,18 +108,6 @@ public class QuestionScreenHandler {
         ModNetworking.serverReceive(TriviaMurderParty.NetworkIDs.QUESTION_SCREEN_START_KILLING_ROOM, serverReceiveInfo -> {
             if (this.state != State.POST_ANSWERING) return;
             this.state = State.DISABLED;
-
-            this.answeredCaptains.forEach((captainName, isCorrect) -> {
-                ServerPlayerEntity captain = ModUtil.getServerPlayer(captainName);
-                if (captain == null) return;
-
-                Team team = captain.getScoreboardTeam();
-                if (team == null) return;
-                List<ServerPlayerEntity> teamMembers = this.minigame.teams().getConnectedTeamMembers(team);
-
-                teamMembers.forEach(player ->
-                        this.scoreboard.setBoolean(player, TriviaMurderParty.Objectives.IS_CORRECT, isCorrect));
-            });
 
             this.minigame.startKillingRoom();
         });

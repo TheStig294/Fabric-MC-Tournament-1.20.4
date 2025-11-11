@@ -181,6 +181,7 @@ public class MinigameScoreboard {
 
         ScoreboardObjective objective = this.getOrCreateObjective(objectiveName);
         this.scoreboard.getOrCreateScore(ScoreHolder.fromName(playerName), objective).setScore(score);
+        this.setNetworkedObjective(objective);
     }
 
     public void addScore(Team team, int score) {
@@ -230,6 +231,7 @@ public class MinigameScoreboard {
         this.scoreboard.setObjectiveSlot(slot, null);
     }
 
+    @SuppressWarnings("unused")
     public @Nullable Scoreboard getScoreboard() {
         this.initScoreboard();
         return this.scoreboard;
