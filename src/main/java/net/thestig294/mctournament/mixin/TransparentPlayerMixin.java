@@ -21,7 +21,7 @@ public abstract class TransparentPlayerMixin {
             )}
     )
     private float overrideInvisibilityAlpha(float original) {
-        return 0.65F;
+        return 0.35F;
     }
 
     @ModifyVariable(

@@ -32,7 +32,6 @@ public abstract class AnimatedScreen<
     public static boolean HUD_HOOK_CREATED = false;
     public static AnimatedScreen<?,?> ACTIVE_HUD_SCREEN = null;
 
-    private final Screen parent;
     private final Class<T> childClass;
     private final Class<E> stateClass;
 
@@ -50,7 +49,6 @@ public abstract class AnimatedScreen<
 
     public AnimatedScreen(@Nullable E startingState, Class<T> childClass, Class<E> stateClass) {
         super(Text.empty());
-        this.parent = MCTournament.client().currentScreen;
         this.childClass = childClass;
         this.stateClass = stateClass;
 
@@ -185,11 +183,6 @@ public abstract class AnimatedScreen<
         }
 
         return super.keyPressed(keyCode, scanCode, modifiers);
-    }
-
-    @Override
-    public void close() {
-        MCTournament.client().setScreen(this.parent);
     }
 
     @Override
