@@ -64,14 +64,14 @@ public class ScoreScreenHandler {
 
     @SuppressWarnings("unused")
     private float getQuipLength(boolean finalRound) {
-        return 5.0f;
+        return 10.0f;
     }
 
     /**
      * Gets the team that should be the last alive team going into the final round. <p>
      * If there is more than one team still alive, returns {@code null} to signify the final round should not yet begin. </p>
-     * If all teams are dead, the team with the highest score is selected, ties are broken randomly.
-     * @return The final {@link Team} to go into the final round, or {@code null} if the final round shouldn't start yet
+     * If all teams are dead, the team with the highest score is selected and set to be alive again, ties are broken randomly.
+     * @return The {@link Team} to go into the final round, or {@code null} if the final round shouldn't start yet
      */
     private @Nullable Team getFinalRoundAliveTeam() {
         List<Team> connectedTeams = this.teams.getConnectedTeams();
@@ -115,6 +115,7 @@ public class ScoreScreenHandler {
 
     public void broadcastNextScoreScreen() {
         ModStructures.place(SCORE_ROOM, this.position);
+        this.teams.setGlobalNametagVisibility(true);
 
         this.timesInScoreRoom++;
         for (int i = 0; i < Math.min(this.timesInScoreRoom, ELEVATOR_LIGHT_REDSTONE_OFFSETS.size()); i++) {
@@ -162,6 +163,8 @@ public class ScoreScreenHandler {
         float quipDelaySecs = this.getQuipLength(isFinalRound);
         
         ModTimer.simple(false, quipDelaySecs, () -> {
+            this.teams.setGlobalNametagVisibility(false);
+            this.minigame.scoreboard().setDisplay(ScoreboardDisplaySlot.BELOW_NAME, null);
             if (isFinalRound) {
                 this.minigame.startFinalRound();
             } else {

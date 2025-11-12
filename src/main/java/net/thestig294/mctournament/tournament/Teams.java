@@ -415,6 +415,10 @@ public class Teams {
         this.forAllTeams(team -> team.setShowFriendlyInvisibles(isVisible));
     }
 
+    public void setGlobalFriendlyFire(boolean friendlyFire) {
+        this.forAllTeams(team -> team.setFriendlyFireAllowed(friendlyFire));
+    }
+
     public void sendChatMessage(Team team, Text message) {
         this.getConnectedTeamMembers(team).forEach(player -> player.sendMessage(message, false));
     }

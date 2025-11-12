@@ -15,7 +15,7 @@ import java.util.Objects;
 import java.util.Set;
 
 public class MinigameScoreboard {
-    public static final String MAIN_OBJECTIVE_NAME = "main_score";
+    public static final String MAIN_OBJECTIVE_NAME = "Score";
 
     private final Minigame minigame;
     private final boolean isClient;
@@ -211,10 +211,10 @@ public class MinigameScoreboard {
     }
 
     public void setDisplay(ScoreboardDisplaySlot slot) {
-        this.setDisplay(MAIN_OBJECTIVE_NAME, slot);
+        this.setDisplay(slot, MAIN_OBJECTIVE_NAME);
     }
 
-    public void setDisplay(String objectiveName, ScoreboardDisplaySlot slot) {
+    public void setDisplay(ScoreboardDisplaySlot slot, String objectiveName) {
         ScoreboardObjective objective = this.getObjective(objectiveName);
         if (objective == null) return;
         this.scoreboard.setObjectiveSlot(slot, objective);

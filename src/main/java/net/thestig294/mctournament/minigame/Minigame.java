@@ -62,6 +62,7 @@ public abstract class Minigame {
         this.teams().updateOverallScores();
         this.teams().setGlobalNametagVisibility(true);
         this.teams().setGlobalShowFriendlyInvisibles(true);
+        this.teams().setGlobalFriendlyFire(true);
         this.scoreboard.clear();
         ModUtil.forAllPlayers(LivingEntity::clearStatusEffects);
     }
