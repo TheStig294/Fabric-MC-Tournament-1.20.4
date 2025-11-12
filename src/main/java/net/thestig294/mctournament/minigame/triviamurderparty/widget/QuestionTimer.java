@@ -7,7 +7,7 @@ import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.sound.SoundManager;
 import net.minecraft.text.Text;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
-import net.thestig294.mctournament.util.ModUtilClient;
+import net.thestig294.mctournament.screen.AnimatedScreen;
 
 public class QuestionTimer extends ClickableWidget implements QuestionWidget {
     private static final int MIN_LENGTH = 0;
@@ -16,7 +16,7 @@ public class QuestionTimer extends ClickableWidget implements QuestionWidget {
     private int length;
     private final float tickFrequency;
     private final float startDelay;
-    private float totalDelta;
+    private final AnimatedScreen<?,?> screen;
     private float nextDeltaTick;
     private int ticksLeft;
     private final int originalX;
@@ -24,12 +24,13 @@ public class QuestionTimer extends ClickableWidget implements QuestionWidget {
     private final int originalWidth;
     private final int originalHeight;
 
-    public QuestionTimer(int x, int y, int width, int height, int length, float tickFrequency, float startDelay) {
+    public QuestionTimer(int x, int y, int width, int height, int length, float tickFrequency, float startDelay, AnimatedScreen<?,?> screen) {
         super(x, y, width, height, Text.empty());
 
         this.length = length;
         this.tickFrequency = tickFrequency;
         this.startDelay = startDelay;
+        this.screen = screen;
         this.reset();
         this.originalX = x;
         this.originalY = y;
@@ -41,9 +42,8 @@ public class QuestionTimer extends ClickableWidget implements QuestionWidget {
     protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
         context.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
         RenderSystem.enableBlend();
-        this.totalDelta += delta;
 
-        if (this.totalDelta / ModUtilClient.getTicksPerSecond() >= this.nextDeltaTick && this.ticksLeft > 0) {
+        if (this.screen.getUptimeSecs() >= this.nextDeltaTick && this.ticksLeft > 0) {
             this.ticksLeft--;
             this.nextDeltaTick += this.tickFrequency;
         }
@@ -61,8 +61,7 @@ public class QuestionTimer extends ClickableWidget implements QuestionWidget {
     }
 
     public void reset(float startDelay) {
-        this.totalDelta = 0.0f;
-        this.nextDeltaTick = this.tickFrequency + startDelay;
+        this.nextDeltaTick = this.tickFrequency + startDelay + this.screen.getUptimeSecs();
         this.ticksLeft = Math.max(MIN_LENGTH, Math.min(length, MAX_LENGTH));
     }
 

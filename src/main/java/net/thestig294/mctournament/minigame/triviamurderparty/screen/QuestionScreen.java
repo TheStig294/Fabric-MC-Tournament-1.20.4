@@ -115,7 +115,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
                 "ANSWERED", TriviaMurderParty.Fonts.QUESTION_ANSWER, 10, ModColors.GREY, 100, this.textRenderer)));
 
         this.timerWidget = this.addDrawableChild(new QuestionTimer(this.width / 3, this.height - 64,
-                64, 64, this.answeringTimeSeconds, 1.0f, TIMER_MOVE_TIME));
+                64, 64, this.answeringTimeSeconds, 1.0f, TIMER_MOVE_TIME, this));
 
         this.roomCodeWidgets.clear();
         this.roomCodeWidgets.add(this.addDrawableChild(new QuestionText( this.width - 40, this.height - 12,

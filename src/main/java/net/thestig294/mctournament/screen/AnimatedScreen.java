@@ -104,7 +104,6 @@ public abstract class AnimatedScreen<
         }
 
         float divisor = this.isHudState() ? MCTournament.client().getCurrentFps() : ModUtilClient.getTicksPerSecond();
-//        float divisor = ModUtilClient.getTicksPerSecond();
         this.uptimeSecs += delta / divisor;
         this.stateProgress = ModUtil.lerpPercent(this.stateStartTime, this.stateEndTime, this.uptimeSecs);
         this.stateProgressPercent = (int) (this.stateProgress * 100);
@@ -143,11 +142,9 @@ public abstract class AnimatedScreen<
             ACTIVE_HUD_SCREEN = null;
             return;
         } else if (this.isHudState()) {
-            MCTournament.client().setScreen(null);
             ACTIVE_HUD_SCREEN = this.toChild();
         } else if (!this.isHudState() && this.wasHudState){
             ACTIVE_HUD_SCREEN = null;
-            MCTournament.client().setScreen(this);
         }
 
         this.firstState = false;
@@ -253,6 +250,10 @@ public abstract class AnimatedScreen<
 
     public Class<E> getStateClass() {
         return this.stateClass;
+    }
+
+    public float getUptimeSecs() {
+        return this.uptimeSecs;
     }
 
     public interface State<T extends AnimatedScreen<T, ? extends State<T>>> {

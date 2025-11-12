@@ -69,7 +69,7 @@ public class KillingRoomScreen extends AnimatedScreen<KillingRoomScreen, Killing
                 20, ModColors.WHITE, this.width / 2, this.textRenderer));
 
         this.timerWidget = this.addDrawableChild(new QuestionTimer(0, 0, 64, 64, this.timerLength,
-                1.0f, TIMER_MOVE_TIME));
+                1.0f, TIMER_MOVE_TIME, this));
         this.timerDescriptionWidget = this.addDrawableChild(new QuestionText(this.hudWidth() / 2, 30, this.timerDescription,
                 20, ModColors.WHITE, this.hudWidth() * 2 / 3, this.textRenderer));
 
