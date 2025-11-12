@@ -18,6 +18,7 @@ import java.util.Set;
 
 public abstract class DeathRoom {
     private static final float BEGIN_DELAY = 3.0f;
+    private static final float RESPAWN_DELAY = 0.1f;
     private static final BlockPos DEFAULT_STRUCTURE_OFFSET = new BlockPos(7,1,15);
 
     private static final List<BlockPos> DEFAULT_REDSTONE_OFFSETS = List.of(
@@ -101,7 +102,7 @@ public abstract class DeathRoom {
             }
         });
 
-        ModTimer.simple(false, this.getDeathDelay() + 0.1f, this.minigame::startScoreScreen);
+        ModTimer.simple(false, this.getDeathDelay() + RESPAWN_DELAY, this.minigame::startScoreScreen);
     }
 
     public abstract void begin();

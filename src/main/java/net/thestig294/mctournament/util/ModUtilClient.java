@@ -2,8 +2,8 @@ package net.thestig294.mctournament.util;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.gui.screen.DeathScreen;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
@@ -25,10 +25,9 @@ public class ModUtilClient {
 
     public static void init() {
         ModNetworking.clientReceive(ModNetworking.REQUEST_RESPAWN, clientReceiveInfo -> {
-            ClientPlayerEntity client = MCTournament.client().player;
-            if (client == null) return;
-            client.requestRespawn();
-            MCTournament.client().setScreen(null);
+            if (MCTournament.client().currentScreen instanceof DeathScreen deathScreen) {
+                deathScreen.close();
+            }
         });
 
         ModNetworking.clientReceive(ModNetworking.SET_TRANSPARENT, clientReceiveInfo -> {

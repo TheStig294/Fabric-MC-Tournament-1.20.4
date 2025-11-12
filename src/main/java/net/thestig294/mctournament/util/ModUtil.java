@@ -217,6 +217,7 @@ public class ModUtil {
 
     public static void respawnIfDead(ServerPlayerEntity player) {
         if (player.isAlive()) return;
+        player.networkHandler.player = player.server.getPlayerManager().respawnPlayer(player, false);
         ModNetworking.send(ModNetworking.REQUEST_RESPAWN, player);
     }
 
