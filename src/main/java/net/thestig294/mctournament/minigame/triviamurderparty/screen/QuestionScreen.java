@@ -7,6 +7,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.sound.SoundEvents;
 import net.thestig294.mctournament.MCTournament;
+import net.thestig294.mctournament.minigame.MinigameScoreboard;
+import net.thestig294.mctournament.minigame.Minigames;
 import net.thestig294.mctournament.minigame.triviamurderparty.TriviaMurderParty;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Question;
 import net.thestig294.mctournament.minigame.triviamurderparty.question.Questions;
@@ -30,6 +32,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
     private static final float TIMER_MOVE_TIME = 1.0f;
     private static final int ANSWER_SIZE_MULTIPLIER = 2;
 
+    private final MinigameScoreboard scoreboard;
     private final Question question;
     private final int questionNumber;
     private final int answeringTimeSeconds;
@@ -50,6 +53,7 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
 
     public QuestionScreen(Question question, int questionNumber, int answeringTimeSeconds, State startingState) {
         super(startingState, QuestionScreen.class, State.class);
+        this.scoreboard = Minigames.TRIVIA_MURDER_PARTY.clientScoreboard();
         this.question = question;
         this.questionNumber = questionNumber;
         this.answeringTimeSeconds = answeringTimeSeconds;
@@ -456,11 +460,46 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
                 });
             }
             public float duration(QuestionScreen screen) {return 0.5f;}
+            public AnimatedScreen.State<QuestionScreen> next(QuestionScreen screen) {return screen.playerWidgets.stream().anyMatch(screen::isPlayerDead) ? DEAD_INCORRECT_HOLD : INCORRECT_QUIP;}
+        },
+        DEAD_INCORRECT_HOLD {
+            public boolean isHudState(QuestionScreen screen) {return true;}
+            public void render(QuestionScreen screen) {}
+            public void refresh(QuestionScreen screen) {REVEAL_INCORRECT_CROSSES.refresh(screen);}
+            public float duration(QuestionScreen screen) {return 0.5f;}
+        },
+        DEAD_INCORRECT_FADE {
+            public boolean isHudState(QuestionScreen screen) {return true;}
+            public void render(QuestionScreen screen) {
+                screen.playerWidgets.forEach(widget -> {
+                    if (screen.isPlayerDead(widget)) {
+                        screen.animate(widget::setAlpha, 1.0f, 0.0f);
+                        QuestionImage cross = widget.getCrossWidget();
+                        if (cross == null) return;
+                        screen.animate(cross::setAlpha, 1.0f, 0.0f);
+                    }
+                });
+            }
+            public void refresh(QuestionScreen screen) {
+                screen.resetMainHUD();
+                screen.resetRevealedAnswer();
+                screen.playerWidgets.forEach(widget -> {
+                    if (screen.isPlayerCorrect(widget) || screen.isPlayerDead(widget)) {
+                        widget.setY(widget.getOriginalY() - widget.getHeight());
+                    } else {
+                        widget.setAnswerState(QuestionPlayer.AnswerState.INCORRECT);
+                        QuestionImage crossWidget = widget.getCrossWidget();
+                        if (crossWidget == null) return;
+                        crossWidget.setAlpha(1.0f);
+                    }
+                });
+            }
+            public float duration(QuestionScreen screen) {return 1.0f;}
         },
         INCORRECT_QUIP {
             public boolean isHudState(QuestionScreen screen) {return true;}
             public void render(QuestionScreen screen) {}
-            public void refresh(QuestionScreen screen) {REVEAL_INCORRECT_CROSSES.refresh(screen);}
+            public void refresh(QuestionScreen screen) {DEAD_INCORRECT_FADE.refresh(screen);}
             public float duration(QuestionScreen screen) {return screen.getQuip(QuipType.INCORRECT);}
             public State next(QuestionScreen screen) {return ModUtil.random(true).nextBoolean() ? KILLING_ROOM_TRANSITION_MOVE : KILLING_ROOM_TRANSITION_LIGHTS;}
         },
@@ -681,6 +720,10 @@ public class QuestionScreen extends AnimatedScreen<QuestionScreen, QuestionScree
 
     private boolean isPlayerCorrect(QuestionPlayer playerWidget) {
         return this.question.isCorrect(this.captainAnswers.getOrDefault(playerWidget.getPlayerName(), -1));
+    }
+
+    private boolean isPlayerDead(QuestionPlayer playerWidget) {
+        return this.scoreboard.getBoolean(playerWidget.getPlayerName(), TriviaMurderParty.Objectives.IS_DEAD);
     }
 
     public enum QuipType {
