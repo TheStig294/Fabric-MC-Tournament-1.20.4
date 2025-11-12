@@ -10,10 +10,10 @@ import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.text.Text;
+import net.minecraft.util.Util;
 import net.thestig294.mctournament.MCTournament;
 import net.thestig294.mctournament.mixin.MinecraftClientInvoker;
 import net.thestig294.mctournament.util.ModUtil;
-import net.thestig294.mctournament.util.ModUtilClient;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
@@ -38,6 +38,7 @@ public abstract class AnimatedScreen<
 
     @Nullable
     private E state;
+    private float lastTickTime;
     private float uptimeSecs;
     private float stateEndTime;
     private float stateStartTime;
@@ -54,6 +55,7 @@ public abstract class AnimatedScreen<
         this.stateClass = stateClass;
 
         this.state = startingState;
+        this.lastTickTime = Util.getMeasuringTimeMs() / 1000.0f;
         this.uptimeSecs = 0.0f;
         this.stateEndTime = 0.0f;
         this.stateStartTime = 0.0f;
@@ -103,8 +105,9 @@ public abstract class AnimatedScreen<
             if (this.state == null) return;
         }
 
-        float divisor = this.isHudState() ? MCTournament.client().getCurrentFps() : ModUtilClient.getTicksPerSecond();
-        this.uptimeSecs += delta / divisor;
+        float currentTickTime = Util.getMeasuringTimeMs() / 1000.0f;
+        this.uptimeSecs += currentTickTime - this.lastTickTime;
+        this.lastTickTime = currentTickTime;
         this.stateProgress = ModUtil.lerpPercent(this.stateStartTime, this.stateEndTime, this.uptimeSecs);
         this.stateProgressPercent = (int) (this.stateProgress * 100);
 
@@ -143,8 +146,12 @@ public abstract class AnimatedScreen<
             return;
         } else if (this.isHudState()) {
             ACTIVE_HUD_SCREEN = this.toChild();
+            if (MCTournament.client().currentScreen instanceof AnimatedScreen<?,?> animatedScreen) {
+                animatedScreen.close();
+            }
         } else if (!this.isHudState() && this.wasHudState){
             ACTIVE_HUD_SCREEN = null;
+            MCTournament.client().setScreen(this);
         }
 
         this.firstState = false;
